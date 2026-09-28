@@ -1,1 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>配達リザルト</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    .app {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    h1 {
+      margin: 4px 0 16px;
+      font-size: 24px;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .tab {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 4px;
+      background: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: #222;
+      color: white;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+
+    .main-value {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 6px 0;
+    }
+
+    .label {
+      color: #777;
+      font-size: 13px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .item {
+      background: #fafafa;
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .value {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+
+    .section-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .record {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .record:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <h1>🚴 配達リザルト</h1>
+
+    <div class="tabs">
+      <button class="tab active" onclick="changeTab(this, '日')">日</button>
+      <button class="tab" onclick="changeTab(this, '週')">週</button>
+      <button class="tab" onclick="changeTab(this, '月')">月</button>
+      <button class="tab" onclick="changeTab(this, '年')">年</button>
+    </div>
+
+    <div class="card">
+      <div class="label" id="period">今日の売上</div>
+      <div class="main-value">¥0</div>
+      <div class="label">配達件数 0件</div>
+    </div>
+
+    <div class="grid">
+      <div class="item">
+        <div class="label">平均単価</div>
+        <div class="value">¥0</div>
+      </div>
+
+      <div class="item">
+        <div class="label">稼働時間</div>
+        <div class="value">0時間</div>
+      </div>
+
+      <div class="item">
+        <div class="label">目標金額</div>
+        <div class="value">¥0</div>
+      </div>
+
+      <div class="item">
+        <div class="label">達成率</div>
+        <div class="value">0%</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">📊 詳細分析</div>
+
+      <div class="grid">
+        <div class="item">
+          <div class="label">1日平均売上</div>
+          <div class="value">¥0</div>
+        </div>
+
+        <div class="item">
+          <div class="label">稼働日数</div>
+          <div class="value">0日</div>
+        </div>
+
+        <div class="item">
+          <div class="label">月間最高売上</div>
+          <div class="value">¥0</div>
+        </div>
+
+        <div class="item">
+          <div class="label">月間最高件数</div>
+          <div class="value">0件</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">🚚 累計配達</div>
+      <div class="main-value">0件</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">📋 配達記録</div>
+
+      <div class="record">
+        <span>まだ記録がありません</span>
+        <span>—</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function changeTab(button, period) {
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+
+      button.classList.add('active');
+
+      const title = document.getElementById('period');
+
+      if (period === '日') {
+        title.textContent = '今日の売上';
+      } else if (period === '週') {
+        title.textContent = '今週の売上';
+      } else if (period === '月') {
+        title.textContent = '今月の売上';
+      } else {
+        title.textContent = '今年の売上';
+      }
+    }
+  </script>
+
+</body>
+</html>
