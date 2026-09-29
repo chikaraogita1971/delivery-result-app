@@ -172,8 +172,8 @@ export default async function handler(req, res) {
 
       const goal = Number(parts[1]);
 
-      if (!Number.isInteger(goal) || goal <= 0) {
-        await reply("目標金額は1円以上の整数で入力してください。");
+      if (!Number.isInteger(goal) || goal < 0) {
+        await reply("目標金額は0円以上の整数で入力してください。");
         return res.status(200).send("OK");
       }
 
