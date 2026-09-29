@@ -33,8 +33,49 @@ export default async function handler(req, res) {
       });
     }
 
+    // Telegramのコマンドメニューを登録
+    async function setCommands() {
+      const commandsUrl =
+        `https://api.telegram.org/bot${process.env.BOT_TOKEN}/setMyCommands`;
+
+      await fetch(commandsUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          commands: [
+            {
+              command: "start",
+              description: "スタート画面"
+            },
+            {
+              command: "add",
+              description: "配達実績を追加"
+            },
+            {
+              command: "cancel",
+              description: "最後の入力を取り消し"
+            },
+            {
+              command: "goal",
+              description: "月間目標を設定"
+            },
+            {
+              command: "help",
+              description: "コマンド一覧"
+            }
+          ]
+        })
+      });
+    }
+
     // /start
     if (text === "/start") {
+
+      // コマンドメニューを登録
+      await setCommands();
+
       const goalRows = await sql`
         SELECT monthly_goal
         FROM delivery_goals
@@ -62,7 +103,7 @@ export default async function handler(req, res) {
         `今月の売上：${sales.toLocaleString()}円\n` +
         `件数：${count}件\n` +
         `稼働時間：${hours}時間\n` +
-        `月間目標：${goal.toLocaleString()}円\n\n` +
+        `月間目標：${Number(goal).toLocaleString()}円\n\n` +
         `実績追加：/add 売上 件数 時間\n` +
         `目標設定：/goal 金額\n` +
         `取り消し：/cancel\n` +
@@ -76,11 +117,23 @@ export default async function handler(req, res) {
     if (text === "/help") {
       await reply(
         `📋 配達リザルト コマンド\n\n` +
-        `/start\nスタート画面\n\n` +
-        `/add 売上 件数 時間\n当日の実績を追加\n例：/add 15000 25 8\n\n` +
-        `/cancel\n最後の入力を取り消し\n\n` +
-        `/goal 金額\n月間目標を設定・変更\n例：/goal 300000\n\n` +
-        `/help\nコマンド一覧`
+        `/start\n` +
+        `スタート画面\n\n` +
+
+        `/add 売上 件数 時間\n` +
+        `当日の実績を追加\n` +
+        `例：/add 15000 25 8\n\n` +
+
+        `/cancel\n` +
+        `最後の入力を取り消し\n\n` +
+
+        `/goal 金額\n` +
+        `月間目標を設定・変更\n` +
+        `例：/goal 300000\n` +
+        `目標なしにする場合：/goal 0\n\n` +
+
+        `/help\n` +
+        `コマンド一覧`
       );
 
       return res.status(200).send("OK");
@@ -91,7 +144,10 @@ export default async function handler(req, res) {
       const parts = text.split(/\s+/);
 
       if (parts.length !== 4) {
-        await reply("使い方：/add 売上 件数 時間\n例：/add 15000 25 8");
+        await reply(
+          "使い方：/add 売上 件数 時間\n例：/add 15000 25 8"
+        );
+
         return res.status(200).send("OK");
       }
 
@@ -107,7 +163,10 @@ export default async function handler(req, res) {
         !Number.isFinite(hours) ||
         hours < 0
       ) {
-        await reply("入力値を確認してください。\n例：/add 15000 25 8");
+        await reply(
+          "入力値を確認してください。\n例：/add 15000 25 8"
+        );
+
         return res.status(200).send("OK");
       }
 
@@ -166,36 +225,62 @@ export default async function handler(req, res) {
       const parts = text.split(/\s+/);
 
       if (parts.length !== 2) {
-        await reply("使い方：/goal 金額\n例：/goal 300000");
+        await reply(
+          "使い方：/goal 金額\n" +
+          "例：/goal 300000\n" +
+          "目標なしにする場合：/goal 0"
+        );
+
         return res.status(200).send("OK");
       }
 
       const goal = Number(parts[1]);
 
+      // 0円以上を許可
       if (!Number.isInteger(goal) || goal < 0) {
-        await reply("目標金額は0円以上の整数で入力してください。");
+        await reply(
+          "目標金額は0円以上の整数で入力してください。"
+        );
+
         return res.status(200).send("OK");
       }
 
       await sql`
-        INSERT INTO delivery_goals (telegram_user_id, monthly_goal)
-        VALUES (${chatId}, ${goal})
+        INSERT INTO delivery_goals
+          (telegram_user_id, monthly_goal)
+        VALUES
+          (${chatId}, ${goal})
         ON CONFLICT (telegram_user_id)
         DO UPDATE SET
           monthly_goal = EXCLUDED.monthly_goal,
           updated_at = NOW()
       `;
 
-      await reply(`🎯 月間目標を${goal.toLocaleString()}円に設定しました。`);
+      if (goal === 0) {
+        await reply(
+          `🎯 月間目標を0円にしました。\n` +
+          `目標なしの状態です。`
+        );
+      } else {
+        await reply(
+          `🎯 月間目標を${goal.toLocaleString()}円に設定しました。`
+        );
+      }
 
       return res.status(200).send("OK");
     }
 
-    await reply("認識できないコマンドです。\n/help でコマンド一覧を確認できます。");
+    // 未知のコマンド
+    await reply(
+      "認識できないコマンドです。\n" +
+      "/help でコマンド一覧を確認できます。"
+    );
 
     return res.status(200).send("OK");
+
   } catch (error) {
     console.error("Telegram Bot error:", error);
+
     return res.status(500).send("Internal Server Error");
   }
 }
