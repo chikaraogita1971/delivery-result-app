@@ -11,14 +11,17 @@ export default async function handler(req, res) {
     const update = req.body;
     const message = update?.message;
 
-    if (!message?.text || !message?.chat?.id) {
+    if (!message?.text || !message?.chat?.id || !message?.from?.id) {
       return res.status(200).send("OK");
     }
 
+    // Telegramユーザー本人のIDを使用
+    const telegramUserId = String(message.from.id);
     const chatId = String(message.chat.id);
     const text = message.text.trim();
 
-    const telegramUrl = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`;
+    const telegramUrl =
+      `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`;
 
     async function reply(text) {
       await fetch(telegramUrl, {
@@ -72,14 +75,12 @@ export default async function handler(req, res) {
 
     // /start
     if (text === "/start") {
-
-      // コマンドメニューを登録
       await setCommands();
 
       const goalRows = await sql`
         SELECT monthly_goal
         FROM delivery_goals
-        WHERE telegram_user_id = ${chatId}
+        WHERE telegram_user_id = ${telegramUserId}
       `;
 
       const resultRows = await sql`
@@ -88,7 +89,7 @@ export default async function handler(req, res) {
           COALESCE(SUM(delivery_count), 0) AS count,
           COALESCE(SUM(work_hours), 0) AS hours
         FROM delivery_results
-        WHERE telegram_user_id = ${chatId}
+        WHERE telegram_user_id = ${telegramUserId}
           AND created_at >= date_trunc('month', CURRENT_DATE)
           AND created_at < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
       `;
@@ -174,7 +175,7 @@ export default async function handler(req, res) {
         INSERT INTO delivery_results
           (telegram_user_id, sale_amount, delivery_count, work_hours)
         VALUES
-          (${chatId}, ${sale}, ${count}, ${hours})
+          (${telegramUserId}, ${sale}, ${count}, ${hours})
       `;
 
       await reply(
@@ -192,7 +193,7 @@ export default async function handler(req, res) {
       const rows = await sql`
         SELECT id, sale_amount, delivery_count, work_hours
         FROM delivery_results
-        WHERE telegram_user_id = ${chatId}
+        WHERE telegram_user_id = ${telegramUserId}
         ORDER BY created_at DESC, id DESC
         LIMIT 1
       `;
@@ -207,7 +208,7 @@ export default async function handler(req, res) {
       await sql`
         DELETE FROM delivery_results
         WHERE id = ${last.id}
-          AND telegram_user_id = ${chatId}
+          AND telegram_user_id = ${telegramUserId}
       `;
 
       await reply(
@@ -249,7 +250,7 @@ export default async function handler(req, res) {
         INSERT INTO delivery_goals
           (telegram_user_id, monthly_goal)
         VALUES
-          (${chatId}, ${goal})
+          (${telegramUserId}, ${goal})
         ON CONFLICT (telegram_user_id)
         DO UPDATE SET
           monthly_goal = EXCLUDED.monthly_goal,
