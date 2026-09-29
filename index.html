@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>配達リザルト</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -100,6 +103,12 @@
     .record:last-child {
       border-bottom: none;
     }
+
+    .error {
+      color: #c00;
+      text-align: center;
+      padding: 20px;
+    }
   </style>
 </head>
 
@@ -116,30 +125,30 @@
     </div>
 
     <div class="card">
-      <div class="label" id="period">今日の売上</div>
-      <div class="main-value">¥0</div>
-      <div class="label">配達件数 0件</div>
+      <div class="label" id="period">今月の売上</div>
+      <div class="main-value" id="sales">読み込み中...</div>
+      <div class="label">配達件数 <span id="count">-</span>件</div>
     </div>
 
     <div class="grid">
       <div class="item">
         <div class="label">平均単価</div>
-        <div class="value">¥0</div>
+        <div class="value" id="average">¥0</div>
       </div>
 
       <div class="item">
         <div class="label">稼働時間</div>
-        <div class="value">0時間</div>
+        <div class="value" id="hours">0時間</div>
       </div>
 
       <div class="item">
         <div class="label">目標金額</div>
-        <div class="value">¥0</div>
+        <div class="value" id="goal">¥0</div>
       </div>
 
       <div class="item">
         <div class="label">達成率</div>
-        <div class="value">0%</div>
+        <div class="value" id="rate">0%</div>
       </div>
     </div>
 
@@ -149,36 +158,36 @@
       <div class="grid">
         <div class="item">
           <div class="label">1日平均売上</div>
-          <div class="value">¥0</div>
+          <div class="value" id="dailyAverage">¥0</div>
         </div>
 
         <div class="item">
           <div class="label">稼働日数</div>
-          <div class="value">0日</div>
+          <div class="value">-</div>
         </div>
 
         <div class="item">
           <div class="label">月間最高売上</div>
-          <div class="value">¥0</div>
+          <div class="value">-</div>
         </div>
 
         <div class="item">
           <div class="label">月間最高件数</div>
-          <div class="value">0件</div>
+          <div class="value">-</div>
         </div>
       </div>
     </div>
 
     <div class="card">
       <div class="section-title">🚚 累計配達</div>
-      <div class="main-value">0件</div>
+      <div class="main-value" id="totalCount">0件</div>
     </div>
 
     <div class="card">
       <div class="section-title">📋 配達記録</div>
 
       <div class="record">
-        <span>まだ記録がありません</span>
+        <span id="status">データを読み込んでいます...</span>
         <span>—</span>
       </div>
     </div>
@@ -186,25 +195,85 @@
   </div>
 
   <script>
-    function changeTab(button, period) {
-      document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
-      });
+    const tg = window.Telegram.WebApp;
 
-      button.classList.add('active');
+    tg.ready();
+    tg.expand();
 
-      const title = document.getElementById('period');
+    function yen(value) {
+      return "¥" + Number(value || 0).toLocaleString();
+    }
 
-      if (period === '日') {
-        title.textContent = '今日の売上';
-      } else if (period === '週') {
-        title.textContent = '今週の売上';
-      } else if (period === '月') {
-        title.textContent = '今月の売上';
-      } else {
-        title.textContent = '今年の売上';
+    async function loadData() {
+      try {
+        const user = tg.initDataUnsafe?.user;
+
+        if (!user?.id) {
+          document.getElementById("status").textContent =
+            "Telegramから開いてください。";
+          return;
+        }
+
+        const response = await fetch(
+          `/api/result?user_id=${encodeURIComponent(user.id)}`
+        );
+
+        if (!response.ok) {
+          throw new Error("API error");
+        }
+
+        const data = await response.json();
+
+        const sales = Number(data.sales || 0);
+        const count = Number(data.count || 0);
+        const hours = Number(data.hours || 0);
+        const goal = Number(data.goal || 0);
+
+        const average = count > 0 ? Math.round(sales / count) : 0;
+        const rate = goal > 0 ? Math.round((sales / goal) * 100) : 0;
+
+        document.getElementById("sales").textContent = yen(sales);
+        document.getElementById("count").textContent = count.toLocaleString();
+        document.getElementById("average").textContent = yen(average);
+        document.getElementById("hours").textContent = hours + "時間";
+        document.getElementById("goal").textContent = yen(goal);
+        document.getElementById("rate").textContent = rate + "%";
+        document.getElementById("dailyAverage").textContent = yen(sales / 30);
+        document.getElementById("totalCount").textContent =
+          count.toLocaleString() + "件";
+
+        document.getElementById("status").textContent =
+          "データを読み込みました。";
+
+      } catch (error) {
+        console.error(error);
+
+        document.getElementById("status").textContent =
+          "データの読み込みに失敗しました。";
       }
     }
+
+    function changeTab(button, period) {
+      document.querySelectorAll(".tab").forEach(tab => {
+        tab.classList.remove("active");
+      });
+
+      button.classList.add("active");
+
+      const title = document.getElementById("period");
+
+      if (period === "日") {
+        title.textContent = "今日の売上";
+      } else if (period === "週") {
+        title.textContent = "今週の売上";
+      } else if (period === "月") {
+        title.textContent = "今月の売上";
+      } else {
+        title.textContent = "今年の売上";
+      }
+    }
+
+    loadData();
   </script>
 
 </body>
