@@ -297,9 +297,15 @@
 
     async function loadData(period) {
       try {
-        const user = tg.initDataUnsafe?.user;
+        /*
+         * Telegramが発行した署名付きinitDataを取得。
+         *
+         * user.idを直接送ることはしない。
+         * ユーザーIDの検証はapi/result.js側で行う。
+         */
+        const initData = tg.initData;
 
-        if (!user?.id) {
+        if (!initData) {
           document.getElementById("status").textContent =
             "Telegramから開いてください。";
           return;
@@ -311,9 +317,25 @@
         document.getElementById("records").innerHTML =
           '<div class="loading">読み込み中...</div>';
 
+        /*
+         * user_idは送らない。
+         *
+         * TelegramのinitDataをヘッダーに入れて送信し、
+         * サーバー側で本人確認する。
+         */
         const response = await fetch(
-          `/api/result?user_id=${encodeURIComponent(user.id)}&period=${encodeURIComponent(period)}`
+          `/api/result?period=${encodeURIComponent(period)}`,
+          {
+            method: "GET",
+            headers: {
+              "X-Telegram-Init-Data": initData
+            }
+          }
         );
+
+        if (response.status === 401) {
+          throw new Error("Telegram authentication failed");
+        }
 
         if (!response.ok) {
           throw new Error("API error");
