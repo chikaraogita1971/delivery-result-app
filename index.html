@@ -96,6 +96,7 @@
     .record {
       display: flex;
       justify-content: space-between;
+      gap: 10px;
       padding: 10px 0;
       border-bottom: 1px solid #eee;
     }
@@ -104,10 +105,40 @@
       border-bottom: none;
     }
 
+    .record-left {
+      flex: 1;
+    }
+
+    .record-date {
+      font-size: 12px;
+      color: #777;
+      margin-bottom: 3px;
+    }
+
+    .record-main {
+      font-weight: bold;
+    }
+
+    .record-sub {
+      font-size: 12px;
+      color: #777;
+      margin-top: 3px;
+    }
+
+    .empty {
+      color: #777;
+      text-align: center;
+      padding: 12px 0;
+    }
+
     .error {
       color: #c00;
       text-align: center;
       padding: 20px;
+    }
+
+    .loading {
+      color: #777;
     }
   </style>
 </head>
@@ -118,19 +149,22 @@
     <h1>🚴 配達リザルト</h1>
 
     <div class="tabs">
-      <button class="tab active" onclick="changeTab(this, '日')">日</button>
-      <button class="tab" onclick="changeTab(this, '週')">週</button>
-      <button class="tab" onclick="changeTab(this, '月')">月</button>
-      <button class="tab" onclick="changeTab(this, '年')">年</button>
+      <button class="tab" data-period="day">日</button>
+      <button class="tab" data-period="week">週</button>
+      <button class="tab active" data-period="month">月</button>
+      <button class="tab" data-period="year">年</button>
     </div>
 
     <div class="card">
       <div class="label" id="period">今月の売上</div>
       <div class="main-value" id="sales">読み込み中...</div>
-      <div class="label">配達件数 <span id="count">-</span>件</div>
+      <div class="label">
+        配達件数 <span id="count">-</span>件
+      </div>
     </div>
 
     <div class="grid">
+
       <div class="item">
         <div class="label">平均単価</div>
         <div class="value" id="average">¥0</div>
@@ -150,31 +184,34 @@
         <div class="label">達成率</div>
         <div class="value" id="rate">0%</div>
       </div>
+
     </div>
 
     <div class="card">
       <div class="section-title">📊 詳細分析</div>
 
       <div class="grid">
+
+        <div class="item">
+          <div class="label">稼働日数</div>
+          <div class="value" id="workDays">0日</div>
+        </div>
+
         <div class="item">
           <div class="label">1日平均売上</div>
           <div class="value" id="dailyAverage">¥0</div>
         </div>
 
         <div class="item">
-          <div class="label">稼働日数</div>
-          <div class="value">-</div>
+          <div class="label">期間最高売上</div>
+          <div class="value" id="maxSales">¥0</div>
         </div>
 
         <div class="item">
-          <div class="label">月間最高売上</div>
-          <div class="value">-</div>
+          <div class="label">期間最高件数</div>
+          <div class="value" id="maxCount">0件</div>
         </div>
 
-        <div class="item">
-          <div class="label">月間最高件数</div>
-          <div class="value">-</div>
-        </div>
       </div>
     </div>
 
@@ -185,11 +222,13 @@
 
     <div class="card">
       <div class="section-title">📋 配達記録</div>
-
-      <div class="record">
-        <span id="status">データを読み込んでいます...</span>
-        <span>—</span>
+      <div id="records">
+        <div class="loading">データを読み込んでいます...</div>
       </div>
+    </div>
+
+    <div id="status" class="label" style="text-align:center; margin:12px 0;">
+      読み込み中...
     </div>
 
   </div>
@@ -200,11 +239,63 @@
     tg.ready();
     tg.expand();
 
+    let currentPeriod = "month";
+
     function yen(value) {
       return "¥" + Number(value || 0).toLocaleString();
     }
 
-    async function loadData() {
+    function periodText(period) {
+      if (period === "day") return "今日の売上";
+      if (period === "week") return "今週の売上";
+      if (period === "year") return "今年の売上";
+      return "今月の売上";
+    }
+
+    function formatDate(value) {
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return "";
+      }
+
+      return date.toLocaleString("ja-JP", {
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function renderRecords(records) {
+      const container = document.getElementById("records");
+
+      if (!records || records.length === 0) {
+        container.innerHTML =
+          '<div class="empty">この期間の配達記録はありません。</div>';
+        return;
+      }
+
+      container.innerHTML = records.map(record => `
+        <div class="record">
+          <div class="record-left">
+            <div class="record-date">
+              ${formatDate(record.createdAt)}
+            </div>
+
+            <div class="record-main">
+              ${yen(record.sale)}
+            </div>
+
+            <div class="record-sub">
+              ${record.count}件 / ${record.hours}時間
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function loadData(period) {
       try {
         const user = tg.initDataUnsafe?.user;
 
@@ -214,8 +305,14 @@
           return;
         }
 
+        document.getElementById("sales").textContent = "読み込み中...";
+        document.getElementById("count").textContent = "-";
+        document.getElementById("hours").textContent = "0時間";
+        document.getElementById("records").innerHTML =
+          '<div class="loading">読み込み中...</div>';
+
         const response = await fetch(
-          `/api/result?user_id=${encodeURIComponent(user.id)}`
+          `/api/result?user_id=${encodeURIComponent(user.id)}&period=${encodeURIComponent(period)}`
         );
 
         if (!response.ok) {
@@ -228,19 +325,62 @@
         const count = Number(data.count || 0);
         const hours = Number(data.hours || 0);
         const goal = Number(data.goal || 0);
+        const workDays = Number(data.workDays || 0);
+        const maxSales = Number(data.maxSales || 0);
+        const maxCount = Number(data.maxCount || 0);
+        const totalCount = Number(data.totalCount || 0);
 
-        const average = count > 0 ? Math.round(sales / count) : 0;
-        const rate = goal > 0 ? Math.round((sales / goal) * 100) : 0;
+        const average = Number(
+          data.average !== undefined
+            ? data.average
+            : count > 0
+              ? Math.round(sales / count)
+              : 0
+        );
 
-        document.getElementById("sales").textContent = yen(sales);
-        document.getElementById("count").textContent = count.toLocaleString();
-        document.getElementById("average").textContent = yen(average);
-        document.getElementById("hours").textContent = hours + "時間";
-        document.getElementById("goal").textContent = yen(goal);
-        document.getElementById("rate").textContent = rate + "%";
-        document.getElementById("dailyAverage").textContent = yen(sales / 30);
+        const rate = Number(data.rate || 0);
+
+        const dailyAverage = workDays > 0
+          ? Math.round(sales / workDays)
+          : 0;
+
+        document.getElementById("period").textContent =
+          periodText(period);
+
+        document.getElementById("sales").textContent =
+          yen(sales);
+
+        document.getElementById("count").textContent =
+          count.toLocaleString();
+
+        document.getElementById("average").textContent =
+          yen(average);
+
+        document.getElementById("hours").textContent =
+          hours + "時間";
+
+        document.getElementById("goal").textContent =
+          yen(goal);
+
+        document.getElementById("rate").textContent =
+          rate + "%";
+
+        document.getElementById("workDays").textContent =
+          workDays + "日";
+
+        document.getElementById("dailyAverage").textContent =
+          yen(dailyAverage);
+
+        document.getElementById("maxSales").textContent =
+          yen(maxSales);
+
+        document.getElementById("maxCount").textContent =
+          maxCount.toLocaleString() + "件";
+
         document.getElementById("totalCount").textContent =
-          count.toLocaleString() + "件";
+          totalCount.toLocaleString() + "件";
+
+        renderRecords(data.records);
 
         document.getElementById("status").textContent =
           "データを読み込みました。";
@@ -250,30 +390,28 @@
 
         document.getElementById("status").textContent =
           "データの読み込みに失敗しました。";
+
+        document.getElementById("records").innerHTML =
+          '<div class="error">データを取得できませんでした。</div>';
       }
     }
 
-    function changeTab(button, period) {
-      document.querySelectorAll(".tab").forEach(tab => {
-        tab.classList.remove("active");
+    document.querySelectorAll(".tab").forEach(button => {
+      button.addEventListener("click", () => {
+
+        document.querySelectorAll(".tab").forEach(tab => {
+          tab.classList.remove("active");
+        });
+
+        button.classList.add("active");
+
+        currentPeriod = button.dataset.period;
+
+        loadData(currentPeriod);
       });
+    });
 
-      button.classList.add("active");
-
-      const title = document.getElementById("period");
-
-      if (period === "日") {
-        title.textContent = "今日の売上";
-      } else if (period === "週") {
-        title.textContent = "今週の売上";
-      } else if (period === "月") {
-        title.textContent = "今月の売上";
-      } else {
-        title.textContent = "今年の売上";
-      }
-    }
-
-    loadData();
+    loadData(currentPeriod);
   </script>
 
 </body>
