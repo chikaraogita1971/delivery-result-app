@@ -15,9 +15,12 @@ export default async function handler(req, res) {
       return res.status(200).send("OK");
     }
 
-    // Telegramユーザー本人のIDを使用
+    // Telegramユーザー本人のID
     const telegramUserId = String(message.from.id);
+
+    // 返信先チャットのID
     const chatId = String(message.chat.id);
+
     const text = message.text.trim();
 
     const telegramUrl =
@@ -146,7 +149,8 @@ export default async function handler(req, res) {
 
       if (parts.length !== 4) {
         await reply(
-          "使い方：/add 売上 件数 時間\n例：/add 15000 25 8"
+          "使い方：/add 売上 件数 時間\n" +
+          "例：/add 15000 25 8"
         );
 
         return res.status(200).send("OK");
@@ -156,16 +160,24 @@ export default async function handler(req, res) {
       const count = Number(parts[2]);
       const hours = Number(parts[3]);
 
+      // 異常値対策
       if (
         !Number.isInteger(sale) ||
         sale < 0 ||
+        sale > 1000000 ||
         !Number.isInteger(count) ||
         count < 0 ||
+        count > 500 ||
         !Number.isFinite(hours) ||
-        hours < 0
+        hours < 0 ||
+        hours > 24
       ) {
         await reply(
-          "入力値を確認してください。\n例：/add 15000 25 8"
+          "入力値を確認してください。\n\n" +
+          "売上：0〜1,000,000円\n" +
+          "件数：0〜500件\n" +
+          "時間：0〜24時間\n\n" +
+          "例：/add 15000 25 8"
         );
 
         return res.status(200).send("OK");
