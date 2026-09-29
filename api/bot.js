@@ -9,74 +9,245 @@ export default async function handler(req, res) {
 
   try {
     const update = req.body;
-    const message = update?.message;
 
-    if (!message?.text || !message?.chat?.id || !message?.from?.id) {
+    const message = update?.message;
+    const callbackQuery = update?.callback_query;
+
+    // Telegramユーザー本人のID
+    const telegramUserId = String(
+      message?.from?.id ?? callbackQuery?.from?.id ?? ""
+    );
+
+    // 返信先チャットID
+    const chatId = String(
+      message?.chat?.id ?? callbackQuery?.message?.chat?.id ?? ""
+    );
+
+    // ユーザーIDまたはチャットIDが取得できない更新は無視
+    if (!telegramUserId || !chatId) {
       return res.status(200).send("OK");
     }
 
-    // Telegramユーザー本人のID
-    const telegramUserId = String(message.from.id);
+    const telegramApiBase =
+      `https://api.telegram.org/bot${process.env.BOT_TOKEN}`;
 
-    // 返信先チャットのID
-    const chatId = String(message.chat.id);
+    // Telegram API 共通処理
+    async function telegramRequest(method, body) {
+      const response = await fetch(
+        `${telegramApiBase}/${method}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(body)
+        }
+      );
 
-    const text = message.text.trim();
+      const data = await response.json();
 
-    const telegramUrl =
-      `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`;
+      if (!data.ok) {
+        console.error(
+          `Telegram API error: ${method}`,
+          data
+        );
+      }
 
-    async function reply(text) {
-      await fetch(telegramUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text
-        })
+      return data;
+    }
+
+    // メッセージ送信
+    async function reply(text, extra = {}) {
+      return telegramRequest("sendMessage", {
+        chat_id: chatId,
+        text,
+        ...extra
+      });
+    }
+
+    // Callback Queryに回答
+    async function answerCallbackQuery(callbackQueryId, text = "") {
+      return telegramRequest("answerCallbackQuery", {
+        callback_query_id: callbackQueryId,
+        text
+      });
+    }
+
+    // メッセージ本文を編集
+    async function editMessageText(
+      callbackMessage,
+      text,
+      extra = {}
+    ) {
+      return telegramRequest("editMessageText", {
+        chat_id: callbackMessage.chat.id,
+        message_id: callbackMessage.message_id,
+        text,
+        ...extra
       });
     }
 
     // Telegramのコマンドメニューを登録
     async function setCommands() {
-      const commandsUrl =
-        `https://api.telegram.org/bot${process.env.BOT_TOKEN}/setMyCommands`;
-
-      await fetch(commandsUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          commands: [
-            {
-              command: "start",
-              description: "スタート画面"
-            },
-            {
-              command: "add",
-              description: "配達実績を追加"
-            },
-            {
-              command: "cancel",
-              description: "最後の入力を取り消し"
-            },
-            {
-              command: "goal",
-              description: "月間目標を設定"
-            },
-            {
-              command: "help",
-              description: "コマンド一覧"
-            }
-          ]
-        })
+      return telegramRequest("setMyCommands", {
+        commands: [
+          {
+            command: "start",
+            description: "スタート画面"
+          },
+          {
+            command: "add",
+            description: "配達実績を追加"
+          },
+          {
+            command: "cancel",
+            description: "最後の入力を取り消し"
+          },
+          {
+            command: "goal",
+            description: "月間目標を設定"
+          },
+          {
+            command: "help",
+            description: "コマンド一覧"
+          }
+        ]
       });
     }
 
-    // /start
+    /*
+    ============================================================
+    Callback Query処理
+    ============================================================
+    */
+
+    if (callbackQuery) {
+      const callbackData = callbackQuery.data || "";
+
+      /*
+      ------------------------------------------------------------
+      「取り消さない」
+      ------------------------------------------------------------
+      */
+      if (callbackData === "cancel_abort") {
+        await answerCallbackQuery(
+          callbackQuery.id,
+          "取り消しませんでした。"
+        );
+
+        await editMessageText(
+          callbackQuery.message,
+          "↩️ 取り消しませんでした。"
+        );
+
+        return res.status(200).send("OK");
+      }
+
+      /*
+      ------------------------------------------------------------
+      「取り消す」
+      ------------------------------------------------------------
+      */
+      if (callbackData.startsWith("cancel_confirm:")) {
+        const recordIdText =
+          callbackData.split(":")[1];
+
+        const recordId = Number(recordIdText);
+
+        // IDが不正なら処理しない
+        if (!Number.isInteger(recordId) || recordId <= 0) {
+          await answerCallbackQuery(
+            callbackQuery.id,
+            "無効な記録です。"
+          );
+
+          return res.status(200).send("OK");
+        }
+
+        /*
+        ----------------------------------------------------------
+        重要：
+        IDだけでは削除しない。
+        必ず telegram_user_id も一致させる。
+        ----------------------------------------------------------
+        */
+        const deletedRows = await sql`
+          DELETE FROM delivery_results
+          WHERE id = ${recordId}
+            AND telegram_user_id = ${telegramUserId}
+          RETURNING
+            sale_amount,
+            delivery_count,
+            work_hours
+        `;
+
+        /*
+        ----------------------------------------------------------
+        すでに削除済み / 他ユーザーの記録だった場合
+        ----------------------------------------------------------
+        */
+        if (deletedRows.length === 0) {
+          await answerCallbackQuery(
+            callbackQuery.id,
+            "この記録は取り消せません。"
+          );
+
+          await editMessageText(
+            callbackQuery.message,
+            "⚠️ この記録はすでに取り消されているか、\n" +
+            "取り消せない状態です。"
+          );
+
+          return res.status(200).send("OK");
+        }
+
+        const deleted = deletedRows[0];
+
+        await answerCallbackQuery(
+          callbackQuery.id,
+          "取り消しました。"
+        );
+
+        await editMessageText(
+          callbackQuery.message,
+          `↩️ 記録を取り消しました。\n\n` +
+          `売上：${Number(
+            deleted.sale_amount
+          ).toLocaleString()}円\n` +
+          `件数：${deleted.delivery_count}件\n` +
+          `時間：${deleted.work_hours}時間`
+        );
+
+        return res.status(200).send("OK");
+      }
+
+      // 未知のCallback Query
+      await answerCallbackQuery(
+        callbackQuery.id,
+        "この操作は無効です。"
+      );
+
+      return res.status(200).send("OK");
+    }
+
+    /*
+    ============================================================
+    通常のメッセージ処理
+    ============================================================
+    */
+
+    if (!message?.text) {
+      return res.status(200).send("OK");
+    }
+
+    const text = message.text.trim();
+
+    /*
+    ============================================================
+    /start
+    ============================================================
+    */
+
     if (text === "/start") {
       await setCommands();
 
@@ -94,20 +265,31 @@ export default async function handler(req, res) {
         FROM delivery_results
         WHERE telegram_user_id = ${telegramUserId}
           AND created_at >= date_trunc('month', CURRENT_DATE)
-          AND created_at < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
+          AND created_at <
+              date_trunc('month', CURRENT_DATE)
+              + INTERVAL '1 month'
       `;
 
-      const goal = goalRows[0]?.monthly_goal ?? 0;
-      const sales = Number(resultRows[0]?.sales ?? 0);
-      const count = Number(resultRows[0]?.count ?? 0);
-      const hours = Number(resultRows[0]?.hours ?? 0);
+      const goal =
+        goalRows[0]?.monthly_goal ?? 0;
+
+      const sales =
+        Number(resultRows[0]?.sales ?? 0);
+
+      const count =
+        Number(resultRows[0]?.count ?? 0);
+
+      const hours =
+        Number(resultRows[0]?.hours ?? 0);
 
       await reply(
         `📋 配達リザルト\n\n` +
         `今月の売上：${sales.toLocaleString()}円\n` +
         `件数：${count}件\n` +
         `稼働時間：${hours}時間\n` +
-        `月間目標：${Number(goal).toLocaleString()}円\n\n` +
+        `月間目標：${Number(
+          goal
+        ).toLocaleString()}円\n\n` +
         `実績追加：/add 売上 件数 時間\n` +
         `目標設定：/goal 金額\n` +
         `取り消し：/cancel\n` +
@@ -117,10 +299,16 @@ export default async function handler(req, res) {
       return res.status(200).send("OK");
     }
 
-    // /help
+    /*
+    ============================================================
+    /help
+    ============================================================
+    */
+
     if (text === "/help") {
       await reply(
         `📋 配達リザルト コマンド\n\n` +
+
         `/start\n` +
         `スタート画面\n\n` +
 
@@ -143,7 +331,12 @@ export default async function handler(req, res) {
       return res.status(200).send("OK");
     }
 
-    // /add 売上 件数 時間
+    /*
+    ============================================================
+    /add 売上 件数 時間
+    ============================================================
+    */
+
     if (text.startsWith("/add")) {
       const parts = text.split(/\s+/);
 
@@ -165,9 +358,11 @@ export default async function handler(req, res) {
         !Number.isInteger(sale) ||
         sale < 0 ||
         sale > 1000000 ||
+
         !Number.isInteger(count) ||
         count < 0 ||
         count > 500 ||
+
         !Number.isFinite(hours) ||
         hours < 0 ||
         hours > 24
@@ -185,9 +380,19 @@ export default async function handler(req, res) {
 
       await sql`
         INSERT INTO delivery_results
-          (telegram_user_id, sale_amount, delivery_count, work_hours)
+          (
+            telegram_user_id,
+            sale_amount,
+            delivery_count,
+            work_hours
+          )
         VALUES
-          (${telegramUserId}, ${sale}, ${count}, ${hours})
+          (
+            ${telegramUserId},
+            ${sale},
+            ${count},
+            ${hours}
+          )
       `;
 
       await reply(
@@ -200,10 +405,19 @@ export default async function handler(req, res) {
       return res.status(200).send("OK");
     }
 
-    // /cancel
+    /*
+    ============================================================
+    /cancel
+    ============================================================
+    */
+
     if (text === "/cancel") {
       const rows = await sql`
-        SELECT id, sale_amount, delivery_count, work_hours
+        SELECT
+          id,
+          sale_amount,
+          delivery_count,
+          work_hours
         FROM delivery_results
         WHERE telegram_user_id = ${telegramUserId}
         ORDER BY created_at DESC, id DESC
@@ -211,29 +425,58 @@ export default async function handler(req, res) {
       `;
 
       if (rows.length === 0) {
-        await reply("取り消せる実績がありません。");
+        await reply(
+          "取り消せる実績がありません。"
+        );
+
         return res.status(200).send("OK");
       }
 
       const last = rows[0];
 
-      await sql`
-        DELETE FROM delivery_results
-        WHERE id = ${last.id}
-          AND telegram_user_id = ${telegramUserId}
-      `;
+      /*
+      ------------------------------------------------------------
+      すぐには削除しない。
+      確認ボタンを表示する。
+      ------------------------------------------------------------
+      */
 
       await reply(
-        `↩️ 最後の入力を取り消しました。\n\n` +
-        `売上：${Number(last.sale_amount).toLocaleString()}円\n` +
+        `↩️ 最後の記録\n\n` +
+        `売上：${Number(
+          last.sale_amount
+        ).toLocaleString()}円\n` +
         `件数：${last.delivery_count}件\n` +
-        `時間：${last.work_hours}時間`
+        `時間：${last.work_hours}時間\n\n` +
+        `この記録を取り消しますか？`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: "❌ 取り消さない",
+                  callback_data: "cancel_abort"
+                },
+                {
+                  text: "↩️ 取り消す",
+                  callback_data:
+                    `cancel_confirm:${last.id}`
+                }
+              ]
+            ]
+          }
+        }
       );
 
       return res.status(200).send("OK");
     }
 
-    // /goal 金額
+    /*
+    ============================================================
+    /goal 金額
+    ============================================================
+    */
+
     if (text.startsWith("/goal")) {
       const parts = text.split(/\s+/);
 
@@ -250,7 +493,10 @@ export default async function handler(req, res) {
       const goal = Number(parts[1]);
 
       // 0円以上を許可
-      if (!Number.isInteger(goal) || goal < 0) {
+      if (
+        !Number.isInteger(goal) ||
+        goal < 0
+      ) {
         await reply(
           "目標金額は0円以上の整数で入力してください。"
         );
@@ -260,9 +506,15 @@ export default async function handler(req, res) {
 
       await sql`
         INSERT INTO delivery_goals
-          (telegram_user_id, monthly_goal)
+          (
+            telegram_user_id,
+            monthly_goal
+          )
         VALUES
-          (${telegramUserId}, ${goal})
+          (
+            ${telegramUserId},
+            ${goal}
+          )
         ON CONFLICT (telegram_user_id)
         DO UPDATE SET
           monthly_goal = EXCLUDED.monthly_goal,
@@ -283,7 +535,12 @@ export default async function handler(req, res) {
       return res.status(200).send("OK");
     }
 
-    // 未知のコマンド
+    /*
+    ============================================================
+    未知のコマンド
+    ============================================================
+    */
+
     await reply(
       "認識できないコマンドです。\n" +
       "/help でコマンド一覧を確認できます。"
@@ -292,8 +549,13 @@ export default async function handler(req, res) {
     return res.status(200).send("OK");
 
   } catch (error) {
-    console.error("Telegram Bot error:", error);
+    console.error(
+      "Telegram Bot error:",
+      error
+    );
 
-    return res.status(500).send("Internal Server Error");
+    return res
+      .status(500)
+      .send("Internal Server Error");
   }
 }
