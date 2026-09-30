@@ -3,9 +3,10 @@ import crypto from "crypto";
 
 const sql = neon(process.env.POSTGRES_URL);
 
+const TIME_ZONE = "Asia/Tokyo";
+
 /**
- * Telegram Mini App の initData を検証して、
- * Telegramが保証したユーザーIDを取得する
+ * Telegram Mini App initData を検証する
  */
 function validateTelegramInitData(initData) {
   if (!initData) {
@@ -16,25 +17,23 @@ function validateTelegramInitData(initData) {
   const receivedHash = params.get("hash");
 
   if (!receivedHash) {
-    throw new Error("Missing Telegram hash");
+    throw new Error("Missing hash");
   }
 
   params.delete("hash");
 
-  // Telegram指定の data-check-string を作成
   const dataCheckString = [...params.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => `${key}=${value}`)
     .join("\n");
 
-  // bot.jsで使っているBot Tokenの環境変数名に合わせる
   const botToken = process.env.BOT_TOKEN;
 
   if (!botToken) {
     throw new Error("BOT_TOKEN is not configured");
   }
 
-  // Telegram公式の検証方式
+  // Telegram Mini Apps の公式仕様に従った secret key
   const secretKey = crypto
     .createHmac("sha256", "WebAppData")
     .update(botToken)
@@ -45,43 +44,37 @@ function validateTelegramInitData(initData) {
     .update(dataCheckString)
     .digest("hex");
 
-  const receivedBuffer = Buffer.from(receivedHash, "hex");
-  const calculatedBuffer = Buffer.from(calculatedHash, "hex");
-
   if (
-    receivedBuffer.length !== calculatedBuffer.length ||
-    !crypto.timingSafeEqual(receivedBuffer, calculatedBuffer)
+    receivedHash.length !== calculatedHash.length ||
+    !crypto.timingSafeEqual(
+      Buffer.from(receivedHash),
+      Buffer.from(calculatedHash)
+    )
   ) {
     throw new Error("Invalid Telegram initData");
   }
 
-  // 古いinitDataを拒否
+  // auth_date の有効期限チェック
   const authDate = Number(params.get("auth_date"));
 
-  if (!authDate || !Number.isFinite(authDate)) {
+  if (!Number.isFinite(authDate)) {
     throw new Error("Invalid auth_date");
   }
 
-  const maxAge = 60 * 60; // 1時間
+  const now = Math.floor(Date.now() / 1000);
 
-  if (Math.floor(Date.now() / 1000) - authDate > maxAge) {
+  // 1時間以上古い initData は拒否
+  if (now - authDate > 60 * 60) {
     throw new Error("Expired Telegram initData");
   }
 
-  // Telegramが署名したuser情報を取得
   const userJson = params.get("user");
 
   if (!userJson) {
     throw new Error("Missing Telegram user");
   }
 
-  let user;
-
-  try {
-    user = JSON.parse(userJson);
-  } catch {
-    throw new Error("Invalid Telegram user data");
-  }
+  const user = JSON.parse(userJson);
 
   if (!user?.id) {
     throw new Error("Missing Telegram user id");
@@ -90,104 +83,209 @@ function validateTelegramInitData(initData) {
   return String(user.id);
 }
 
+/**
+ * 期間条件を JST 基準で作る
+ *
+ * PostgreSQL の TIMESTAMPTZ に対して、
+ * Asia/Tokyo の日付境界を UTC の絶対時刻へ変換して比較する。
+ */
+function getPeriodCondition(period) {
+  switch (period) {
+    case "day":
+      return {
+        start: sql`
+          (
+            (CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE})::date
+            AT TIME ZONE ${TIME_ZONE}
+          )
+        `,
+        end: sql`
+          (
+            (
+              (CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE})::date
+              + INTERVAL '1 day'
+            )
+            AT TIME ZONE ${TIME_ZONE}
+          )
+        `,
+      };
+
+    case "week":
+      return {
+        start: sql`
+          (
+            date_trunc(
+              'week',
+              CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
+            )
+            AT TIME ZONE ${TIME_ZONE}
+          )
+        `,
+        end: sql`
+          (
+            (
+              date_trunc(
+                'week',
+                CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
+              )
+              + INTERVAL '1 week'
+            )
+            AT TIME ZONE ${TIME_ZONE}
+          )
+        `,
+      };
+
+    case "month":
+      return {
+        start: sql`
+          (
+            date_trunc(
+              'month',
+              CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
+            )
+            AT TIME ZONE ${TIME_ZONE}
+          )
+        `,
+        end: sql`
+          (
+            (
+              date_trunc(
+                'month',
+                CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
+              )
+              + INTERVAL '1 month'
+            )
+            AT TIME ZONE ${TIME_ZONE}
+          )
+        `,
+      };
+
+    case "year":
+      return {
+        start: sql`
+          (
+            date_trunc(
+              'year',
+              CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
+            )
+            AT TIME ZONE ${TIME_ZONE}
+          )
+        `,
+        end: sql`
+          (
+            (
+              date_trunc(
+                'year',
+                CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
+              )
+              + INTERVAL '1 year'
+            )
+            AT TIME ZONE ${TIME_ZONE}
+          )
+        `,
+      };
+
+    default:
+      throw new Error("Invalid period");
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({
-      error: "Method Not Allowed"
+      error: "Method Not Allowed",
     });
   }
 
   try {
-    /*
-     * ここが今回の重要ポイント。
-     *
-     * user_id はURLから受け取らない。
-     *
-     * Telegramの署名付きinitDataを検証して、
-     * サーバー側で本当のTelegramユーザーIDを取得する。
-     */
+    // Telegram が署名した initData からユーザーIDを取得
+    // クライアントから user_id は受け取らない
     const initData = req.headers["x-telegram-init-data"];
 
-    let userId;
+    const userId = validateTelegramInitData(initData);
 
-    try {
-      userId = validateTelegramInitData(initData);
-    } catch (authError) {
-      console.error("Telegram authentication error:", authError.message);
+    const period = req.query?.period || "month";
 
-      return res.status(401).json({
-        error: "Unauthorized"
-      });
-    }
-
-    const period = req.query.period || "month";
-
-    const allowedPeriods = [
-      "day",
-      "week",
-      "month",
-      "year"
-    ];
-
-    if (!allowedPeriods.includes(period)) {
+    if (!["day", "week", "month", "year"].includes(period)) {
       return res.status(400).json({
-        error: "invalid period"
+        error: "Invalid period",
       });
     }
 
-    let condition;
+    const { start, end } = getPeriodCondition(period);
 
-    if (period === "day") {
-      condition = sql`
-        created_at >= CURRENT_DATE
-        AND created_at < CURRENT_DATE + INTERVAL '1 day'
-      `;
-    } else if (period === "week") {
-      condition = sql`
-        created_at >= date_trunc('week', CURRENT_DATE)
-        AND created_at < date_trunc('week', CURRENT_DATE) + INTERVAL '1 week'
-      `;
-    } else if (period === "year") {
-      condition = sql`
-        created_at >= date_trunc('year', CURRENT_DATE)
-        AND created_at < date_trunc('year', CURRENT_DATE) + INTERVAL '1 year'
-      `;
-    } else {
-      condition = sql`
-        created_at >= date_trunc('month', CURRENT_DATE)
-        AND created_at < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
-      `;
-    }
-
-    const rows = await sql`
+    /**
+     * 指定期間の集計
+     */
+    const summaryRows = await sql`
       SELECT
         COALESCE(SUM(sale_amount), 0) AS sales,
-        COALESCE(SUM(delivery_count), 0) AS count,
-        COALESCE(SUM(work_hours), 0) AS hours,
-        COUNT(DISTINCT DATE(created_at)) AS work_days
+        COALESCE(SUM(delivery_count), 0) AS delivery_count,
+        COALESCE(SUM(work_hours), 0) AS work_hours,
+        COUNT(DISTINCT (created_at AT TIME ZONE ${TIME_ZONE})::date) AS work_days
       FROM delivery_results
       WHERE telegram_user_id = ${userId}
-        AND ${condition}
+        AND created_at >= ${start}
+        AND created_at < ${end}
     `;
 
+    const summary = summaryRows[0] || {};
+
+    /**
+     * 期間内の日別集計
+     *
+     * 日付は JST 基準で作る。
+     */
     const dailyRows = await sql`
       SELECT
-        DATE(created_at) AS work_date,
-        SUM(sale_amount) AS daily_sales,
-        SUM(delivery_count) AS daily_count
+        (created_at AT TIME ZONE ${TIME_ZONE})::date AS work_date,
+        COALESCE(SUM(sale_amount), 0) AS sales,
+        COALESCE(SUM(delivery_count), 0) AS delivery_count
       FROM delivery_results
       WHERE telegram_user_id = ${userId}
-        AND ${condition}
-      GROUP BY DATE(created_at)
-      ORDER BY DATE(created_at)
+        AND created_at >= ${start}
+        AND created_at < ${end}
+      GROUP BY (created_at AT TIME ZONE ${TIME_ZONE})::date
+      ORDER BY work_date ASC
     `;
 
+    /**
+     * 期間内の最大売上・最大配達件数
+     */
+    let maxSales = 0;
+    let maxCount = 0;
+
+    for (const row of dailyRows) {
+      const sales = Number(row.sales) || 0;
+      const count = Number(row.delivery_count) || 0;
+
+      if (sales > maxSales) {
+        maxSales = sales;
+      }
+
+      if (count > maxCount) {
+        maxCount = count;
+      }
+    }
+
+    /**
+     * 今月の目標
+     *
+     * 目標自体はユーザー単位なので、
+     * JSTの月次集計と組み合わせて使用する。
+     */
     const goalRows = await sql`
       SELECT monthly_goal
       FROM delivery_goals
       WHERE telegram_user_id = ${userId}
+      LIMIT 1
     `;
 
+    const monthlyGoal = Number(goalRows[0]?.monthly_goal) || 0;
+
+    /**
+     * 累計配達件数
+     */
     const totalRows = await sql`
       SELECT
         COALESCE(SUM(delivery_count), 0) AS total_count
@@ -195,6 +293,14 @@ export default async function handler(req, res) {
       WHERE telegram_user_id = ${userId}
     `;
 
+    const totalCount = Number(totalRows[0]?.total_count) || 0;
+
+    /**
+     * 最新20件
+     *
+     * created_at 自体は TIMESTAMPTZ のまま返す。
+     * フロント側で表示時に日本時間へ変換できる。
+     */
     const recordRows = await sql`
       SELECT
         id,
@@ -204,75 +310,59 @@ export default async function handler(req, res) {
         created_at
       FROM delivery_results
       WHERE telegram_user_id = ${userId}
-      ORDER BY created_at DESC, id DESC
+      ORDER BY created_at DESC
       LIMIT 20
     `;
 
-    const sales = Number(rows[0]?.sales ?? 0);
-    const count = Number(rows[0]?.count ?? 0);
-    const hours = Number(rows[0]?.hours ?? 0);
-    const workDays = Number(rows[0]?.work_days ?? 0);
+    const sales = Number(summary.sales) || 0;
+    const deliveryCount = Number(summary.delivery_count) || 0;
+    const workHours = Number(summary.work_hours) || 0;
+    const workDays = Number(summary.work_days) || 0;
 
-    const goal = Number(
-      goalRows[0]?.monthly_goal ?? 0
-    );
+    const average =
+      deliveryCount > 0
+        ? Math.round(sales / deliveryCount)
+        : 0;
 
-    const totalCount = Number(
-      totalRows[0]?.total_count ?? 0
-    );
-
-    const maxSales = dailyRows.length
-      ? Math.max(
-          ...dailyRows.map(
-            row => Number(row.daily_sales || 0)
-          )
-        )
-      : 0;
-
-    const maxCount = dailyRows.length
-      ? Math.max(
-          ...dailyRows.map(
-            row => Number(row.daily_count || 0)
-          )
-        )
-      : 0;
-
-    const average = count > 0
-      ? Math.round(sales / count)
-      : 0;
-
-    const rate = goal > 0
-      ? Math.round((sales / goal) * 100)
-      : 0;
-
-    const records = recordRows.map(row => ({
-      id: Number(row.id),
-      sale: Number(row.sale_amount),
-      count: Number(row.delivery_count),
-      hours: Number(row.work_hours),
-      createdAt: row.created_at
-    }));
+    /**
+     * 達成率は今月の目標に対して計算
+     */
+    const rate =
+      monthlyGoal > 0
+        ? Math.round((sales / monthlyGoal) * 100)
+        : 0;
 
     return res.status(200).json({
       period,
+
       sales,
-      count,
-      hours,
+      count: deliveryCount,
+      hours: workHours,
       workDays,
+
       maxSales,
       maxCount,
-      average,
-      goal,
-      rate,
-      totalCount,
-      records
-    });
 
+      average,
+
+      goal: monthlyGoal,
+      rate,
+
+      totalCount,
+
+      records: recordRows.map((row) => ({
+        id: Number(row.id),
+        sale: Number(row.sale_amount),
+        count: Number(row.delivery_count),
+        hours: Number(row.work_hours),
+        createdAt: row.created_at,
+      })),
+    });
   } catch (error) {
-    console.error("Result API error:", error);
+    console.error("result API error:", error);
 
     return res.status(500).json({
-      error: "Internal Server Error"
+      error: "Internal Server Error",
     });
   }
 }
