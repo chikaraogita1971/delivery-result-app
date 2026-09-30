@@ -126,17 +126,6 @@ function parseWorkHours(input) {
 
   const value = String(input).trim();
 
-  /*
-    対応:
-      8
-      8.5
-      8:30
-      8時間30分
-      8時間
-      30分
-  */
-
-  // 8:30
   const colonMatch = value.match(/^(\d+(?:\.\d+)?)\s*:\s*(\d{1,2})$/);
 
   if (colonMatch) {
@@ -160,7 +149,6 @@ function parseWorkHours(input) {
     return Number(total.toFixed(2));
   }
 
-  // 8時間30分 / 8時間 / 30分
   const japaneseMatch = value.match(
     /^(?:(\d+(?:\.\d+)?)\s*時間)?\s*(?:(\d+(?:\.\d+)?)\s*分)?$/
   );
@@ -186,7 +174,6 @@ function parseWorkHours(input) {
     return Number(total.toFixed(2));
   }
 
-  // 通常の数字
   const numeric = Number(value);
 
   if (!Number.isFinite(numeric)) {
@@ -205,18 +192,30 @@ function parseWorkHours(input) {
 ========================================================= */
 
 function getAdminIds() {
-  return String(process.env.ADMIN_TELEGRAM_USER_IDS || "")
+  const raw = String(process.env.ADMIN_TELEGRAM_USER_IDS || "");
+
+  return raw
     .split(",")
     .map((id) => id.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((id) => String(id));
 }
 
 function isAdmin(telegramUserId) {
-  if (!telegramUserId) {
+  const userId = String(telegramUserId || "");
+  const adminIds = getAdminIds();
+
+  console.log("ADMIN DEBUG:", {
+    telegramUserId: userId,
+    adminIds,
+    hasAdminEnv: Boolean(process.env.ADMIN_TELEGRAM_USER_IDS),
+  });
+
+  if (!userId) {
     return false;
   }
 
-  return getAdminIds().includes(String(telegramUserId));
+  return adminIds.includes(userId);
 }
 
 /* =========================================================
@@ -245,7 +244,6 @@ async function writeAuditLog({
       )
     `;
   } catch (error) {
-    // ログ失敗で本来の処理を止めない
     console.error("Audit log error:", error);
   }
 }
@@ -481,7 +479,6 @@ async function handleAdd(message) {
   const userId = getTelegramUserId(message);
 
   const text = getCommandText(message.text);
-
   const args = text.split(/\s+/).slice(1);
 
   if (args.length < 3) {
@@ -503,10 +500,7 @@ async function handleAdd(message) {
 
   const saleAmount = Number(args[0]);
   const deliveryCount = Number(args[1]);
-
-  // 時間表現に空白が入っている場合にも対応
   const workHoursInput = args.slice(2).join("");
-
   const workHours = parseWorkHours(workHoursInput);
 
   if (
@@ -625,10 +619,6 @@ async function handleCancel(message) {
       LIMIT 1
     `;
   } else {
-    /*
-      過去に chat_id=NULL で登録された個人データも
-      削除できるようにする。
-    */
     rows = await sql`
       SELECT
         id,
@@ -697,8 +687,7 @@ async function handleReset(message) {
   const userId = getTelegramUserId(message);
 
   const rows = await sql`
-    SELECT
-      COUNT(*)::int AS count
+    SELECT COUNT(*)::int AS count
     FROM delivery_results
     WHERE telegram_user_id = ${userId}
   `;
@@ -824,7 +813,7 @@ async function handleGoal(message) {
 }
 
 /* =========================================================
-   Month range helper
+   Month helpers
 ========================================================= */
 
 function parseYearMonth(value) {
@@ -852,10 +841,6 @@ function parseYearMonth(value) {
   };
 }
 
-/* =========================================================
-   Month aggregation
-========================================================= */
-
 async function getMonthSummary(monthStart, chatId = null) {
   if (chatId) {
     const rows = await sql`
@@ -879,25 +864,12 @@ async function getMonthSummary(monthStart, chatId = null) {
     return rows[0];
   }
 
-  const rows = await sql`
-    SELECT
-      COALESCE(SUM(sale_amount), 0)::bigint AS total_sales,
-      COALESCE(SUM(delivery_count), 0)::bigint AS total_deliveries,
-      COALESCE(SUM(work_hours), 0)::numeric AS total_hours,
-      COUNT(DISTINCT telegram_user_id)::int AS user_count
-    FROM delivery_results
-    WHERE telegram_user_id = ${chatId}
-      AND created_at >= (
-        ${monthStart}::date AT TIME ZONE ${JST}
-      )
-      AND created_at < (
-        (
-          ${monthStart}::date + INTERVAL '1 month'
-        ) AT TIME ZONE ${JST}
-      )
-  `;
-
-  return rows[0];
+  return {
+    total_sales: 0,
+    total_deliveries: 0,
+    total_hours: 0,
+    user_count: 0,
+  };
 }
 
 /* =========================================================
@@ -1000,10 +972,9 @@ async function handleGroup(message) {
     lines.push("まだメンバーが登録されていません。");
   } else {
     members.forEach((member, index) => {
-      const name =
-        member.username
-          ? `@${member.username}`
-          : member.first_name || member.telegram_user_id;
+      const name = member.username
+        ? `@${member.username}`
+        : member.first_name || member.telegram_user_id;
 
       lines.push(
         `${index + 1}. ${name}`,
@@ -1133,10 +1104,9 @@ async function handleLastMonth(message) {
     lines.push("メンバー情報がありません。");
   } else {
     members.forEach((member, index) => {
-      const name =
-        member.username
-          ? `@${member.username}`
-          : member.first_name || member.telegram_user_id;
+      const name = member.username
+        ? `@${member.username}`
+        : member.first_name || member.telegram_user_id;
 
       lines.push(
         `${index + 1}. ${name}`,
@@ -1157,7 +1127,7 @@ async function handleLastMonth(message) {
 }
 
 /* =========================================================
-   /month YYYY-MM
+   /month
 ========================================================= */
 
 async function handleMonth(message) {
@@ -1175,7 +1145,9 @@ async function handleMonth(message) {
 
   const text = getCommandText(message.text);
 
-  const match = text.match(/^\/month(?:@\w+)?\s+(\d{4}-\d{1,2})$/i);
+  const match = text.match(
+    /^\/month(?:@\w+)?\s+(\d{4}-\d{1,2})$/i
+  );
 
   if (!match) {
     await sendMessage(
@@ -1255,10 +1227,9 @@ async function handleMonth(message) {
     lines.push("メンバー情報がありません。");
   } else {
     members.forEach((member, index) => {
-      const name =
-        member.username
-          ? `@${member.username}`
-          : member.first_name || member.telegram_user_id;
+      const name = member.username
+        ? `@${member.username}`
+        : member.first_name || member.telegram_user_id;
 
       lines.push(
         `${index + 1}. ${name}`,
@@ -1290,16 +1261,33 @@ async function handleAdmin(message) {
   const chatId = getChatId(message);
   const userId = getTelegramUserId(message);
 
-  if (!isAdmin(userId)) {
+  const adminIds = getAdminIds();
+  const admin = isAdmin(userId);
+
+  console.log("ADMIN COMMAND:", {
+    userId,
+    chatId,
+    adminIds,
+    admin,
+  });
+
+  if (!admin) {
     await sendMessage(
       chatId,
-      "⛔ このコマンドは管理者のみ利用できます。"
+      [
+        "⛔ このコマンドは管理者のみ利用できます。",
+        "",
+        `あなたのTelegram ID：${userId || "取得できません"}`,
+      ].join("\n")
     );
 
     await writeAuditLog({
       telegramUserId: userId,
       chatId,
       action: "admin_denied",
+      details: {
+        admin_ids: adminIds,
+      },
     });
 
     return;
@@ -1417,16 +1405,9 @@ async function handleCallbackQuery(callbackQuery) {
   const fromUserId = String(callbackQuery.from?.id || "");
   const data = String(callbackQuery.data || "");
   const message = callbackQuery.message;
-
   const chatId = String(message?.chat?.id || "");
 
   try {
-    /*
-      callback側でも必ず callbackQuery.from.id を使用する。
-      他ユーザーのデータを操作するIDをcallback dataから
-      受け取らないため、安全性を維持する。
-    */
-
     if (data === "cancel") {
       const rows = await sql`
         SELECT
@@ -1565,10 +1546,6 @@ export default async function handler(req, res) {
   try {
     const update = req.body;
 
-    /* -----------------------------------------
-       Callback Query
-    ----------------------------------------- */
-
     if (update?.callback_query) {
       await handleCallbackQuery(update.callback_query);
 
@@ -1585,25 +1562,13 @@ export default async function handler(req, res) {
       });
     }
 
-    /* -----------------------------------------
-       新規メンバー
-    ----------------------------------------- */
-
     if (message.new_chat_members?.length) {
       await registerNewMembers(message);
     }
 
-    /* -----------------------------------------
-       グループなら自動登録
-    ----------------------------------------- */
-
     if (isGroupChat(message)) {
       await registerGroupAndMember(message);
     }
-
-    /* -----------------------------------------
-       コマンド以外
-    ----------------------------------------- */
 
     if (!message.text || !message.text.startsWith("/")) {
       return res.status(200).json({
@@ -1612,10 +1577,6 @@ export default async function handler(req, res) {
     }
 
     const command = getCommandName(message.text);
-
-    /* -----------------------------------------
-       Commands
-    ----------------------------------------- */
 
     switch (command) {
       case "start":
@@ -1676,10 +1637,6 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error("Webhook error:", error);
 
-    /*
-      Telegram側には200を返して、
-      不要なWebhookリトライを防ぐ。
-    */
     return res.status(200).json({
       ok: false,
       error: "Internal error",
