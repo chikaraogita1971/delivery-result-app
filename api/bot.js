@@ -286,22 +286,17 @@ export default async function handler(req, res) {
       });
     }
 
-    /*
-    ============================================================
-    Callback Query処理
-    ============================================================
-    */
+    // ============================================================
+    // Callback Query処理
+    // ============================================================
 
     if (callbackQuery) {
       const callbackData =
         callbackQuery.data || "";
 
-      /*
-      ------------------------------------------------------------
-      /cancel
-      「取り消さない」
-      ------------------------------------------------------------
-      */
+      // ----------------------------------------------------------
+      // /cancel 「取り消さない」
+      // ----------------------------------------------------------
 
       if (
         callbackData.startsWith(
@@ -311,7 +306,6 @@ export default async function handler(req, res) {
         const ownerId =
           callbackData.split(":")[1];
 
-        // ボタンを押した本人だけ操作可能
         if (
           String(callbackQuery.from?.id) !==
           String(ownerId)
@@ -337,12 +331,9 @@ export default async function handler(req, res) {
         return res.status(200).send("OK");
       }
 
-      /*
-      ------------------------------------------------------------
-      /cancel
-      「取り消す」
-      ------------------------------------------------------------
-      */
+      // ----------------------------------------------------------
+      // /cancel 「取り消す」
+      // ----------------------------------------------------------
 
       if (
         callbackData.startsWith(
@@ -358,7 +349,6 @@ export default async function handler(req, res) {
         const ownerId =
           parts[2];
 
-        // ボタンを押した本人だけ操作可能
         if (
           String(callbackQuery.from?.id) !==
           String(ownerId)
@@ -371,7 +361,6 @@ export default async function handler(req, res) {
           return res.status(200).send("OK");
         }
 
-        // IDが不正なら処理しない
         if (
           !Number.isInteger(recordId) ||
           recordId <= 0
@@ -384,14 +373,6 @@ export default async function handler(req, res) {
           return res.status(200).send("OK");
         }
 
-        /*
-        ----------------------------------------------------------
-        重要：
-        IDだけでは削除しない。
-        必ず telegram_user_id も一致させる。
-        ----------------------------------------------------------
-        */
-
         const deletedRows = await sql`
           DELETE FROM delivery_results
           WHERE id = ${recordId}
@@ -401,12 +382,6 @@ export default async function handler(req, res) {
             delivery_count,
             work_hours
         `;
-
-        /*
-        ----------------------------------------------------------
-        すでに削除済み / 他ユーザーの記録だった場合
-        ----------------------------------------------------------
-        */
 
         if (deletedRows.length === 0) {
           await answerCallbackQuery(
@@ -444,12 +419,9 @@ export default async function handler(req, res) {
         return res.status(200).send("OK");
       }
 
-      /*
-      ------------------------------------------------------------
-      /reset
-      「リセットしない」
-      ------------------------------------------------------------
-      */
+      // ----------------------------------------------------------
+      // /reset 「リセットしない」
+      // ----------------------------------------------------------
 
       if (
         callbackData.startsWith(
@@ -459,7 +431,6 @@ export default async function handler(req, res) {
         const ownerId =
           callbackData.split(":")[1];
 
-        // ボタンを押した本人だけ操作可能
         if (
           String(callbackQuery.from?.id) !==
           String(ownerId)
@@ -485,12 +456,9 @@ export default async function handler(req, res) {
         return res.status(200).send("OK");
       }
 
-      /*
-      ------------------------------------------------------------
-      /reset
-      「すべての実績を削除」
-      ------------------------------------------------------------
-      */
+      // ----------------------------------------------------------
+      // /reset 「すべての実績を削除」
+      // ----------------------------------------------------------
 
       if (
         callbackData.startsWith(
@@ -500,7 +468,6 @@ export default async function handler(req, res) {
         const ownerId =
           callbackData.split(":")[1];
 
-        // ボタンを押した本人だけ操作可能
         if (
           String(callbackQuery.from?.id) !==
           String(ownerId)
@@ -512,14 +479,6 @@ export default async function handler(req, res) {
 
           return res.status(200).send("OK");
         }
-
-        /*
-        ----------------------------------------------------------
-        重要：
-        必ずボタンを押した本人の
-        telegram_user_id のみ削除する。
-        ----------------------------------------------------------
-        */
 
         const deletedRows = await sql`
           DELETE FROM delivery_results
@@ -552,11 +511,9 @@ export default async function handler(req, res) {
         return res.status(200).send("OK");
       }
 
-      /*
-      ------------------------------------------------------------
-      未知のCallback Query
-      ------------------------------------------------------------
-      */
+      // ----------------------------------------------------------
+      // 未知のCallback Query
+      // ----------------------------------------------------------
 
       await answerCallbackQuery(
         callbackQuery.id,
@@ -566,11 +523,9 @@ export default async function handler(req, res) {
       return res.status(200).send("OK");
     }
 
-    /*
-    ============================================================
-    通常のメッセージ処理
-    ============================================================
-    */
+    // ============================================================
+    // 通常のメッセージ処理
+    // ============================================================
 
     if (!message?.text) {
       return res.status(200).send("OK");
@@ -579,11 +534,9 @@ export default async function handler(req, res) {
     const text =
       message.text.trim();
 
-    /*
-    ============================================================
-    /start
-    ============================================================
-    */
+    // ============================================================
+    // /start
+    // ============================================================
 
     if (text === "/start") {
       await setCommands();
@@ -594,11 +547,9 @@ export default async function handler(req, res) {
         WHERE telegram_user_id = ${telegramUserId}
       `;
 
-      /*
-      ------------------------------------------------------------
-      JST基準の今月集計
-      ------------------------------------------------------------
-      */
+      // ----------------------------------------------------------
+      // JST基準の今月集計
+      // ----------------------------------------------------------
 
       const resultRows = await sql`
         SELECT
@@ -653,11 +604,9 @@ export default async function handler(req, res) {
       return res.status(200).send("OK");
     }
 
-    /*
-    ============================================================
-    /help
-    ============================================================
-    */
+    // ============================================================
+    // /help
+    // ============================================================
 
     if (text === "/help") {
       await reply(
@@ -689,11 +638,9 @@ export default async function handler(req, res) {
       return res.status(200).send("OK");
     }
 
-    /*
-    ============================================================
-    /add 売上 件数 時間
-    ============================================================
-    */
+    // ============================================================
+    // /add 売上 件数 時間
+    // ============================================================
 
     if (text.startsWith("/add")) {
       const parts =
@@ -717,7 +664,10 @@ export default async function handler(req, res) {
       const hours =
         Number(parts[3]);
 
+      // ----------------------------------------------------------
       // 異常値対策
+      // ----------------------------------------------------------
+
       if (
         !Number.isInteger(sale) ||
         sale < 0 ||
@@ -742,20 +692,30 @@ export default async function handler(req, res) {
         return res.status(200).send("OK");
       }
 
+      // ----------------------------------------------------------
+      // 実績保存
+      //
+      // chat_id を追加。
+      // 個人チャットなら個人チャットID、
+      // グループならグループIDが保存される。
+      // ----------------------------------------------------------
+
       await sql`
         INSERT INTO delivery_results
           (
             telegram_user_id,
             sale_amount,
             delivery_count,
-            work_hours
+            work_hours,
+            chat_id
           )
         VALUES
           (
             ${telegramUserId},
             ${sale},
             ${count},
-            ${hours}
+            ${hours},
+            ${chatId}
           )
       `;
 
@@ -769,11 +729,9 @@ export default async function handler(req, res) {
       return res.status(200).send("OK");
     }
 
-    /*
-    ============================================================
-    /cancel
-    ============================================================
-    */
+    // ============================================================
+    // /cancel
+    // ============================================================
 
     if (text === "/cancel") {
       const rows = await sql`
@@ -798,13 +756,6 @@ export default async function handler(req, res) {
 
       const last =
         rows[0];
-
-      /*
-      ------------------------------------------------------------
-      すぐには削除しない。
-      確認ボタンを表示する。
-      ------------------------------------------------------------
-      */
 
       await reply(
         `↩️ 最後の記録\n\n` +
@@ -837,11 +788,9 @@ export default async function handler(req, res) {
       return res.status(200).send("OK");
     }
 
-    /*
-    ============================================================
-    /reset
-    ============================================================
-    */
+    // ============================================================
+    // /reset
+    // ============================================================
 
     if (text === "/reset") {
       const countRows = await sql`
@@ -862,13 +811,6 @@ export default async function handler(req, res) {
 
         return res.status(200).send("OK");
       }
-
-      /*
-      ------------------------------------------------------------
-      すぐには削除しない。
-      必ず確認ボタンを表示する。
-      ------------------------------------------------------------
-      */
 
       await reply(
         `⚠️ 実績リセット\n\n` +
@@ -900,11 +842,9 @@ export default async function handler(req, res) {
       return res.status(200).send("OK");
     }
 
-    /*
-    ============================================================
-    /goal 金額
-    ============================================================
-    */
+    // ============================================================
+    // /goal 金額
+    // ============================================================
 
     if (text.startsWith("/goal")) {
       const parts =
@@ -923,7 +863,6 @@ export default async function handler(req, res) {
       const goal =
         Number(parts[1]);
 
-      // 0円以上を許可
       if (
         !Number.isInteger(goal) ||
         goal < 0
@@ -966,11 +905,9 @@ export default async function handler(req, res) {
       return res.status(200).send("OK");
     }
 
-    /*
-    ============================================================
-    未知のコマンド
-    ============================================================
-    */
+    // ============================================================
+    // 未知のコマンド
+    // ============================================================
 
     await reply(
       "認識できないコマンドです。\n" +
