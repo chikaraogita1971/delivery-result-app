@@ -31,13 +31,11 @@ function validateTelegramInitData(initData) {
     .join("\n");
 
   /*
-  Telegram Mini App公式の署名方式
-
-  secret_key = HMAC-SHA256(
-    key = "WebAppData",
-    message = BOT_TOKEN
-  )
+  ============================================================
+  Telegram Mini App 公式署名方式
+  ============================================================
   */
+
   const secretKey = crypto
     .createHmac("sha256", "WebAppData")
     .update(process.env.BOT_TOKEN)
@@ -48,8 +46,15 @@ function validateTelegramInitData(initData) {
     .update(dataCheckString)
     .digest("hex");
 
-  const receivedBuffer = Buffer.from(receivedHash, "hex");
-  const calculatedBuffer = Buffer.from(calculatedHash, "hex");
+  const receivedBuffer = Buffer.from(
+    receivedHash,
+    "hex"
+  );
+
+  const calculatedBuffer = Buffer.from(
+    calculatedHash,
+    "hex"
+  );
 
   if (
     receivedBuffer.length !== calculatedBuffer.length ||
@@ -58,28 +63,40 @@ function validateTelegramInitData(initData) {
       calculatedBuffer
     )
   ) {
-    throw new Error("Telegram initData の署名が不正です。");
+    throw new Error(
+      "Telegram initData の署名が不正です。"
+    );
   }
 
   /*
   ============================================================
-  auth_date の有効期限チェック
+  auth_date 有効期限チェック
   ============================================================
   */
 
-  const authDate = Number(params.get("auth_date"));
+  const authDate = Number(
+    params.get("auth_date")
+  );
 
   if (
     !Number.isInteger(authDate) ||
     authDate <= 0
   ) {
-    throw new Error("Telegram auth_date が不正です。");
+    throw new Error(
+      "Telegram auth_date が不正です。"
+    );
   }
 
-  const now = Math.floor(Date.now() / 1000);
+  const now = Math.floor(
+    Date.now() / 1000
+  );
 
-  if (now - authDate > MAX_AUTH_AGE_SECONDS) {
-    throw new Error("Telegram initData の有効期限が切れています。");
+  if (
+    now - authDate > MAX_AUTH_AGE_SECONDS
+  ) {
+    throw new Error(
+      "Telegram initData の有効期限が切れています。"
+    );
   }
 
   /*
@@ -91,7 +108,9 @@ function validateTelegramInitData(initData) {
   const userJson = params.get("user");
 
   if (!userJson) {
-    throw new Error("Telegramユーザー情報がありません。");
+    throw new Error(
+      "Telegramユーザー情報がありません。"
+    );
   }
 
   let user;
@@ -99,11 +118,15 @@ function validateTelegramInitData(initData) {
   try {
     user = JSON.parse(userJson);
   } catch {
-    throw new Error("Telegramユーザー情報を解析できません。");
+    throw new Error(
+      "Telegramユーザー情報を解析できません。"
+    );
   }
 
   if (!user?.id) {
-    throw new Error("TelegramユーザーIDがありません。");
+    throw new Error(
+      "TelegramユーザーIDがありません。"
+    );
   }
 
   return String(user.id);
@@ -116,6 +139,7 @@ API
 */
 
 export default async function handler(req, res) {
+
   /*
   ============================================================
   POSTのみ許可
@@ -130,6 +154,7 @@ export default async function handler(req, res) {
   }
 
   try {
+
     /*
     ============================================================
     Telegram initData取得
@@ -142,7 +167,8 @@ export default async function handler(req, res) {
     if (!initData) {
       return res.status(401).json({
         ok: false,
-        error: "Telegram認証情報がありません。"
+        error:
+          "Telegram認証情報がありません。"
       });
     }
 
@@ -160,9 +186,8 @@ export default async function handler(req, res) {
     実績削除
     ============================================================
 
-    telegram_user_id が一致するものだけ削除。
-
-    他ユーザーのデータは削除できません。
+    自分の telegram_user_id に一致する
+    delivery_results のみ削除します。
     */
 
     const deletedRows = await sql`
@@ -171,7 +196,8 @@ export default async function handler(req, res) {
       RETURNING id
     `;
 
-    const deletedCount = deletedRows.length;
+    const deletedCount =
+      deletedRows.length;
 
     /*
     ============================================================
@@ -189,6 +215,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
+
     console.error(
       "Reset API error:",
       error
@@ -199,12 +226,6 @@ export default async function handler(req, res) {
       error:
         error?.message ||
         "リセット処理に失敗しました。"
-    });
-  }
-}
-
-    return res.status(500).json({
-      error: "Internal Server Error",
     });
   }
 }
