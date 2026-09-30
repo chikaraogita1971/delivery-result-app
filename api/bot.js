@@ -33,7 +33,9 @@ async function telegramApi(method, body = {}) {
 
   if (!data.ok) {
     console.error(`Telegram API error: ${method}`, data);
-    throw new Error(data.description || `Telegram API error: ${method}`);
+    throw new Error(
+      data.description || `Telegram API error: ${method}`
+    );
   }
 
   return data.result;
@@ -62,7 +64,12 @@ async function answerCallbackQuery(callbackQueryId, text = "") {
   });
 }
 
-async function editMessageText(chatId, messageId, text, extra = {}) {
+async function editMessageText(
+  chatId,
+  messageId,
+  text,
+  extra = {}
+) {
   return telegramApi("editMessageText", {
     chat_id: chatId,
     message_id: messageId,
@@ -76,11 +83,15 @@ async function editMessageText(chatId, messageId, text, extra = {}) {
 // ============================================================
 
 function getTelegramUserId(message) {
-  return message?.from?.id ? String(message.from.id) : "";
+  return message?.from?.id
+    ? String(message.from.id)
+    : "";
 }
 
 function getChatId(message) {
-  return message?.chat?.id ? String(message.chat.id) : "";
+  return message?.chat?.id
+    ? String(message.chat.id)
+    : "";
 }
 
 function isGroupChat(message) {
@@ -117,7 +128,9 @@ function getCommandName(text) {
     return "";
   }
 
-  const first = String(text).trim().split(/\s+/)[0];
+  const first = String(text)
+    .trim()
+    .split(/\s+/)[0];
 
   if (!first.startsWith("/")) {
     return "";
@@ -138,7 +151,10 @@ function formatHours(value) {
 
   return Number.isInteger(hours)
     ? String(hours)
-    : hours.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+    : hours
+        .toFixed(2)
+        .replace(/0+$/, "")
+        .replace(/\.$/, "");
 }
 
 function formatNumber(value) {
@@ -172,7 +188,9 @@ function parseWorkHours(value) {
   }
 
   // 8:30
-  const colonMatch = text.match(/^(\d+(?:\.\d+)?):(\d{1,2})$/);
+  const colonMatch = text.match(
+    /^(\d+(?:\.\d+)?):(\d{1,2})$/
+  );
 
   if (colonMatch) {
     const hours = Number(colonMatch[1]);
@@ -186,7 +204,9 @@ function parseWorkHours(value) {
       return null;
     }
 
-    return Math.round((hours + minutes / 60) * 100) / 100;
+    return Math.round(
+      (hours + minutes / 60) * 100
+    ) / 100;
   }
 
   // 8時間30分
@@ -206,11 +226,15 @@ function parseWorkHours(value) {
       return null;
     }
 
-    return Math.round((hours + minutes / 60) * 100) / 100;
+    return Math.round(
+      (hours + minutes / 60) * 100
+    ) / 100;
   }
 
   // 8時間
-  const hoursOnly = text.match(/^(\d+(?:\.\d+)?)\s*時間$/);
+  const hoursOnly = text.match(
+    /^(\d+(?:\.\d+)?)\s*時間$/
+  );
 
   if (hoursOnly) {
     const hours = Number(hoursOnly[1]);
@@ -221,22 +245,32 @@ function parseWorkHours(value) {
   }
 
   // 30分
-  const minutesOnly = text.match(/^(\d+)\s*分$/);
+  const minutesOnly = text.match(
+    /^(\d+)\s*分$/
+  );
 
   if (minutesOnly) {
     const minutes = Number(minutesOnly[1]);
 
-    if (!Number.isFinite(minutes) || minutes >= 60) {
+    if (
+      !Number.isFinite(minutes) ||
+      minutes >= 60
+    ) {
       return null;
     }
 
-    return Math.round((minutes / 60) * 100) / 100;
+    return Math.round(
+      (minutes / 60) * 100
+    ) / 100;
   }
 
   // 8 / 8.5
   const numberOnly = Number(text);
 
-  if (Number.isFinite(numberOnly) && numberOnly >= 0) {
+  if (
+    Number.isFinite(numberOnly) &&
+    numberOnly >= 0
+  ) {
     return Math.round(numberOnly * 100) / 100;
   }
 
@@ -260,7 +294,10 @@ function getAdminIds() {
 }
 
 function isAdmin(telegramUserId) {
-  const userId = String(telegramUserId || "");
+  const userId = String(
+    telegramUserId || ""
+  );
+
   const adminIds = getAdminIds();
 
   console.log("ADMIN DEBUG:", {
@@ -300,11 +337,16 @@ async function writeAuditLog({
         ${String(telegramUserId || "")},
         ${chatId ? String(chatId) : null},
         ${action},
-        ${details ? JSON.stringify(details) : null}::jsonb
+        ${details
+          ? JSON.stringify(details)
+          : null}::jsonb
       )
     `;
   } catch (error) {
-    console.error("AUDIT LOG ERROR:", error);
+    console.error(
+      "AUDIT LOG ERROR:",
+      error
+    );
   }
 }
 
@@ -324,8 +366,7 @@ async function ensureGroupRegistered(message) {
   }
 
   const title =
-    message?.chat?.title ||
-    null;
+    message?.chat?.title || null;
 
   await sql`
     INSERT INTO telegram_groups (
@@ -356,6 +397,19 @@ async function ensureGroupMember(message) {
   }
 
   const user = message?.from || {};
+
+  // Botユーザーは通常のメンバーとして登録しない
+  if (user.is_bot) {
+    return;
+  }
+
+  // Telegramの匿名管理者
+  if (
+    user.username === "GroupAnonymousBot" ||
+    userId === "1087968824"
+  ) {
+    return;
+  }
 
   await sql`
     INSERT INTO group_members (
@@ -516,7 +570,9 @@ async function handleAdd(message) {
 
   const saleAmount = Number(args[0]);
   const deliveryCount = Number(args[1]);
-  const workHours = parseWorkHours(args.slice(2).join(" "));
+  const workHours = parseWorkHours(
+    args.slice(2).join(" ")
+  );
 
   if (
     !Number.isFinite(saleAmount) ||
@@ -577,7 +633,11 @@ async function handleAdd(message) {
       ${saleAmount},
       ${deliveryCount},
       ${workHours},
-      ${isGroupChat(message) ? chatId : null}
+      ${
+        isGroupChat(message)
+          ? chatId
+          : null
+      }
     )
     RETURNING
       id,
@@ -601,11 +661,19 @@ async function handleAdd(message) {
     [
       "✅ 配達実績を登録しました！",
       "",
-      `💰 売上：${formatNumber(saleAmount)}円`,
-      `📦 配達：${formatNumber(deliveryCount)}件`,
-      `⏱ 稼働：${formatHours(workHours)}時間`,
+      `💰 売上：${formatNumber(
+        saleAmount
+      )}円`,
+      `📦 配達：${formatNumber(
+        deliveryCount
+      )}件`,
+      `⏱ 稼働：${formatHours(
+        workHours
+      )}時間`,
       "",
-      `🕐 ${formatDateJST(result.created_at)}`,
+      `🕐 ${formatDateJST(
+        result.created_at
+      )}`,
     ].join("\n")
   );
 }
@@ -684,9 +752,15 @@ async function handleCancel(message) {
     [
       "🗑 最新の実績を削除しました。",
       "",
-      `💰 ${formatNumber(result.sale_amount)}円`,
-      `📦 ${formatNumber(result.delivery_count)}件`,
-      `⏱ ${formatHours(result.work_hours)}時間`,
+      `💰 ${formatNumber(
+        result.sale_amount
+      )}円`,
+      `📦 ${formatNumber(
+        result.delivery_count
+      )}件`,
+      `⏱ ${formatHours(
+        result.work_hours
+      )}時間`,
     ].join("\n")
   );
 }
@@ -705,7 +779,9 @@ async function handleReset(message) {
     WHERE telegram_user_id = ${userId}
   `;
 
-  const count = Number(countResult?.count || 0);
+  const count = Number(
+    countResult?.count || 0
+  );
 
   if (count === 0) {
     await sendMessage(
@@ -735,7 +811,9 @@ async function handleReset(message) {
     [
       "🗑 自分の実績をすべて削除しました。",
       "",
-      `削除件数：${formatNumber(count)}件`,
+      `削除件数：${formatNumber(
+        count
+      )}件`,
     ].join("\n")
   );
 }
@@ -779,7 +857,9 @@ async function handleGoal(message) {
       [
         "🎯 現在の月間目標",
         "",
-        `${formatNumber(goal.monthly_goal)}円`,
+        `${formatNumber(
+          goal.monthly_goal
+        )}円`,
         "",
         "変更する場合：",
         "/goal 500000",
@@ -840,7 +920,9 @@ async function handleGoal(message) {
     [
       "🎯 月間目標を設定しました！",
       "",
-      `${formatNumber(monthlyGoal)}円`,
+      `${formatNumber(
+        monthlyGoal
+      )}円`,
     ].join("\n")
   );
 }
@@ -849,40 +931,91 @@ async function handleGoal(message) {
 // Group summary helper
 // ============================================================
 
-async function getGroupSummary(chatId, start, end) {
+async function getGroupSummary(
+  chatId,
+  start,
+  end
+) {
   const [summary] = await sql`
     SELECT
       COUNT(*)::int AS result_count,
-      COUNT(DISTINCT telegram_user_id)::int AS user_count,
-      COALESCE(SUM(sale_amount), 0)::bigint AS total_sales,
-      COALESCE(SUM(delivery_count), 0)::bigint AS total_deliveries,
-      COALESCE(SUM(work_hours), 0)::numeric AS total_hours
+      COUNT(
+        DISTINCT telegram_user_id
+      )::int AS user_count,
+      COALESCE(
+        SUM(sale_amount),
+        0
+      )::bigint AS total_sales,
+      COALESCE(
+        SUM(delivery_count),
+        0
+      )::bigint AS total_deliveries,
+      COALESCE(
+        SUM(work_hours),
+        0
+      )::numeric AS total_hours
     FROM delivery_results
     WHERE chat_id = ${chatId}
       AND created_at >= ${start}
       AND created_at < ${end}
   `;
 
+  /*
+   * メンバー別では以下を除外
+   *
+   * 1. Telegram Bot
+   * 2. delivery_result_bot
+   * 3. GroupAnonymousBot
+   * 4. 現在確認できている匿名管理者ID
+   *
+   * グループ全体集計には影響しない。
+   */
   const members = await sql`
     SELECT
       gm.telegram_user_id,
       gm.username,
       gm.first_name,
       COUNT(dr.id)::int AS result_count,
-      COALESCE(SUM(dr.sale_amount), 0)::bigint AS total_sales,
-      COALESCE(SUM(dr.delivery_count), 0)::bigint AS total_deliveries,
-      COALESCE(SUM(dr.work_hours), 0)::numeric AS total_hours
+      COALESCE(
+        SUM(dr.sale_amount),
+        0
+      )::bigint AS total_sales,
+      COALESCE(
+        SUM(dr.delivery_count),
+        0
+      )::bigint AS total_deliveries,
+      COALESCE(
+        SUM(dr.work_hours),
+        0
+      )::numeric AS total_hours
     FROM group_members gm
     LEFT JOIN delivery_results dr
       ON dr.chat_id = gm.chat_id
-      AND dr.telegram_user_id = gm.telegram_user_id
+      AND dr.telegram_user_id =
+        gm.telegram_user_id
       AND dr.created_at >= ${start}
       AND dr.created_at < ${end}
     WHERE gm.chat_id = ${chatId}
+
+      -- Bot自身を除外
+      AND COALESCE(gm.username, '') <>
+        'delivery_result_bot'
+
+      -- Telegram匿名管理者Botを除外
+      AND COALESCE(gm.username, '') <>
+        'GroupAnonymousBot'
+
+      -- 現在確認できているBot / 匿名管理者IDを除外
+      AND gm.telegram_user_id NOT IN (
+        '8981642532',
+        '1087968824'
+      )
+
     GROUP BY
       gm.telegram_user_id,
       gm.username,
       gm.first_name
+
     ORDER BY
       total_sales DESC,
       gm.telegram_user_id
@@ -892,6 +1025,81 @@ async function getGroupSummary(chatId, start, end) {
     summary,
     members,
   };
+}
+
+// ============================================================
+// Group result message builder
+// ============================================================
+
+function buildGroupResultMessage({
+  year,
+  month,
+  summary,
+  members,
+  emptyMessage,
+}) {
+  const lines = [
+    "👥 グループ配達リザルト",
+    "",
+    `📅 ${year}年${month}月`,
+    "",
+    `💰 売上：${formatNumber(
+      summary.total_sales
+    )}円`,
+    `📦 配達：${formatNumber(
+      summary.total_deliveries
+    )}件`,
+    `⏱ 稼働：${formatHours(
+      summary.total_hours
+    )}時間`,
+    `👤 登録ユーザー：${formatNumber(
+      summary.user_count
+    )}人`,
+    "",
+  ];
+
+  if (members.length > 0) {
+    lines.push(
+      "━━━━━━━━━━━━━━"
+    );
+    lines.push("👤 メンバー別");
+    lines.push(
+      "━━━━━━━━━━━━━━"
+    );
+
+    for (const member of members) {
+      const name =
+        member.first_name ||
+        (member.username
+          ? `@${member.username}`
+          : member.telegram_user_id);
+
+      lines.push("");
+      lines.push(`👤 ${name}`);
+      lines.push(
+        `💰 ${formatNumber(
+          member.total_sales
+        )}円`
+      );
+      lines.push(
+        `📦 ${formatNumber(
+          member.total_deliveries
+        )}件`
+      );
+      lines.push(
+        `⏱ ${formatHours(
+          member.total_hours
+        )}時間`
+      );
+    }
+  } else {
+    lines.push(
+      emptyMessage ||
+        "まだ実績はありません。"
+    );
+  }
+
+  return lines.join("\n");
 }
 
 // ============================================================
@@ -919,7 +1127,8 @@ async function handleGroup(message) {
       date_trunc(
         'month',
         CURRENT_TIMESTAMP AT TIME ZONE ${JST}
-      ) AT TIME ZONE ${JST} AS start_at,
+      ) AT TIME ZONE ${JST}
+        AS start_at,
       (
         (
           date_trunc(
@@ -930,62 +1139,44 @@ async function handleGroup(message) {
       ) AS end_at
   `;
 
-  const { summary, members } = await getGroupSummary(
+  const {
+    summary,
+    members,
+  } = await getGroupSummary(
     chatId,
     period.start_at,
     period.end_at
   );
 
-  const monthLabel = new Date().toLocaleDateString(
-    "ja-JP",
-    {
-      timeZone: JST,
-      year: "numeric",
-      month: "long",
-    }
+  const nowJST = new Date(
+    new Date().toLocaleString(
+      "en-US",
+      {
+        timeZone: JST,
+      }
+    )
   );
 
-  const lines = [
-    "👥 グループ配達リザルト",
-    "",
-    `📅 ${monthLabel}`,
-    "",
-    `💰 売上：${formatNumber(summary.total_sales)}円`,
-    `📦 配達：${formatNumber(summary.total_deliveries)}件`,
-    `⏱ 稼働：${formatHours(summary.total_hours)}時間`,
-    `👤 登録ユーザー：${formatNumber(summary.user_count)}人`,
-    "",
-  ];
+  const year =
+    nowJST.getFullYear();
 
-  if (members.length > 0) {
-    lines.push("━━━━━━━━━━━━━━");
-    lines.push("👤 メンバー別");
-    lines.push("━━━━━━━━━━━━━━");
+  const month =
+    nowJST.getMonth() + 1;
 
-    for (const member of members) {
-      const name =
-        member.first_name ||
-        (member.username
-          ? `@${member.username}`
-          : member.telegram_user_id);
+  const text =
+    buildGroupResultMessage({
+      year,
+      month,
+      summary,
+      members,
+      emptyMessage:
+        "まだ実績はありません。",
+    });
 
-      lines.push("");
-      lines.push(`👤 ${name}`);
-      lines.push(
-        `💰 ${formatNumber(member.total_sales)}円`
-      );
-      lines.push(
-        `📦 ${formatNumber(member.total_deliveries)}件`
-      );
-      lines.push(
-        `⏱ ${formatHours(member.total_hours)}時間`
-      );
-    }
-  } else {
-    lines.push("まだ実績はありません。");
-  }
-
-  await sendMessage(chatId, lines.join("\n"));
+  await sendMessage(
+    chatId,
+    text
+  );
 
   await writeAuditLog({
     telegramUserId: userId,
@@ -1000,7 +1191,10 @@ async function handleGroup(message) {
 
 function getMonthRange(year, month) {
   const start = new Date(
-    `${year}-${String(month).padStart(2, "0")}-01T00:00:00+09:00`
+    `${year}-${String(month).padStart(
+      2,
+      "0"
+    )}-01T00:00:00+09:00`
   );
 
   const nextYear =
@@ -1014,7 +1208,10 @@ function getMonthRange(year, month) {
       : month + 1;
 
   const end = new Date(
-    `${nextYear}-${String(nextMonth).padStart(2, "0")}-01T00:00:00+09:00`
+    `${nextYear}-${String(nextMonth).padStart(
+      2,
+      "0"
+    )}-01T00:00:00+09:00`
   );
 
   return {
@@ -1044,9 +1241,12 @@ async function handleLastMonth(message) {
   await ensureGroupMember(message);
 
   const now = new Date(
-    new Date().toLocaleString("en-US", {
-      timeZone: JST,
-    })
+    new Date().toLocaleString(
+      "en-US",
+      {
+        timeZone: JST,
+      }
+    )
   );
 
   let year = now.getFullYear();
@@ -1059,55 +1259,37 @@ async function handleLastMonth(message) {
     year -= 1;
   }
 
-  const { start, end } = getMonthRange(year, month);
+  const {
+    start,
+    end,
+  } = getMonthRange(
+    year,
+    month
+  );
 
-  const { summary, members } = await getGroupSummary(
+  const {
+    summary,
+    members,
+  } = await getGroupSummary(
     chatId,
     start,
     end
   );
 
-  const lines = [
-    "👥 グループ配達リザルト",
-    "",
-    `📅 ${year}年${month}月`,
-    "",
-    `💰 売上：${formatNumber(summary.total_sales)}円`,
-    `📦 配達：${formatNumber(summary.total_deliveries)}件`,
-    `⏱ 稼働：${formatHours(summary.total_hours)}時間`,
-    `👤 登録ユーザー：${formatNumber(summary.user_count)}人`,
-    "",
-  ];
+  const text =
+    buildGroupResultMessage({
+      year,
+      month,
+      summary,
+      members,
+      emptyMessage:
+        "この月の実績はありません。",
+    });
 
-  if (members.length > 0) {
-    lines.push("━━━━━━━━━━━━━━");
-    lines.push("👤 メンバー別");
-    lines.push("━━━━━━━━━━━━━━");
-
-    for (const member of members) {
-      const name =
-        member.first_name ||
-        (member.username
-          ? `@${member.username}`
-          : member.telegram_user_id);
-
-      lines.push("");
-      lines.push(`👤 ${name}`);
-      lines.push(
-        `💰 ${formatNumber(member.total_sales)}円`
-      );
-      lines.push(
-        `📦 ${formatNumber(member.total_deliveries)}件`
-      );
-      lines.push(
-        `⏱ ${formatHours(member.total_hours)}時間`
-      );
-    }
-  } else {
-    lines.push("この月の実績はありません。");
-  }
-
-  await sendMessage(chatId, lines.join("\n"));
+  await sendMessage(
+    chatId,
+    text
+  );
 
   await writeAuditLog({
     telegramUserId: userId,
@@ -1159,7 +1341,9 @@ async function handleMonth(message) {
     return;
   }
 
-  const match = args[0].match(/^(\d{4})-(\d{1,2})$/);
+  const match = args[0].match(
+    /^(\d{4})-(\d{1,2})$/
+  );
 
   if (!match) {
     await sendMessage(
@@ -1195,58 +1379,37 @@ async function handleMonth(message) {
   await ensureGroupRegistered(message);
   await ensureGroupMember(message);
 
-  const { start, end } = getMonthRange(
+  const {
+    start,
+    end,
+  } = getMonthRange(
     year,
     month
   );
 
-  const { summary, members } = await getGroupSummary(
+  const {
+    summary,
+    members,
+  } = await getGroupSummary(
     chatId,
     start,
     end
   );
 
-  const lines = [
-    "👥 グループ配達リザルト",
-    "",
-    `📅 ${year}年${month}月`,
-    "",
-    `💰 売上：${formatNumber(summary.total_sales)}円`,
-    `📦 配達：${formatNumber(summary.total_deliveries)}件`,
-    `⏱ 稼働：${formatHours(summary.total_hours)}時間`,
-    `👤 登録ユーザー：${formatNumber(summary.user_count)}人`,
-    "",
-  ];
+  const text =
+    buildGroupResultMessage({
+      year,
+      month,
+      summary,
+      members,
+      emptyMessage:
+        "この月の実績はありません。",
+    });
 
-  if (members.length > 0) {
-    lines.push("━━━━━━━━━━━━━━");
-    lines.push("👤 メンバー別");
-    lines.push("━━━━━━━━━━━━━━");
-
-    for (const member of members) {
-      const name =
-        member.first_name ||
-        (member.username
-          ? `@${member.username}`
-          : member.telegram_user_id);
-
-      lines.push("");
-      lines.push(`👤 ${name}`);
-      lines.push(
-        `💰 ${formatNumber(member.total_sales)}円`
-      );
-      lines.push(
-        `📦 ${formatNumber(member.total_deliveries)}件`
-      );
-      lines.push(
-        `⏱ ${formatHours(member.total_hours)}時間`
-      );
-    }
-  } else {
-    lines.push("この月の実績はありません。");
-  }
-
-  await sendMessage(chatId, lines.join("\n"));
+  await sendMessage(
+    chatId,
+    text
+  );
 
   await writeAuditLog({
     telegramUserId: userId,
@@ -1286,7 +1449,9 @@ async function handleAdmin(message) {
       [
         "⛔ このコマンドは管理者のみ利用できます。",
         "",
-        `あなたのTelegram ID：${userId || "取得できません"}`,
+        `あなたのTelegram ID：${
+          userId || "取得できません"
+        }`,
         "",
         "管理者IDが正しく設定されているか確認してください。",
       ].join("\n")
@@ -1312,10 +1477,21 @@ async function handleAdmin(message) {
     const [totalStats] = await sql`
       SELECT
         COUNT(*)::int AS result_count,
-        COUNT(DISTINCT telegram_user_id)::int AS user_count,
-        COALESCE(SUM(sale_amount), 0)::bigint AS total_sales,
-        COALESCE(SUM(delivery_count), 0)::bigint AS total_deliveries,
-        COALESCE(SUM(work_hours), 0)::numeric AS total_hours
+        COUNT(
+          DISTINCT telegram_user_id
+        )::int AS user_count,
+        COALESCE(
+          SUM(sale_amount),
+          0
+        )::bigint AS total_sales,
+        COALESCE(
+          SUM(delivery_count),
+          0
+        )::bigint AS total_deliveries,
+        COALESCE(
+          SUM(work_hours),
+          0
+        )::numeric AS total_hours
       FROM delivery_results
     `;
 
@@ -1326,10 +1502,21 @@ async function handleAdmin(message) {
     const [monthlyStats] = await sql`
       SELECT
         COUNT(*)::int AS result_count,
-        COUNT(DISTINCT telegram_user_id)::int AS user_count,
-        COALESCE(SUM(sale_amount), 0)::bigint AS total_sales,
-        COALESCE(SUM(delivery_count), 0)::bigint AS total_deliveries,
-        COALESCE(SUM(work_hours), 0)::numeric AS total_hours
+        COUNT(
+          DISTINCT telegram_user_id
+        )::int AS user_count,
+        COALESCE(
+          SUM(sale_amount),
+          0
+        )::bigint AS total_sales,
+        COALESCE(
+          SUM(delivery_count),
+          0
+        )::bigint AS total_deliveries,
+        COALESCE(
+          SUM(work_hours),
+          0
+        )::numeric AS total_hours
       FROM delivery_results
       WHERE created_at >= (
         date_trunc(
@@ -1363,8 +1550,9 @@ async function handleAdmin(message) {
 
     const [activeUserStats] = await sql`
       SELECT
-        COUNT(DISTINCT telegram_user_id)::int
-          AS active_user_count
+        COUNT(
+          DISTINCT telegram_user_id
+        )::int AS active_user_count
       FROM delivery_results
       WHERE created_at >= (
         date_trunc(
@@ -1388,7 +1576,8 @@ async function handleAdmin(message) {
 
     const [latestResult] = await sql`
       SELECT
-        MAX(created_at) AS latest_created_at
+        MAX(created_at)
+          AS latest_created_at
       FROM delivery_results
     `;
 
@@ -1408,48 +1597,70 @@ async function handleAdmin(message) {
     `;
 
     const totalSales =
-      Number(totalStats?.total_sales || 0);
+      Number(
+        totalStats?.total_sales || 0
+      );
 
     const totalDeliveries =
-      Number(totalStats?.total_deliveries || 0);
+      Number(
+        totalStats?.total_deliveries || 0
+      );
 
     const totalHours =
-      Number(totalStats?.total_hours || 0);
+      Number(
+        totalStats?.total_hours || 0
+      );
 
     const monthlySales =
-      Number(monthlyStats?.total_sales || 0);
+      Number(
+        monthlyStats?.total_sales || 0
+      );
 
     const monthlyDeliveries =
-      Number(monthlyStats?.total_deliveries || 0);
+      Number(
+        monthlyStats?.total_deliveries || 0
+      );
 
     const monthlyHours =
-      Number(monthlyStats?.total_hours || 0);
+      Number(
+        monthlyStats?.total_hours || 0
+      );
 
     const resultCount =
-      Number(totalStats?.result_count || 0);
+      Number(
+        totalStats?.result_count || 0
+      );
 
     const userCount =
-      Number(totalStats?.user_count || 0);
+      Number(
+        totalStats?.user_count || 0
+      );
 
     const groupCount =
-      Number(groupStats?.group_count || 0);
+      Number(
+        groupStats?.group_count || 0
+      );
 
     const activeUserCount =
       Number(
-        activeUserStats?.active_user_count || 0
+        activeUserStats
+          ?.active_user_count || 0
       );
 
     const monthlyAverageSales =
       monthlyDeliveries > 0
         ? Math.round(
-            monthlySales / monthlyDeliveries
+            monthlySales /
+              monthlyDeliveries
           )
         : 0;
 
     const monthlyAverageHoursPerUser =
       activeUserCount > 0
         ? Math.round(
-            (monthlyHours / activeUserCount) * 100
+            (monthlyHours /
+              activeUserCount) *
+              100
           ) / 100
         : 0;
 
@@ -1463,11 +1674,21 @@ async function handleAdmin(message) {
       "━━━━━━━━━━━━━━",
       "📊 全体",
       "━━━━━━━━━━━━━━",
-      `登録実績：${formatNumber(resultCount)}件`,
-      `ユーザー：${formatNumber(userCount)}人`,
-      `売上：${formatNumber(totalSales)}円`,
-      `配達：${formatNumber(totalDeliveries)}件`,
-      `稼働：${formatHours(totalHours)}時間`,
+      `登録実績：${formatNumber(
+        resultCount
+      )}件`,
+      `ユーザー：${formatNumber(
+        userCount
+      )}人`,
+      `売上：${formatNumber(
+        totalSales
+      )}円`,
+      `配達：${formatNumber(
+        totalDeliveries
+      )}件`,
+      `稼働：${formatHours(
+        totalHours
+      )}時間`,
       "",
       "━━━━━━━━━━━━━━",
       "📅 今月（JST）",
@@ -1478,9 +1699,15 @@ async function handleAdmin(message) {
       `アクティブ：${formatNumber(
         activeUserCount
       )}人`,
-      `売上：${formatNumber(monthlySales)}円`,
-      `配達：${formatNumber(monthlyDeliveries)}件`,
-      `稼働：${formatHours(monthlyHours)}時間`,
+      `売上：${formatNumber(
+        monthlySales
+      )}円`,
+      `配達：${formatNumber(
+        monthlyDeliveries
+      )}件`,
+      `稼働：${formatHours(
+        monthlyHours
+      )}時間`,
       `平均単価：${formatNumber(
         monthlyAverageSales
       )}円/件`,
@@ -1498,21 +1725,28 @@ async function handleAdmin(message) {
     ];
 
     if (recentLogs.length > 0) {
-      lines.push("━━━━━━━━━━━━━━");
+      lines.push(
+        "━━━━━━━━━━━━━━"
+      );
       lines.push("📝 最新ログ");
-      lines.push("━━━━━━━━━━━━━━");
+      lines.push(
+        "━━━━━━━━━━━━━━"
+      );
 
       for (const log of recentLogs) {
         const date = log.created_at
           ? new Date(
               log.created_at
-            ).toLocaleString("ja-JP", {
-              timeZone: JST,
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-            })
+            ).toLocaleString(
+              "ja-JP",
+              {
+                timeZone: JST,
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              }
+            )
           : "-";
 
         lines.push(
@@ -1523,7 +1757,9 @@ async function handleAdmin(message) {
       lines.push("");
     }
 
-    if (latestResult?.latest_created_at) {
+    if (
+      latestResult?.latest_created_at
+    ) {
       lines.push(
         `🕐 最終登録：${formatDateJST(
           latestResult.latest_created_at
@@ -1545,18 +1781,29 @@ async function handleAdmin(message) {
       chatId,
       action: "admin_view",
       details: {
-        total_result_count: resultCount,
-        total_user_count: userCount,
-        total_sales: totalSales,
-        total_deliveries: totalDeliveries,
-        total_hours: totalHours,
-        monthly_sales: monthlySales,
-        monthly_deliveries: monthlyDeliveries,
-        monthly_hours: monthlyHours,
+        total_result_count:
+          resultCount,
+        total_user_count:
+          userCount,
+        total_sales:
+          totalSales,
+        total_deliveries:
+          totalDeliveries,
+        total_hours:
+          totalHours,
+        monthly_sales:
+          monthlySales,
+        monthly_deliveries:
+          monthlyDeliveries,
+        monthly_hours:
+          monthlyHours,
       },
     });
   } catch (error) {
-    console.error("ADMIN ERROR:", error);
+    console.error(
+      "ADMIN ERROR:",
+      error
+    );
 
     await sendMessage(
       chatId,
@@ -1584,11 +1831,15 @@ async function handleAdmin(message) {
 // Main webhook
 // ============================================================
 
-export default async function handler(req, res) {
+export default async function handler(
+  req,
+  res
+) {
   if (req.method !== "POST") {
     return res.status(200).json({
       ok: true,
-      service: "delivery-result-bot",
+      service:
+        "delivery-result-bot",
     });
   }
 
@@ -1598,12 +1849,17 @@ export default async function handler(req, res) {
         ? JSON.parse(req.body)
         : req.body;
 
-    console.log("WEBHOOK UPDATE:", {
-      hasMessage: Boolean(update?.message),
-      hasCallbackQuery: Boolean(
-        update?.callback_query
-      ),
-    });
+    console.log(
+      "WEBHOOK UPDATE:",
+      {
+        hasMessage:
+          Boolean(update?.message),
+        hasCallbackQuery:
+          Boolean(
+            update?.callback_query
+          ),
+      }
+    );
 
     // --------------------------------------------------------
     // Callback Query
@@ -1615,13 +1871,16 @@ export default async function handler(req, res) {
 
       const callbackUserId =
         callbackQuery?.from?.id
-          ? String(callbackQuery.from.id)
+          ? String(
+              callbackQuery.from.id
+            )
           : "";
 
       const callbackChatId =
         callbackQuery?.message?.chat?.id
           ? String(
-              callbackQuery.message.chat.id
+              callbackQuery.message
+                .chat.id
             )
           : "";
 
@@ -1636,8 +1895,10 @@ export default async function handler(req, res) {
         "CALLBACK DEBUG:",
         {
           data,
-          userId: callbackUserId,
-          chatId: callbackChatId,
+          userId:
+            callbackUserId,
+          chatId:
+            callbackChatId,
         }
       );
 
@@ -1650,7 +1911,8 @@ export default async function handler(req, res) {
     // Message
     // --------------------------------------------------------
 
-    const message = update?.message;
+    const message =
+      update?.message;
 
     if (!message) {
       return res.status(200).json({
@@ -1658,35 +1920,49 @@ export default async function handler(req, res) {
       });
     }
 
-    const text = message?.text || "";
+    const text =
+      message?.text || "";
+
     const userId =
       getTelegramUserId(message);
+
     const chatId =
       getChatId(message);
 
-    console.log("MESSAGE DEBUG:", {
-      text,
-      userId,
-      chatId,
-      chatType:
-        message?.chat?.type || "",
-    });
+    console.log(
+      "MESSAGE DEBUG:",
+      {
+        text,
+        userId,
+        chatId,
+        chatType:
+          message?.chat?.type || "",
+      }
+    );
 
     // グループならメンバー情報を自動更新
-    await ensureGroupRegistered(message);
-    await ensureGroupMember(message);
+    await ensureGroupRegistered(
+      message
+    );
+
+    await ensureGroupMember(
+      message
+    );
 
     const command =
       getCommandName(text);
 
-    console.log("COMMAND DEBUG:", {
-      text,
-      command,
-      userId,
-      chatId,
-      chatType:
-        message?.chat?.type,
-    });
+    console.log(
+      "COMMAND DEBUG:",
+      {
+        text,
+        command,
+        userId,
+        chatId,
+        chatType:
+          message?.chat?.type,
+      }
+    );
 
     if (!command) {
       return res.status(200).json({
@@ -1696,43 +1972,63 @@ export default async function handler(req, res) {
 
     switch (command) {
       case "start":
-        await handleStart(message);
+        await handleStart(
+          message
+        );
         break;
 
       case "add":
-        await handleAdd(message);
+        await handleAdd(
+          message
+        );
         break;
 
       case "cancel":
-        await handleCancel(message);
+        await handleCancel(
+          message
+        );
         break;
 
       case "reset":
-        await handleReset(message);
+        await handleReset(
+          message
+        );
         break;
 
       case "goal":
-        await handleGoal(message);
+        await handleGoal(
+          message
+        );
         break;
 
       case "help":
-        await handleHelp(message);
+        await handleHelp(
+          message
+        );
         break;
 
       case "group":
-        await handleGroup(message);
+        await handleGroup(
+          message
+        );
         break;
 
       case "lastmonth":
-        await handleLastMonth(message);
+        await handleLastMonth(
+          message
+        );
         break;
 
       case "month":
-        await handleMonth(message);
+        await handleMonth(
+          message
+        );
         break;
 
       case "admin":
-        await handleAdmin(message);
+        await handleAdmin(
+          message
+        );
         break;
 
       default:
@@ -1744,7 +2040,10 @@ export default async function handler(req, res) {
       ok: true,
     });
   } catch (error) {
-    console.error("Webhook error:", error);
+    console.error(
+      "Webhook error:",
+      error
+    );
 
     // Telegram側には200を返して、
     // 同じUpdateの無限リトライを避ける
