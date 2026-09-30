@@ -116,9 +116,10 @@ function validateTelegramInitData(initData) {
   return String(user.id);
 }
 
+
 /*
 ============================================================
-管理者ID
+管理者ID取得
 ============================================================
 */
 
@@ -131,6 +132,7 @@ function getAdminIds() {
     .filter(Boolean);
 }
 
+
 /*
 ============================================================
 管理者確認
@@ -142,6 +144,7 @@ function isAdmin(userId) {
     String(userId)
   );
 }
+
 
 /*
 ============================================================
@@ -182,6 +185,7 @@ export default async function handler(req, res) {
         initData
       );
 
+
     /*
     ==========================================================
     管理者確認
@@ -196,9 +200,11 @@ export default async function handler(req, res) {
       });
     }
 
+
     /*
     ==========================================================
     今月の期間
+    JST基準
     ==========================================================
     */
 
@@ -222,6 +228,7 @@ export default async function handler(req, res) {
       ) AT TIME ZONE ${TIME_ZONE}
     `;
 
+
     /*
     ==========================================================
     全体統計
@@ -230,6 +237,7 @@ export default async function handler(req, res) {
 
     const overallRows = await sql`
       SELECT
+
         COUNT(*) AS records,
 
         COUNT(
@@ -257,6 +265,7 @@ export default async function handler(req, res) {
     const overall =
       overallRows[0] || {};
 
+
     /*
     ==========================================================
     今月統計
@@ -265,6 +274,7 @@ export default async function handler(req, res) {
 
     const monthlyRows = await sql`
       SELECT
+
         COUNT(*) AS records,
 
         COUNT(
@@ -289,7 +299,6 @@ export default async function handler(req, res) {
       FROM delivery_results
 
       WHERE created_at >= ${monthStart}
-
         AND created_at < ${monthEnd}
     `;
 
@@ -311,6 +320,11 @@ export default async function handler(req, res) {
         monthly.hours || 0
       );
 
+    const monthlyUsers =
+      Number(
+        monthly.active_users || 0
+      );
+
     const average =
       monthlyCount > 0
         ? monthlySales /
@@ -318,24 +332,142 @@ export default async function handler(req, res) {
         : 0;
 
     const averageHours =
-      Number(
-        monthly.active_users || 0
-      ) > 0
+      monthlyUsers > 0
         ? monthlyHours /
-          Number(
-            monthly.active_users
-          )
+          monthlyUsers
         : 0;
+
 
     /*
     ==========================================================
-    グループ
+    ★ 今月ユーザーランキング
+    ==========================================================
+    */
+
+    const userRows = await sql`
+      SELECT
+
+        telegram_user_id,
+
+        COALESCE(
+          SUM(sale_amount),
+          0
+        ) AS sales,
+
+        COALESCE(
+          SUM(delivery_count),
+          0
+        ) AS count,
+
+        COALESCE(
+          SUM(work_hours),
+          0
+        ) AS hours,
+
+        COUNT(*) AS records,
+
+        MAX(created_at) AS latest_at
+
+      FROM delivery_results
+
+      WHERE created_at >= ${monthStart}
+        AND created_at < ${monthEnd}
+
+      GROUP BY
+        telegram_user_id
+
+      ORDER BY
+        COALESCE(
+          SUM(sale_amount),
+          0
+        ) DESC,
+
+        COALESCE(
+          SUM(delivery_count),
+          0
+        ) DESC,
+
+        COALESCE(
+          SUM(work_hours),
+          0
+        ) DESC,
+
+        telegram_user_id ASC
+
+      LIMIT 100
+    `;
+
+    const users =
+      userRows.map(
+        (row, index) => {
+
+          const sales =
+            Number(
+              row.sales || 0
+            );
+
+          const count =
+            Number(
+              row.count || 0
+            );
+
+          const hours =
+            Number(
+              row.hours || 0
+            );
+
+          const records =
+            Number(
+              row.records || 0
+            );
+
+          return {
+
+            rank:
+              index + 1,
+
+            telegramUserId:
+              String(
+                row.telegram_user_id
+              ),
+
+            sales,
+
+            count,
+
+            hours,
+
+            records,
+
+            average:
+              count > 0
+                ? sales / count
+                : 0,
+
+            hourlyAverage:
+              hours > 0
+                ? sales / hours
+                : 0,
+
+            latestAt:
+              row.latest_at || null
+          };
+
+        }
+      );
+
+
+    /*
+    ==========================================================
+    グループ統計
     ==========================================================
     */
 
     const groupRows = await sql`
       SELECT
+
         tg.chat_id,
+
         tg.title,
 
         COUNT(
@@ -360,6 +492,7 @@ export default async function handler(req, res) {
       FROM telegram_groups tg
 
       LEFT JOIN delivery_results dr
+
         ON dr.chat_id =
           tg.chat_id
 
@@ -368,11 +501,15 @@ export default async function handler(req, res) {
         AND dr.created_at < ${monthEnd}
 
       GROUP BY
+
         tg.chat_id,
+
         tg.title
 
       ORDER BY
+
         sales DESC,
+
         tg.chat_id ASC
     `;
 
@@ -396,6 +533,7 @@ export default async function handler(req, res) {
             );
 
           return {
+
             chatId:
               String(
                 row.chat_id
@@ -421,8 +559,10 @@ export default async function handler(req, res) {
                 ? sales / count
                 : 0
           };
+
         }
       );
+
 
     /*
     ==========================================================
@@ -432,11 +572,17 @@ export default async function handler(req, res) {
 
     const logRows = await sql`
       SELECT
+
         id,
+
         telegram_user_id,
+
         chat_id,
+
         action,
+
         details,
+
         created_at
 
       FROM audit_logs
@@ -450,6 +596,7 @@ export default async function handler(req, res) {
     const logs =
       logRows.map(
         row => ({
+
           id:
             Number(
               row.id
@@ -475,23 +622,33 @@ export default async function handler(req, res) {
 
           createdAt:
             row.created_at
+
         })
       );
 
+
     /*
     ==========================================================
-    レスポンス
+    最終レスポンス
     ==========================================================
     */
 
     return res.status(200).json({
+
       ok: true,
 
       user: {
         telegramUserId
       },
 
+      /*
+      ==========================
+      全体
+      ==========================
+      */
+
       overall: {
+
         records:
           Number(
             overall.records || 0
@@ -516,18 +673,24 @@ export default async function handler(req, res) {
           Number(
             overall.hours || 0
           )
+
       },
 
+      /*
+      ==========================
+      今月
+      ==========================
+      */
+
       month: {
+
         records:
           Number(
             monthly.records || 0
           ),
 
         activeUsers:
-          Number(
-            monthly.active_users || 0
-          ),
+          monthlyUsers,
 
         sales:
           monthlySales,
@@ -541,11 +704,33 @@ export default async function handler(req, res) {
         average,
 
         averageHours
+
       },
+
+      /*
+      ==========================
+      ★ ユーザーランキング
+      ==========================
+      */
+
+      users,
+
+      /*
+      ==========================
+      グループ
+      ==========================
+      */
 
       groups,
 
+      /*
+      ==========================
+      最新ログ
+      ==========================
+      */
+
       logs
+
     });
 
   } catch (error) {
@@ -556,10 +741,15 @@ export default async function handler(req, res) {
     );
 
     return res.status(500).json({
+
       ok: false,
+
       error:
         error?.message ||
         "管理者データ取得中にエラーが発生しました。"
+
     });
+
   }
+
 }
