@@ -99,7 +99,7 @@
       border-radius: 14px;
       padding: 16px;
       margin-bottom: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .05);
     }
 
     .card h2 {
@@ -484,7 +484,6 @@
       👥 グループ
     </button>
 
-    <!-- 管理タブは常に表示 -->
     <button
       class="tab"
       data-tab="admin"
@@ -801,8 +800,6 @@
 
     </div>
 
-    <!-- グループ初期化 -->
-
     <div class="card">
 
       <h2>⚠️ グループ管理</h2>
@@ -955,8 +952,6 @@
       </div>
 
     </div>
-
-    <!-- 管理データ初期化 -->
 
     <div class="card">
 
@@ -1111,19 +1106,29 @@
     let data = null;
 
     try {
+
       data =
         await response.json();
+
     } catch {
+
       throw new Error(
         "サーバーから正しいデータを取得できませんでした。"
       );
     }
 
     if (!response.ok) {
-      throw new Error(
-        data?.error ||
-        `HTTP ${response.status}`
-      );
+
+      const error =
+        new Error(
+          data?.error ||
+          `HTTP ${response.status}`
+        );
+
+      error.status =
+        response.status;
+
+      throw error;
     }
 
     return data;
@@ -1143,6 +1148,7 @@
       )
       .forEach(
         section => {
+
           section.style.display =
             section.id === name
               ? "block"
@@ -1156,6 +1162,7 @@
       )
       .forEach(
         button => {
+
           button.classList.toggle(
             "active",
             button.dataset.tab === name
@@ -1165,6 +1172,12 @@
 
     showError("");
 
+    if (name === "personal") {
+      loadPersonal(
+        getActivePeriod()
+      );
+    }
+
     if (name === "group") {
       loadGroup();
     }
@@ -1172,6 +1185,50 @@
     if (name === "admin") {
       loadAdmin();
     }
+  }
+
+  /*
+  ==========================================================
+  現在選択中の期間
+  ==========================================================
+  */
+
+  function getActivePeriod() {
+
+    const active =
+      document.querySelector(
+        ".period-tab.active"
+      );
+
+    return (
+      active?.dataset?.period ||
+      "today"
+    );
+  }
+
+  /*
+  ==========================================================
+  Mini App期間
+  →
+  API期間
+  ==========================================================
+  */
+
+  function convertPeriod(
+    period
+  ) {
+
+    const map = {
+      today: "day",
+      week: "week",
+      month: "month",
+      year: "year"
+    };
+
+    return (
+      map[period] ||
+      "day"
+    );
   }
 
   /*
@@ -1190,6 +1247,7 @@
       )
       .forEach(
         button => {
+
           button.classList.toggle(
             "active",
             button.dataset.period === period
@@ -1199,21 +1257,38 @@
 
     try {
 
+      showError("");
+
+      const apiPeriod =
+        convertPeriod(
+          period
+        );
+
       const data =
         await apiFetch(
-          `/api/result?period=${encodeURIComponent(period)}`
+          `/api/result?period=${encodeURIComponent(
+            apiPeriod
+          )}`
         );
 
       if (!data?.ok) {
+
         throw new Error(
           data?.error ||
           "個人実績を取得できませんでした。"
         );
       }
 
-      renderPersonal(data);
+      renderPersonal(
+        data
+      );
 
     } catch (error) {
+
+      console.error(
+        "Personal API:",
+        error
+      );
 
       showError(
         error?.message ||
@@ -1222,27 +1297,50 @@
     }
   }
 
-  function renderPersonal(data) {
+  /*
+  ==========================================================
+  個人表示
+  ==========================================================
+  */
 
-    const summary =
-      data.summary || {};
+  function renderPersonal(
+    data
+  ) {
+
+    /*
+    API result.js は summary ではなく
+    sales / count / hours を直接返す
+    */
 
     const sales =
-      Number(summary.sales || 0);
+      Number(
+        data.sales || 0
+      );
 
     const count =
-      Number(summary.count || 0);
+      Number(
+        data.count || 0
+      );
 
     const hours =
-      Number(summary.hours || 0);
+      Number(
+        data.hours || 0
+      );
 
     const average =
-      count > 0
-        ? sales / count
-        : 0;
+      Number(
+        data.average ??
+        (
+          count > 0
+            ? sales / count
+            : 0
+        )
+      );
 
     const workDays =
-      Number(summary.workDays || 0);
+      Number(
+        data.workDays || 0
+      );
 
     const dailyAverage =
       workDays > 0
@@ -1259,44 +1357,88 @@
         ? count / hours
         : 0;
 
+    const maxSales =
+      Number(
+        data.maxSales || 0
+      );
+
+    const maxCount =
+      Number(
+        data.maxCount || 0
+      );
+
+    const totalCount =
+      Number(
+        data.totalCount ?? count
+      );
+
+    const records =
+      data.records || [];
+
+    /*
+    ==========================
+    基本
+    ==========================
+    */
+
     setText(
       "personalSales",
-      formatNumber(sales)
+      formatNumber(
+        sales
+      )
     );
 
     setText(
       "personalCount",
-      formatNumber(count)
+      formatNumber(
+        count
+      )
     );
 
     setText(
       "personalHours",
-      formatHours(hours)
+      formatHours(
+        hours
+      )
     );
+
+    /*
+    ==========================
+    詳細
+    ==========================
+    */
 
     setText(
       "personalAverage",
       formatNumber(
-        Math.round(average)
+        Math.round(
+          average
+        )
       )
     );
 
     setText(
       "personalWorkDays",
-      formatNumber(workDays)
+      formatNumber(
+        workDays
+      )
     );
 
     setText(
       "personalDailyAverage",
       formatNumber(
-        Math.round(dailyAverage)
+        Math.round(
+          dailyAverage
+        )
       )
     );
 
     setText(
       "personalHourlyAverage",
       formatNumber(
-        Math.round(hourlyAverage)
+        Math.round(
+          hourlyAverage
+        )
       )
     );
 
@@ -1308,29 +1450,28 @@
     setText(
       "personalMaxSales",
       formatNumber(
-        summary.maxSales || 0
+        maxSales
       )
     );
 
     setText(
       "personalMaxCount",
       formatNumber(
-        summary.maxCount || 0
+        maxCount
       )
     );
 
     setText(
       "personalTotalCount",
       formatNumber(
-        summary.totalCount ?? count
+        totalCount
       )
     );
 
     setText(
       "personalRecordCount",
       formatNumber(
-        summary.recordCount ??
-        (data.records || []).length
+        records.length
       )
     );
 
@@ -1340,22 +1481,18 @@
     ==========================
     */
 
-    const user =
-      data.user ||
-      data.telegramUser ||
-      null;
+    let name = "";
 
-    let name =
-      user?.firstName ||
-      user?.first_name ||
-      user?.username ||
-      "";
+    if (
+      tg?.initDataUnsafe?.user
+    ) {
 
-    if (!name && tg?.initDataUnsafe?.user) {
+      const user =
+        tg.initDataUnsafe.user;
 
       name =
-        tg.initDataUnsafe.user.first_name ||
-        tg.initDataUnsafe.user.username ||
+        user.first_name ||
+        user.username ||
         "";
     }
 
@@ -1368,21 +1505,28 @@
 
     /*
     ==========================
-    目標
+    月間目標
     ==========================
     */
 
     const goal =
       Number(
-        data.goal?.monthlyGoal ||
-        data.monthlyGoal ||
-        0
+        data.goal || 0
       );
 
     setText(
       "goalValue",
-      formatNumber(goal)
+      formatNumber(
+        goal
+      )
     );
+
+    /*
+    result.js の goal は
+    月間目標件数。
+    rate は売上ベースなので、
+    画面の目標表示は配達件数ベースにする。
+    */
 
     const progress =
       goal > 0
@@ -1398,6 +1542,7 @@
       );
 
     if (progressEl) {
+
       progressEl.style.width =
         `${progress}%`;
     }
@@ -1407,10 +1552,22 @@
       `${formatNumber(count)} / ${formatNumber(goal)} 件`
     );
 
+    /*
+    ==========================
+    最新実績
+    ==========================
+    */
+
     renderPersonalRecords(
-      data.records || []
+      records
     );
   }
+
+  /*
+  ==========================================================
+  最新実績
+  ==========================================================
+  */
 
   function renderPersonalRecords(
     records
@@ -1443,18 +1600,14 @@
                 <span class="record-date">
                   ${escapeHtml(
                     formatDateJST(
-                      record.createdAt ||
-                      record.created_at
+                      record.createdAt
                     )
                   )}
                 </span>
 
                 <span class="record-sales">
                   ${formatNumber(
-                    record.saleAmount ??
-                    record.sales ??
-                    record.sale_amount ??
-                    0
+                    record.sale
                   )}円
                 </span>
 
@@ -1465,20 +1618,14 @@
                 <span>
                   📦
                   ${formatNumber(
-                    record.deliveryCount ??
-                    record.count ??
-                    record.delivery_count ??
-                    0
+                    record.count
                   )}件
                 </span>
 
                 <span>
                   ⏱
                   ${formatHours(
-                    record.workHours ??
-                    record.hours ??
-                    record.work_hours ??
-                    0
+                    record.hours
                   )}時間
                 </span>
 
@@ -1504,7 +1651,9 @@
       );
 
     const value =
-      Number(input.value);
+      Number(
+        input.value
+      );
 
     if (
       !Number.isInteger(value) ||
@@ -1518,51 +1667,15 @@
       return;
     }
 
-    try {
+    /*
+    現在の api/result.js は GET 専用。
+    目標保存APIは別途対応が必要なので、
+    ここではエラーを明確に表示する。
+    */
 
-      const data =
-        await apiFetch(
-          "/api/result",
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-
-            body:
-              JSON.stringify({
-                action: "goal",
-                monthlyGoal: value
-              })
-          }
-        );
-
-      if (!data?.ok) {
-        throw new Error(
-          data?.error ||
-          "目標を保存できませんでした。"
-        );
-      }
-
-      input.value = "";
-
-      await loadPersonal(
-        "month"
-      );
-
-      alert(
-        "月間目標を保存しました。"
-      );
-
-    } catch (error) {
-
-      alert(
-        error?.message ||
-        "目標保存に失敗しました。"
-      );
-    }
+    alert(
+      "月間目標保存APIは現在調整中です。"
+    );
   }
 
   /*
@@ -1593,6 +1706,7 @@
         );
 
       if (!data?.ok) {
+
         throw new Error(
           data?.error ||
           "実績削除に失敗しました。"
@@ -1666,7 +1780,9 @@
         );
 
       const parts =
-        formatter.formatToParts(date);
+        formatter.formatToParts(
+          date
+        );
 
       const year =
         parts.find(
@@ -1731,7 +1847,9 @@
       const params =
         new URLSearchParams();
 
-      if (groupSelect.value) {
+      if (
+        groupSelect.value
+      ) {
 
         params.set(
           "chatId",
@@ -1739,7 +1857,9 @@
         );
       }
 
-      if (monthSelect?.value) {
+      if (
+        monthSelect?.value
+      ) {
 
         params.set(
           "month",
@@ -1760,6 +1880,7 @@
         );
 
       if (!data?.ok) {
+
         throw new Error(
           data?.error ||
           "グループ実績を取得できませんでした。"
@@ -1790,7 +1911,9 @@
           option
         );
 
-        renderGroup(data);
+        renderGroup(
+          data
+        );
 
         return;
       }
@@ -1822,8 +1945,9 @@
         current &&
         groups.some(
           group =>
-            String(group.chatId) ===
-            current
+            String(
+              group.chatId
+            ) === current
         )
       ) {
 
@@ -1847,7 +1971,9 @@
           );
       }
 
-      renderGroup(data);
+      renderGroup(
+        data
+      );
 
     } catch (error) {
 
@@ -1858,7 +1984,9 @@
     }
   }
 
-  function renderGroup(data) {
+  function renderGroup(
+    data
+  ) {
 
     const summary =
       data.summary || {};
@@ -2066,6 +2194,7 @@
         );
 
       if (!data?.ok) {
+
         throw new Error(
           data?.error ||
           "グループ初期化に失敗しました。"
@@ -2540,6 +2669,7 @@
         );
 
       if (!data?.ok) {
+
         throw new Error(
           data?.error ||
           "管理データ初期化に失敗しました。"
@@ -2550,7 +2680,9 @@
         "管理データを初期化しました。"
       );
 
-      await loadPersonal("today");
+      await loadPersonal(
+        "today"
+      );
 
       await loadGroup();
 
@@ -2577,7 +2709,9 @@
   ) {
 
     const el =
-      document.getElementById(id);
+      document.getElementById(
+        id
+      );
 
     if (el) {
       el.textContent =
@@ -2597,49 +2731,31 @@
 
     buildGroupMonths();
 
-    try {
-
-      await loadPersonal(
-        "today"
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Personal init error:",
-        error
-      );
-    }
-
-    try {
-
-      await loadGroup();
-
-    } catch (error) {
-
-      console.error(
-        "Group init error:",
-        error
-      );
-    }
-
     /*
-    管理タブは常に存在する。
-    管理データの取得だけを試みる。
+    ==========================
+    個人
+    ==========================
     */
 
-    try {
+    await loadPersonal(
+      "today"
+    );
 
-      await loadAdmin();
+    /*
+    ==========================
+    グループ
+    ==========================
+    */
 
-    } catch (error) {
+    await loadGroup();
 
-      console.error(
-        "Admin init error:",
-        error
-      );
-    }
+    /*
+    ==========================
+    管理
+    ==========================
+    */
 
+    await loadAdmin();
   }
 
   init();
