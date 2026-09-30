@@ -263,6 +263,10 @@ export default async function handler(req, res) {
             description: "スタート画面"
           },
           {
+            command: "group",
+            description: "グループ全体の今月実績"
+          },
+          {
             command: "add",
             description: "配達実績を追加"
           },
@@ -535,6 +539,100 @@ export default async function handler(req, res) {
       message.text.trim();
 
     // ============================================================
+    // /group
+    // グループ全体の今月集計
+    // ============================================================
+
+    if (text === "/group") {
+
+      // ----------------------------------------------------------
+      // 個人チャットでは使用不可
+      // ----------------------------------------------------------
+
+      if (!isGroup) {
+        await reply(
+          "📊 /group はグループ内で使用してください。"
+        );
+
+        return res.status(200).send("OK");
+      }
+
+      // ----------------------------------------------------------
+      // JST基準の今月のグループ集計
+      // ----------------------------------------------------------
+
+      const groupRows = await sql`
+        SELECT
+          COALESCE(SUM(sale_amount), 0) AS sales,
+          COALESCE(SUM(delivery_count), 0) AS count,
+          COALESCE(SUM(work_hours), 0) AS hours,
+          COUNT(DISTINCT telegram_user_id) AS members
+        FROM delivery_results
+        WHERE chat_id = ${chatId}
+          AND created_at >= (
+            date_trunc(
+              'month',
+              CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'
+            ) AT TIME ZONE 'Asia/Tokyo'
+          )
+          AND created_at < (
+            (
+              date_trunc(
+                'month',
+                CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'
+              ) + INTERVAL '1 month'
+            ) AT TIME ZONE 'Asia/Tokyo'
+          )
+      `;
+
+      // ----------------------------------------------------------
+      // グループ名取得
+      // ----------------------------------------------------------
+
+      const groupInfoRows = await sql`
+        SELECT title
+        FROM telegram_groups
+        WHERE chat_id = ${chatId}
+        LIMIT 1
+      `;
+
+      const groupTitle =
+        groupInfoRows[0]?.title ||
+        "このグループ";
+
+      // ----------------------------------------------------------
+      // 集計結果
+      // ----------------------------------------------------------
+
+      const sales =
+        Number(groupRows[0]?.sales ?? 0);
+
+      const count =
+        Number(groupRows[0]?.count ?? 0);
+
+      const hours =
+        Number(groupRows[0]?.hours ?? 0);
+
+      const members =
+        Number(groupRows[0]?.members ?? 0);
+
+      // ----------------------------------------------------------
+      // 結果表示
+      // ----------------------------------------------------------
+
+      await reply(
+        `📊 ${groupTitle}\n\n` +
+        `今月のグループ実績\n\n` +
+        `💰 売上：${sales.toLocaleString()}円\n` +
+        `📦 件数：${count.toLocaleString()}件\n` +
+        `⏱ 稼働時間：${hours.toLocaleString()}時間\n` +
+        `👥 実績登録者：${members}人`
+      );
+
+      return res.status(200).send("OK");
+    }
+
+    // ============================================================
     // /start
     // ============================================================
 
@@ -595,6 +693,7 @@ export default async function handler(req, res) {
           goal
         ).toLocaleString()}円\n\n` +
         `実績追加：/add 売上 件数 時間\n` +
+        `グループ集計：/group\n` +
         `目標設定：/goal 金額\n` +
         `取り消し：/cancel\n` +
         `全実績リセット：/reset\n` +
@@ -614,6 +713,9 @@ export default async function handler(req, res) {
 
         `/start\n` +
         `スタート画面\n\n` +
+
+        `/group\n` +
+        `グループ全体の今月実績を表示\n\n` +
 
         `/add 売上 件数 時間\n` +
         `当日の実績を追加\n` +
@@ -695,9 +797,8 @@ export default async function handler(req, res) {
       // ----------------------------------------------------------
       // 実績保存
       //
-      // chat_id を追加。
-      // 個人チャットなら個人チャットID、
-      // グループならグループIDが保存される。
+      // chat_idを保存することで、
+      // グループごとの集計が可能になる。
       // ----------------------------------------------------------
 
       await sql`
@@ -927,4 +1028,3 @@ export default async function handler(req, res) {
       .send("Internal Server Error");
   }
 }
-
