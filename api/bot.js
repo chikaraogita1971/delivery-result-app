@@ -842,34 +842,34 @@ function parseYearMonth(value) {
 }
 
 async function getMonthSummary(monthStart, chatId = null) {
-  if (chatId) {
-    const rows = await sql`
-      SELECT
-        COALESCE(SUM(sale_amount), 0)::bigint AS total_sales,
-        COALESCE(SUM(delivery_count), 0)::bigint AS total_deliveries,
-        COALESCE(SUM(work_hours), 0)::numeric AS total_hours,
-        COUNT(DISTINCT telegram_user_id)::int AS user_count
-      FROM delivery_results
-      WHERE chat_id = ${chatId}
-        AND created_at >= (
-          ${monthStart}::date AT TIME ZONE ${JST}
-        )
-        AND created_at < (
-          (
-            ${monthStart}::date + INTERVAL '1 month'
-          ) AT TIME ZONE ${JST}
-        )
-    `;
-
-    return rows[0];
+  if (!chatId) {
+    return {
+      total_sales: 0,
+      total_deliveries: 0,
+      total_hours: 0,
+      user_count: 0,
+    };
   }
 
-  return {
-    total_sales: 0,
-    total_deliveries: 0,
-    total_hours: 0,
-    user_count: 0,
-  };
+  const rows = await sql`
+    SELECT
+      COALESCE(SUM(sale_amount), 0)::bigint AS total_sales,
+      COALESCE(SUM(delivery_count), 0)::bigint AS total_deliveries,
+      COALESCE(SUM(work_hours), 0)::numeric AS total_hours,
+      COUNT(DISTINCT telegram_user_id)::int AS user_count
+    FROM delivery_results
+    WHERE chat_id = ${chatId}
+      AND created_at >= (
+        ${monthStart}::date AT TIME ZONE ${JST}
+      )
+      AND created_at < (
+        (
+          ${monthStart}::date + INTERVAL '1 month'
+        ) AT TIME ZONE ${JST}
+      )
+  `;
+
+  return rows[0];
 }
 
 /* =========================================================
@@ -1267,8 +1267,10 @@ async function handleAdmin(message) {
   console.log("ADMIN COMMAND:", {
     userId,
     chatId,
+    chatType: message?.chat?.type,
     adminIds,
     admin,
+    envExists: Boolean(process.env.ADMIN_TELEGRAM_USER_IDS),
   });
 
   if (!admin) {
@@ -1278,6 +1280,8 @@ async function handleAdmin(message) {
         "⛔ このコマンドは管理者のみ利用できます。",
         "",
         `あなたのTelegram ID：${userId || "取得できません"}`,
+        "",
+        "管理者IDが正しく設定されているか確認してください。",
       ].join("\n")
     );
 
@@ -1287,6 +1291,7 @@ async function handleAdmin(message) {
       action: "admin_denied",
       details: {
         admin_ids: adminIds,
+        chat_type: message?.chat?.type || null,
       },
     });
 
@@ -1546,6 +1551,11 @@ export default async function handler(req, res) {
   try {
     const update = req.body;
 
+    console.log("WEBHOOK UPDATE:", {
+      hasMessage: Boolean(update?.message),
+      hasCallbackQuery: Boolean(update?.callback_query),
+    });
+
     if (update?.callback_query) {
       await handleCallbackQuery(update.callback_query);
 
@@ -1562,6 +1572,13 @@ export default async function handler(req, res) {
       });
     }
 
+    console.log("MESSAGE DEBUG:", {
+      text: message.text || "",
+      userId: getTelegramUserId(message),
+      chatId: getChatId(message),
+      chatType: message.chat?.type || "",
+    });
+
     if (message.new_chat_members?.length) {
       await registerNewMembers(message);
     }
@@ -1577,6 +1594,14 @@ export default async function handler(req, res) {
     }
 
     const command = getCommandName(message.text);
+
+    console.log("COMMAND DEBUG:", {
+      text: message.text,
+      command,
+      userId: getTelegramUserId(message),
+      chatId: getChatId(message),
+      chatType: message.chat?.type,
+    });
 
     switch (command) {
       case "start":
