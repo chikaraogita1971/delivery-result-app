@@ -8,6 +8,8 @@
     content="width=device-width, initial-scale=1.0, viewport-fit=cover"
   >
 
+  <meta name="theme-color" content="#2481cc">
+
   <title>配達リザルト</title>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -15,6 +17,16 @@
   <style>
     * {
       box-sizing: border-box;
+    }
+
+    :root {
+      --app-radius: 16px;
+      --app-gap: 10px;
+    }
+
+    html {
+      background: var(--tg-theme-bg-color, #f5f5f5);
+      scroll-behavior: smooth;
     }
 
     body {
@@ -26,89 +38,309 @@
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
         sans-serif;
+
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      font: inherit;
     }
 
     .container {
+      width: 100%;
       max-width: 700px;
       margin: 0 auto;
-      padding: 16px;
-      padding-bottom: 40px;
+      padding:
+        max(14px, env(safe-area-inset-top))
+        14px
+        max(40px, calc(40px + env(safe-area-inset-bottom)));
     }
 
-    h1 {
-      margin: 4px 0 18px;
-      font-size: 24px;
+    /* =========================================================
+       ヘッダー
+       ========================================================= */
+
+    .header {
+      margin: 4px 0 16px;
     }
+
+    .header-title {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.25;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .header-subtitle {
+      margin-top: 5px;
+      font-size: 12px;
+      opacity: 0.55;
+    }
+
+    /* =========================================================
+       期間タブ
+       ========================================================= */
 
     .tabs {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 6px;
-      margin-bottom: 16px;
+
+      margin-bottom: 12px;
+      padding: 4px;
+
+      border-radius: 14px;
+      background:
+        var(
+          --tg-theme-secondary-bg-color,
+          #e9e9e9
+        );
     }
 
     .tab {
+      min-height: 40px;
+
       border: 0;
       border-radius: 10px;
-      padding: 10px 4px;
-      background: var(--tg-theme-secondary-bg-color, #e9e9e9);
+
+      background: transparent;
       color: var(--tg-theme-text-color, #222);
-      font-size: 14px;
+
+      font-size: 13px;
+      font-weight: 600;
+
       cursor: pointer;
+
+      transition:
+        background 0.15s ease,
+        transform 0.1s ease;
+    }
+
+    .tab:active {
+      transform: scale(0.97);
     }
 
     .tab.active {
-      background: var(--tg-theme-button-color, #2481cc);
-      color: var(--tg-theme-button-text-color, #fff);
+      background:
+        var(
+          --tg-theme-button-color,
+          #2481cc
+        );
+
+      color:
+        var(
+          --tg-theme-button-text-color,
+          #fff
+        );
+
+      box-shadow:
+        0 2px 6px rgba(0, 0, 0, 0.08);
     }
 
+    /* =========================================================
+       ステータス
+       ========================================================= */
+
     .status {
-      margin-bottom: 12px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      background: var(--tg-theme-secondary-bg-color, #e9e9e9);
-      font-size: 13px;
       display: none;
+
+      margin-bottom: 12px;
+      padding: 11px 13px;
+
+      border-radius: 12px;
+
+      background:
+        var(
+          --tg-theme-secondary-bg-color,
+          #e9e9e9
+        );
+
+      font-size: 13px;
+      line-height: 1.5;
     }
 
     .status.show {
       display: block;
     }
 
+    /* =========================================================
+       ダッシュボード
+       ========================================================= */
+
+    .dashboard {
+      min-height: 100px;
+    }
+
     .cards {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--app-gap);
     }
 
     .card {
+      min-width: 0;
+
       padding: 14px;
-      border-radius: 14px;
-      background: var(--tg-theme-secondary-bg-color, #fff);
+
+      border-radius: var(--app-radius);
+
+      background:
+        var(
+          --tg-theme-secondary-bg-color,
+          #fff
+        );
+
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.03);
+    }
+
+    .card.primary {
+      grid-column: span 2;
+
+      padding: 17px;
     }
 
     .card .label {
+      margin-bottom: 5px;
+
       font-size: 12px;
-      opacity: 0.65;
-      margin-bottom: 6px;
+      line-height: 1.3;
+
+      opacity: 0.58;
     }
 
     .card .value {
-      font-size: 21px;
-      font-weight: 700;
-      word-break: break-word;
+      overflow: hidden;
+
+      font-size: 20px;
+      line-height: 1.25;
+      font-weight: 800;
+
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
+
+    .card.primary .value {
+      font-size: 28px;
+    }
+
+    .card .sub {
+      margin-top: 5px;
+
+      font-size: 11px;
+      opacity: 0.5;
+    }
+
+    /* =========================================================
+       目標
+       ========================================================= */
+
+    .goal-card {
+      grid-column: span 2;
+
+      padding: 15px;
+
+      border-radius: var(--app-radius);
+
+      background:
+        var(
+          --tg-theme-secondary-bg-color,
+          #fff
+        );
+    }
+
+    .goal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      gap: 10px;
+
+      margin-bottom: 9px;
+    }
+
+    .goal-title {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .goal-rate {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .goal-bar {
+      width: 100%;
+      height: 8px;
+
+      overflow: hidden;
+
+      border-radius: 999px;
+
+      background:
+        var(
+          --tg-theme-bg-color,
+          #eee
+        );
+    }
+
+    .goal-progress {
+      width: 0;
+      height: 100%;
+
+      border-radius: 999px;
+
+      background:
+        var(
+          --tg-theme-button-color,
+          #2481cc
+        );
+
+      transition: width 0.35s ease;
+    }
+
+    .goal-detail {
+      margin-top: 7px;
+
+      font-size: 11px;
+      opacity: 0.55;
+    }
+
+    /* =========================================================
+       セクション
+       ========================================================= */
 
     .section {
       margin-top: 22px;
     }
 
-    .section-title {
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
       margin-bottom: 10px;
-      font-size: 17px;
-      font-weight: 700;
     }
+
+    .section-title {
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .section-subtitle {
+      font-size: 11px;
+      opacity: 0.5;
+    }
+
+    /* =========================================================
+       最近の記録
+       ========================================================= */
 
     .records {
       display: flex;
@@ -117,60 +349,219 @@
     }
 
     .record {
-      padding: 12px;
-      border-radius: 12px;
-      background: var(--tg-theme-secondary-bg-color, #fff);
+      padding: 13px;
+
+      border-radius: 13px;
+
+      background:
+        var(
+          --tg-theme-secondary-bg-color,
+          #fff
+        );
     }
 
     .record-date {
-      font-size: 12px;
-      opacity: 0.6;
-      margin-bottom: 7px;
+      margin-bottom: 8px;
+
+      font-size: 11px;
+      opacity: 0.55;
     }
 
     .record-values {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      font-size: 13px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .record-item {
+      min-width: 0;
+    }
+
+    .record-label {
+      margin-bottom: 2px;
+
+      font-size: 10px;
+      opacity: 0.5;
     }
 
     .record-value {
-      font-weight: 600;
+      overflow: hidden;
+
+      font-size: 14px;
+      font-weight: 700;
+
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
+
+    /* =========================================================
+       空状態
+       ========================================================= */
 
     .empty {
-      padding: 20px;
+      padding: 25px 16px;
+
       text-align: center;
-      opacity: 0.6;
-      background: var(--tg-theme-secondary-bg-color, #fff);
-      border-radius: 12px;
+
+      border-radius: 13px;
+
+      background:
+        var(
+          --tg-theme-secondary-bg-color,
+          #fff
+        );
+
+      font-size: 13px;
+      line-height: 1.6;
+
+      opacity: 0.65;
     }
 
+    /* =========================================================
+       ローディング
+       ========================================================= */
+
+    .loading {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      min-height: 110px;
+
+      text-align: center;
+
+      font-size: 13px;
+      opacity: 0.6;
+    }
+
+    .spinner {
+      width: 25px;
+      height: 25px;
+
+      margin-bottom: 9px;
+
+      border: 3px solid
+        var(
+          --tg-theme-secondary-bg-color,
+          #ddd
+        );
+
+      border-top-color:
+        var(
+          --tg-theme-button-color,
+          #2481cc
+        );
+
+      border-radius: 50%;
+
+      animation:
+        spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* =========================================================
+       エラー
+       ========================================================= */
+
+    .error {
+      padding: 15px;
+
+      border-radius: 13px;
+
+      background:
+        rgba(217, 48, 37, 0.10);
+
+      color:
+        var(
+          --tg-theme-text-color,
+          #b00020
+        );
+
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .retry-button {
+      margin-top: 10px;
+
+      border: 0;
+      border-radius: 9px;
+
+      padding: 9px 13px;
+
+      background:
+        var(
+          --tg-theme-button-color,
+          #2481cc
+        );
+
+      color:
+        var(
+          --tg-theme-button-text-color,
+          #fff
+        );
+
+      font-size: 12px;
+      font-weight: 700;
+
+      cursor: pointer;
+    }
+
+    /* =========================================================
+       リセット
+       ========================================================= */
+
     .reset-box {
-      margin-top: 28px;
+      margin-top: 30px;
       padding: 16px;
+
       border-radius: 14px;
-      background: var(--tg-theme-secondary-bg-color, #fff);
+
+      background:
+        var(
+          --tg-theme-secondary-bg-color,
+          #fff
+        );
     }
 
     .reset-warning {
-      margin-bottom: 12px;
-      font-size: 13px;
-      line-height: 1.6;
-      opacity: 0.75;
+      margin-bottom: 13px;
+
+      font-size: 12px;
+      line-height: 1.65;
+
+      opacity: 0.65;
     }
 
     .reset-button {
       width: 100%;
+
       border: 0;
       border-radius: 10px;
+
       padding: 13px;
+
       background: #d93025;
       color: #fff;
-      font-size: 15px;
-      font-weight: 700;
+
+      font-size: 14px;
+      font-weight: 800;
+
       cursor: pointer;
+
+      transition:
+        opacity 0.15s ease,
+        transform 0.1s ease;
+    }
+
+    .reset-button:active {
+      transform: scale(0.98);
     }
 
     .reset-button:disabled {
@@ -178,31 +569,80 @@
       cursor: default;
     }
 
-    .loading {
-      padding: 30px;
+    /* =========================================================
+       フッター
+       ========================================================= */
+
+    .footer {
+      margin-top: 25px;
+
       text-align: center;
-      opacity: 0.65;
+
+      font-size: 10px;
+      opacity: 0.35;
     }
 
-    .error {
-      padding: 16px;
-      border-radius: 12px;
-      background: #ffe8e8;
-      color: #b00020;
-      line-height: 1.6;
-    }
+    /* =========================================================
+       スマホ
+       ========================================================= */
 
     @media (max-width: 420px) {
-      .cards {
-        grid-template-columns: 1fr 1fr;
+
+      .container {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .header-title {
+        font-size: 23px;
+      }
+
+      .card {
+        padding: 13px;
       }
 
       .card .value {
         font-size: 18px;
       }
 
+      .card.primary .value {
+        font-size: 25px;
+      }
+
       .record-values {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 5px;
+      }
+
+      .record-value {
+        font-size: 12px;
+      }
+    }
+
+    @media (max-width: 350px) {
+
+      .tabs {
+        gap: 4px;
+      }
+
+      .tab {
+        font-size: 12px;
+      }
+
+      .cards {
+        gap: 7px;
+      }
+
+      .card {
+        padding: 11px;
+      }
+
+      .card .value {
+        font-size: 16px;
+      }
+
+      .card.primary .value {
+        font-size: 22px;
       }
     }
   </style>
@@ -212,61 +652,137 @@
 
 <div class="container">
 
-  <h1>📋 配達リザルト</h1>
+  <!-- =======================================================
+       ヘッダー
+       ======================================================= -->
 
-  <!-- 期間タブ -->
+  <header class="header">
+    <h1 class="header-title">
+      📋 配達リザルト
+    </h1>
+
+    <div class="header-subtitle">
+      あなたの配達実績を確認できます
+    </div>
+  </header>
+
+
+  <!-- =======================================================
+       期間タブ
+       ======================================================= -->
+
   <div class="tabs">
-    <button class="tab active" data-period="day">
+
+    <button
+      class="tab active"
+      data-period="day"
+      type="button"
+    >
       日
     </button>
 
-    <button class="tab" data-period="week">
+    <button
+      class="tab"
+      data-period="week"
+      type="button"
+    >
       週
     </button>
 
-    <button class="tab" data-period="month">
+    <button
+      class="tab"
+      data-period="month"
+      type="button"
+    >
       月
     </button>
 
-    <button class="tab" data-period="year">
+    <button
+      class="tab"
+      data-period="year"
+      type="button"
+    >
       年
     </button>
+
   </div>
 
-  <div id="status" class="status"></div>
 
-  <!-- ダッシュボード -->
-  <div id="dashboard">
+  <!-- =======================================================
+       ステータス
+       ======================================================= -->
+
+  <div
+    id="status"
+    class="status"
+  ></div>
+
+
+  <!-- =======================================================
+       ダッシュボード
+       ======================================================= -->
+
+  <div
+    id="dashboard"
+    class="dashboard"
+  >
     <div class="loading">
+      <div class="spinner"></div>
       読み込み中...
     </div>
   </div>
 
-  <!-- 記録 -->
-  <div class="section">
-    <div class="section-title">
-      📝 最近の記録
+
+  <!-- =======================================================
+       最近の記録
+       ======================================================= -->
+
+  <section class="section">
+
+    <div class="section-header">
+
+      <div class="section-title">
+        📝 最近の記録
+      </div>
+
+      <div
+        id="recordCount"
+        class="section-subtitle"
+      ></div>
+
     </div>
 
     <div id="records">
+
       <div class="loading">
+        <div class="spinner"></div>
         読み込み中...
       </div>
-    </div>
-  </div>
 
-  <!-- リセット -->
-  <div class="reset-box">
+    </div>
+
+  </section>
+
+
+  <!-- =======================================================
+       リセット
+       ======================================================= -->
+
+  <section class="reset-box">
 
     <div class="section-title">
       🗑️ 実績リセット
     </div>
 
     <div class="reset-warning">
-      登録されているあなたの配達実績をすべて削除します。<br>
-      この操作は取り消せません。<br>
-      <br>
+
+      登録されているあなたの配達実績を
+      すべて削除します。<br>
+
+      この操作は取り消せません。<br><br>
+
       ※ 月間目標は削除されません。
+
     </div>
 
     <button
@@ -277,9 +793,15 @@
       🗑️ 全実績をリセット
     </button>
 
+  </section>
+
+
+  <div class="footer">
+    配達リザルト
   </div>
 
 </div>
+
 
 <script>
   /*
@@ -291,6 +813,7 @@
   const tg = window.Telegram?.WebApp;
 
   if (!tg) {
+
     document.body.innerHTML = `
       <div style="
         padding:30px;
@@ -300,11 +823,35 @@
         Telegram Mini Appとして開いてください。
       </div>
     `;
-    throw new Error("Telegram WebApp is unavailable.");
+
+    throw new Error(
+      "Telegram WebApp is unavailable."
+    );
   }
+
+
+  /*
+  ============================================================
+  Telegram初期化
+  ============================================================
+  */
 
   tg.ready();
   tg.expand();
+
+  if (tg.setHeaderColor) {
+    try {
+      tg.setHeaderColor(
+        "secondary_bg_color"
+      );
+    } catch (error) {
+      console.warn(
+        "setHeaderColor unavailable:",
+        error
+      );
+    }
+  }
+
 
   /*
   ============================================================
@@ -314,17 +861,38 @@
 
   let currentPeriod = "day";
 
+
+  /*
+  ============================================================
+  DOM
+  ============================================================
+  */
+
   const dashboard =
-    document.getElementById("dashboard");
+    document.getElementById(
+      "dashboard"
+    );
 
   const records =
-    document.getElementById("records");
+    document.getElementById(
+      "records"
+    );
+
+  const recordCount =
+    document.getElementById(
+      "recordCount"
+    );
 
   const status =
-    document.getElementById("status");
+    document.getElementById(
+      "status"
+    );
 
   const resetButton =
-    document.getElementById("resetButton");
+    document.getElementById(
+      "resetButton"
+    );
+
 
   /*
   ============================================================
@@ -333,26 +901,58 @@
   */
 
   function formatNumber(value) {
-    return Number(value || 0).toLocaleString("ja-JP");
+
+    return Number(
+      value || 0
+    ).toLocaleString(
+      "ja-JP"
+    );
+
   }
 
+
   function formatHours(value) {
-    return Number(value || 0).toLocaleString(
+
+    return Number(
+      value || 0
+    ).toLocaleString(
       "ja-JP",
       {
         maximumFractionDigits: 2
       }
     );
+
   }
 
+
+  function formatRate(value) {
+
+    return Number(
+      value || 0
+    ).toLocaleString(
+      "ja-JP",
+      {
+        maximumFractionDigits: 1
+      }
+    );
+
+  }
+
+
   function formatDate(value) {
+
     if (!value) {
       return "-";
     }
 
-    const date = new Date(value);
+    const date =
+      new Date(value);
 
-    if (Number.isNaN(date.getTime())) {
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
       return "-";
     }
 
@@ -367,17 +967,151 @@
         minute: "2-digit"
       }
     );
+
   }
 
-  function showStatus(message) {
-    status.textContent = message;
-    status.classList.add("show");
+
+  function escapeHtml(value) {
+
+    return String(
+      value ?? ""
+    )
+      .replace(
+        /&/g,
+        "&amp;"
+      )
+      .replace(
+        /</g,
+        "&lt;"
+      )
+      .replace(
+        />/g,
+        "&gt;"
+      )
+      .replace(
+        /"/g,
+        "&quot;"
+      )
+      .replace(
+        /'/g,
+        "&#039;"
+      );
+
   }
+
+
+  function showStatus(
+    message
+  ) {
+
+    status.textContent =
+      message;
+
+    status.classList.add(
+      "show"
+    );
+
+  }
+
 
   function hideStatus() {
+
     status.textContent = "";
-    status.classList.remove("show");
+
+    status.classList.remove(
+      "show"
+    );
+
   }
+
+
+  function haptic(
+    type = "light"
+  ) {
+
+    try {
+
+      if (
+        tg.HapticFeedback &&
+        tg.HapticFeedback.impactOccurred
+      ) {
+
+        tg.HapticFeedback
+          .impactOccurred(
+            type
+          );
+
+      }
+
+    } catch (error) {
+
+      console.warn(
+        "Haptic error:",
+        error
+      );
+
+    }
+
+  }
+
+
+  function notification(
+    type
+  ) {
+
+    try {
+
+      if (
+        tg.HapticFeedback &&
+        tg.HapticFeedback
+          .notificationOccurred
+      ) {
+
+        tg.HapticFeedback
+          .notificationOccurred(
+            type
+          );
+
+      }
+
+    } catch (error) {
+
+      console.warn(
+        "Notification haptic error:",
+        error
+      );
+
+    }
+
+  }
+
+
+  /*
+  ============================================================
+  ローディング
+  ============================================================
+  */
+
+  function renderLoading() {
+
+    dashboard.innerHTML = `
+      <div class="loading">
+        <div class="spinner"></div>
+        読み込み中...
+      </div>
+    `;
+
+    records.innerHTML = `
+      <div class="loading">
+        <div class="spinner"></div>
+        読み込み中...
+      </div>
+    `;
+
+    recordCount.textContent = "";
+
+  }
+
 
   /*
   ============================================================
@@ -385,118 +1119,364 @@
   ============================================================
   */
 
-  function renderDashboard(data) {
-    const sales = Number(data.sales || 0);
-    const count = Number(data.count || 0);
-    const hours = Number(data.hours || 0);
-    const workDays = Number(data.workDays || 0);
-    const maxSales = Number(data.maxSales || 0);
-    const maxCount = Number(data.maxCount || 0);
-    const average = Number(data.average || 0);
-    const goal = Number(data.goal || 0);
-    const rate = Number(data.rate || 0);
-    const totalCount = Number(data.totalCount || 0);
+  function renderDashboard(
+    data
+  ) {
+
+    const sales =
+      Number(
+        data.sales || 0
+      );
+
+    const count =
+      Number(
+        data.count || 0
+      );
+
+    const hours =
+      Number(
+        data.hours || 0
+      );
+
+    const workDays =
+      Number(
+        data.workDays || 0
+      );
+
+    const maxSales =
+      Number(
+        data.maxSales || 0
+      );
+
+    const maxCount =
+      Number(
+        data.maxCount || 0
+      );
+
+    const average =
+      Number(
+        data.average || 0
+      );
+
+    const goal =
+      Number(
+        data.goal || 0
+      );
+
+    const rate =
+      Number(
+        data.rate || 0
+      );
+
+    const totalCount =
+      Number(
+        data.totalCount || 0
+      );
+
+
+    /*
+    ----------------------------------------------------------
+    1日平均売上
+    ----------------------------------------------------------
+    */
 
     const dailyAverageSales =
       workDays > 0
         ? sales / workDays
         : 0;
 
+
+    /*
+    ----------------------------------------------------------
+    1時間平均売上
+    ----------------------------------------------------------
+    */
+
+    const hourlyAverageSales =
+      hours > 0
+        ? sales / hours
+        : 0;
+
+
+    /*
+    ----------------------------------------------------------
+    1時間あたり配達
+    ----------------------------------------------------------
+    */
+
+    const deliveriesPerHour =
+      hours > 0
+        ? count / hours
+        : 0;
+
+
+    /*
+    ----------------------------------------------------------
+    目標
+    ----------------------------------------------------------
+    */
+
+    const hasGoal =
+      goal > 0;
+
+    const safeRate =
+      Math.max(
+        0,
+        Math.min(
+          100,
+          rate
+        )
+      );
+
+
     dashboard.innerHTML = `
+
       <div class="cards">
 
-        <div class="card">
-          <div class="label">売上</div>
+        <!-- 売上 -->
+
+        <div class="card primary">
+
+          <div class="label">
+            💰 売上
+          </div>
+
           <div class="value">
             ${formatNumber(sales)}円
           </div>
+
         </div>
 
+
+        <!-- 配達件数 -->
+
         <div class="card">
-          <div class="label">件数</div>
+
+          <div class="label">
+            📦 配達件数
+          </div>
+
           <div class="value">
             ${formatNumber(count)}件
           </div>
+
         </div>
 
+
+        <!-- 稼働時間 -->
+
         <div class="card">
-          <div class="label">平均単価</div>
-          <div class="value">
-            ${formatNumber(average)}円
+
+          <div class="label">
+            ⏱ 稼働時間
           </div>
-        </div>
 
-        <div class="card">
-          <div class="label">稼働時間</div>
           <div class="value">
             ${formatHours(hours)}時間
           </div>
+
         </div>
 
+
+        <!-- 平均単価 -->
+
         <div class="card">
-          <div class="label">月間目標</div>
-          <div class="value">
-            ${
-              goal > 0
-                ? `${formatNumber(goal)}円`
-                : "未設定"
-            }
+
+          <div class="label">
+            💴 平均単価
           </div>
-        </div>
 
-        <div class="card">
-          <div class="label">目標達成率</div>
           <div class="value">
-            ${
-              goal > 0
-                ? `${rate.toLocaleString("ja-JP", {
-                    maximumFractionDigits: 1
-                  })}%`
-                : "-"
-            }
+            ${formatNumber(average)}円
           </div>
+
+          <div class="sub">
+            1件あたり
+          </div>
+
         </div>
 
+
+        <!-- 稼働日数 -->
+
         <div class="card">
-          <div class="label">稼働日数</div>
+
+          <div class="label">
+            📅 稼働日数
+          </div>
+
           <div class="value">
             ${formatNumber(workDays)}日
           </div>
+
         </div>
 
+
+        <!-- 1日平均 -->
+
         <div class="card">
-          <div class="label">1日平均売上</div>
+
+          <div class="label">
+            📈 1日平均売上
+          </div>
+
           <div class="value">
             ${formatNumber(
-              Math.round(dailyAverageSales)
+              Math.round(
+                dailyAverageSales
+              )
             )}円
           </div>
+
         </div>
 
-        <div class="card">
-          <div class="label">期間最高売上</div>
-          <div class="value">
-            ${formatNumber(maxSales)}円
-          </div>
-        </div>
+
+        <!-- 時給換算 -->
 
         <div class="card">
-          <div class="label">期間最高件数</div>
-          <div class="value">
-            ${formatNumber(maxCount)}件
+
+          <div class="label">
+            ⏱ 1時間平均売上
           </div>
+
+          <div class="value">
+            ${formatNumber(
+              Math.round(
+                hourlyAverageSales
+              )
+            )}円
+          </div>
+
         </div>
 
+
+        <!-- 時間あたり件数 -->
+
         <div class="card">
-          <div class="label">累計件数</div>
-          <div class="value">
-            ${formatNumber(totalCount)}件
+
+          <div class="label">
+            🚴 1時間あたり
           </div>
+
+          <div class="value">
+            ${deliveriesPerHour.toLocaleString(
+              "ja-JP",
+              {
+                maximumFractionDigits: 1
+              }
+            )}件
+          </div>
+
+        </div>
+
+
+        <!-- 期間最高売上 -->
+
+        <div class="card">
+
+          <div class="label">
+            🏆 期間最高売上
+          </div>
+
+          <div class="value">
+            ${formatNumber(
+              maxSales
+            )}円
+          </div>
+
+        </div>
+
+
+        <!-- 期間最高件数 -->
+
+        <div class="card">
+
+          <div class="label">
+            🔥 期間最高件数
+          </div>
+
+          <div class="value">
+            ${formatNumber(
+              maxCount
+            )}件
+          </div>
+
+        </div>
+
+
+        <!-- 累計件数 -->
+
+        <div class="card">
+
+          <div class="label">
+            📦 累計件数
+          </div>
+
+          <div class="value">
+            ${formatNumber(
+              totalCount
+            )}件
+          </div>
+
+        </div>
+
+
+        <!-- 月間目標 -->
+
+        <div class="goal-card">
+
+          <div class="goal-header">
+
+            <div class="goal-title">
+              🎯 月間目標
+            </div>
+
+            <div class="goal-rate">
+
+              ${
+                hasGoal
+                  ? `${formatRate(rate)}%`
+                  : "未設定"
+              }
+
+            </div>
+
+          </div>
+
+
+          <div class="goal-bar">
+
+            <div
+              class="goal-progress"
+              style="
+                width:
+                  ${hasGoal
+                    ? safeRate
+                    : 0}%;
+              "
+            ></div>
+
+          </div>
+
+
+          <div class="goal-detail">
+
+            ${
+              hasGoal
+                ? `${formatNumber(sales)}円 / ${formatNumber(goal)}円`
+                : "Telegramで /goal を使って月間目標を設定できます"
+            }
+
+          </div>
+
         </div>
 
       </div>
+
     `;
+
   }
+
 
   /*
   ============================================================
@@ -504,132 +1484,318 @@
   ============================================================
   */
 
-  function renderRecords(data) {
-    const list = Array.isArray(data.records)
-      ? data.records
-      : [];
+  function renderRecords(
+    data
+  ) {
 
-    if (list.length === 0) {
+    const list =
+      Array.isArray(
+        data.records
+      )
+        ? data.records
+        : [];
+
+
+    recordCount.textContent =
+      list.length > 0
+        ? `${list.length}件`
+        : "";
+
+
+    if (
+      list.length === 0
+    ) {
+
       records.innerHTML = `
         <div class="empty">
-          この期間の記録はありません。
+
+          📭 この期間の記録はありません。
+
         </div>
       `;
 
       return;
     }
 
+
     records.innerHTML = `
+
       <div class="records">
-        ${list.map(record => `
+
+        ${list
+          .map(
+            (
+              record
+            ) => `
+
           <div class="record">
 
             <div class="record-date">
-              ${formatDate(record.createdAt)}
+
+              ${formatDate(
+                record.createdAt
+              )}
+
             </div>
+
 
             <div class="record-values">
 
-              <div>
-                売上<br>
-                <span class="record-value">
-                  ${formatNumber(record.sale)}円
-                </span>
+              <div class="record-item">
+
+                <div class="record-label">
+                  売上
+                </div>
+
+                <div class="record-value">
+                  ${formatNumber(
+                    record.sale
+                  )}円
+                </div>
+
               </div>
 
-              <div>
-                件数<br>
-                <span class="record-value">
-                  ${formatNumber(record.count)}件
-                </span>
+
+              <div class="record-item">
+
+                <div class="record-label">
+                  件数
+                </div>
+
+                <div class="record-value">
+                  ${formatNumber(
+                    record.count
+                  )}件
+                </div>
+
               </div>
 
-              <div>
-                時間<br>
-                <span class="record-value">
-                  ${formatHours(record.hours)}時間
-                </span>
+
+              <div class="record-item">
+
+                <div class="record-label">
+                  時間
+                </div>
+
+                <div class="record-value">
+                  ${formatHours(
+                    record.hours
+                  )}時間
+                </div>
+
               </div>
 
             </div>
 
           </div>
-        `).join("")}
+
+        `
+          )
+          .join("")}
+
       </div>
+
     `;
+
   }
+
 
   /*
   ============================================================
-  集計データ取得
+  エラー表示
+  ============================================================
+  */
+
+  function renderError(
+    message
+  ) {
+
+    dashboard.innerHTML = `
+
+      <div class="error">
+
+        ❌ データを取得できませんでした。
+
+        <br><br>
+
+        ${escapeHtml(
+          message ||
+          "通信エラーが発生しました。"
+        )}
+
+        <br>
+
+        <button
+          id="retryButton"
+          class="retry-button"
+          type="button"
+        >
+          🔄 再読み込み
+        </button>
+
+      </div>
+
+    `;
+
+    records.innerHTML = "";
+
+    recordCount.textContent = "";
+
+
+    const retryButton =
+      document.getElementById(
+        "retryButton"
+      );
+
+    if (retryButton) {
+
+      retryButton.addEventListener(
+        "click",
+        () => {
+
+          haptic(
+            "light"
+          );
+
+          loadResults();
+
+        }
+      );
+
+    }
+
+  }
+
+
+  /*
+  ============================================================
+  API取得
   ============================================================
   */
 
   async function loadResults() {
+
     hideStatus();
 
-    dashboard.innerHTML = `
-      <div class="loading">
-        読み込み中...
-      </div>
-    `;
+    renderLoading();
 
-    records.innerHTML = `
-      <div class="loading">
-        読み込み中...
-      </div>
-    `;
 
     try {
-      const initData = tg.initData;
+
+      /*
+      --------------------------------------------------------
+      Telegram認証
+      --------------------------------------------------------
+      */
+
+      const initData =
+        tg.initData;
+
 
       if (!initData) {
+
         throw new Error(
           "Telegram認証情報を取得できません。"
         );
+
       }
 
-      const response = await fetch(
-        `/api/result?period=${encodeURIComponent(
-          currentPeriod
-        )}`,
-        {
-          method: "GET",
-          headers: {
-            "X-Telegram-Init-Data": initData
+
+      /*
+      --------------------------------------------------------
+      API
+      --------------------------------------------------------
+      */
+
+      const response =
+        await fetch(
+          `/api/result?period=${encodeURIComponent(
+            currentPeriod
+          )}`,
+          {
+            method: "GET",
+
+            headers: {
+              "X-Telegram-Init-Data":
+                initData
+            },
+
+            cache: "no-store"
           }
-        }
-      );
+        );
 
-      const data = await response.json();
 
-      if (!response.ok || !data.ok) {
+      /*
+      --------------------------------------------------------
+      JSON
+      --------------------------------------------------------
+      */
+
+      let data;
+
+      try {
+
+        data =
+          await response.json();
+
+      } catch (error) {
+
+        throw new Error(
+          "サーバーから正しいデータを取得できませんでした。"
+        );
+
+      }
+
+
+      /*
+      --------------------------------------------------------
+      APIエラー
+      --------------------------------------------------------
+      */
+
+      if (
+        !response.ok ||
+        !data.ok
+      ) {
+
         throw new Error(
           data.error ||
           "データ取得に失敗しました。"
         );
+
       }
 
-      renderDashboard(data);
-      renderRecords(data);
+
+      /*
+      --------------------------------------------------------
+      描画
+      --------------------------------------------------------
+      */
+
+      renderDashboard(
+        data
+      );
+
+      renderRecords(
+        data
+      );
+
 
     } catch (error) {
+
       console.error(
         "Load result error:",
         error
       );
 
-      dashboard.innerHTML = `
-        <div class="error">
-          データを取得できませんでした。<br>
-          ${error.message || ""}
-        </div>
-      `;
-
-      records.innerHTML = "";
+      renderError(
+        error.message
+      );
 
     }
+
   }
+
 
   /*
   ============================================================
@@ -638,33 +1804,65 @@
   */
 
   document
-    .querySelectorAll(".tab")
-    .forEach(button => {
+    .querySelectorAll(
+      ".tab"
+    )
+    .forEach(
+      button => {
 
-      button.addEventListener(
-        "click",
-        async () => {
+        button.addEventListener(
+          "click",
+          async () => {
 
-          document
-            .querySelectorAll(".tab")
-            .forEach(tab => {
-              tab.classList.remove("active");
-            });
+            if (
+              button.dataset.period ===
+              currentPeriod
+            ) {
+              return;
+            }
 
-          button.classList.add("active");
 
-          currentPeriod =
-            button.dataset.period;
+            haptic(
+              "light"
+            );
 
-          await loadResults();
-        }
-      );
 
-    });
+            document
+              .querySelectorAll(
+                ".tab"
+              )
+              .forEach(
+                tab => {
+
+                  tab.classList.remove(
+                    "active"
+                  );
+
+                }
+              );
+
+
+            button.classList.add(
+              "active"
+            );
+
+
+            currentPeriod =
+              button.dataset.period;
+
+
+            await loadResults();
+
+          }
+        );
+
+      }
+    );
+
 
   /*
   ============================================================
-  Mini Appから全実績リセット
+  全実績リセット
   ============================================================
   */
 
@@ -678,9 +1876,14 @@
       --------------------------------------------------------
       */
 
-      if (resetButton.disabled) {
+      if (
+        resetButton.disabled
+      ) {
+
         return;
+
       }
+
 
       /*
       --------------------------------------------------------
@@ -696,68 +1899,108 @@
           "本当にリセットしますか？"
         );
 
+
       if (!confirmed) {
+
         return;
+
       }
+
 
       /*
       --------------------------------------------------------
-      Telegram initData確認
+      Telegram認証
       --------------------------------------------------------
       */
 
-      const initData = tg.initData;
+      const initData =
+        tg.initData;
+
 
       if (!initData) {
+
         showStatus(
           "Telegram認証情報を取得できません。"
         );
 
         return;
+
       }
+
 
       /*
       --------------------------------------------------------
-      ボタン無効化
+      ボタン停止
       --------------------------------------------------------
       */
 
-      resetButton.disabled = true;
+      resetButton.disabled =
+        true;
+
       resetButton.textContent =
         "リセット中...";
+
 
       showStatus(
         "実績をリセットしています..."
       );
 
+
+      haptic(
+        "medium"
+      );
+
+
       try {
 
-        const response = await fetch(
-          "/api/reset",
-          {
-            method: "POST",
+        const response =
+          await fetch(
+            "/api/reset",
+            {
+              method: "POST",
 
-            headers: {
-              "Content-Type": "application/json",
-              "X-Telegram-Init-Data": initData
-            },
+              headers: {
+                "Content-Type":
+                  "application/json",
 
-            body: JSON.stringify({})
-          }
-        );
+                "X-Telegram-Init-Data":
+                  initData
+              },
 
-        const data =
-          await response.json();
+              body:
+                JSON.stringify({})
+            }
+          );
+
+
+        let data;
+
+        try {
+
+          data =
+            await response.json();
+
+        } catch (error) {
+
+          throw new Error(
+            "サーバーから正しい応答を取得できませんでした。"
+          );
+
+        }
+
 
         if (
           !response.ok ||
           !data.ok
         ) {
+
           throw new Error(
             data.error ||
             "リセットに失敗しました。"
           );
+
         }
+
 
         /*
         ------------------------------------------------------
@@ -765,7 +2008,11 @@
         ------------------------------------------------------
         */
 
-        if (data.deletedCount > 0) {
+        if (
+          Number(
+            data.deletedCount || 0
+          ) > 0
+        ) {
 
           showStatus(
             `✅ ${data.deletedCount}件の実績を削除しました。`
@@ -779,20 +2026,30 @@
 
         }
 
+
+        notification(
+          "success"
+        );
+
+
         /*
         ------------------------------------------------------
-        最新データを再取得
+        最新データ取得
         ------------------------------------------------------
         */
 
         await loadResults();
 
+
         /*
-        loadResults()でstatusが消えるため、
-        成功メッセージをもう一度表示
+        loadResults()でstatusが消えるので再表示
         */
 
-        if (data.deletedCount > 0) {
+        if (
+          Number(
+            data.deletedCount || 0
+          ) > 0
+        ) {
 
           showStatus(
             `✅ ${data.deletedCount}件の実績を削除しました。`
@@ -806,20 +2063,6 @@
 
         }
 
-        /*
-        ------------------------------------------------------
-        Telegramのハプティック
-        ------------------------------------------------------
-        */
-
-        if (
-          tg.HapticFeedback &&
-          tg.HapticFeedback.notificationOccurred
-        ) {
-          tg.HapticFeedback.notificationOccurred(
-            "success"
-          );
-        }
 
       } catch (error) {
 
@@ -828,29 +2071,33 @@
           error
         );
 
+
         showStatus(
-          `❌ ${error.message || "リセットに失敗しました。"}`
+          `❌ ${
+            error.message ||
+            "リセットに失敗しました。"
+          }`
         );
 
-        if (
-          tg.HapticFeedback &&
-          tg.HapticFeedback.notificationOccurred
-        ) {
-          tg.HapticFeedback.notificationOccurred(
-            "error"
-          );
-        }
+
+        notification(
+          "error"
+        );
+
 
       } finally {
 
-        resetButton.disabled = false;
+        resetButton.disabled =
+          false;
 
         resetButton.textContent =
           "🗑️ 全実績をリセット";
+
       }
 
     }
   );
+
 
   /*
   ============================================================
