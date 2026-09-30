@@ -33,6 +33,7 @@ async function telegramApi(method, body = {}) {
 
   if (!data.ok) {
     console.error(`Telegram API error: ${method}`, data);
+
     throw new Error(
       data.description || `Telegram API error: ${method}`
     );
@@ -337,9 +338,11 @@ async function writeAuditLog({
         ${String(telegramUserId || "")},
         ${chatId ? String(chatId) : null},
         ${action},
-        ${details
-          ? JSON.stringify(details)
-          : null}::jsonb
+        ${
+          details
+            ? JSON.stringify(details)
+            : null
+        }::jsonb
       )
     `;
   } catch (error) {
@@ -384,6 +387,10 @@ async function ensureGroupRegistered(message) {
   `;
 }
 
+// ============================================================
+// Group Member Registration
+// ============================================================
+
 async function ensureGroupMember(message) {
   if (!isGroupChat(message)) {
     return;
@@ -398,16 +405,34 @@ async function ensureGroupMember(message) {
 
   const user = message?.from || {};
 
-  // Botユーザーは通常のメンバーとして登録しない
+  // Botユーザーは登録しない
   if (user.is_bot) {
+    console.log(
+      "GROUP MEMBER SKIP: bot user",
+      {
+        chatId,
+        userId,
+        username: user.username,
+      }
+    );
+
     return;
   }
 
-  // Telegramの匿名管理者
+  // Telegram匿名管理者
   if (
     user.username === "GroupAnonymousBot" ||
     userId === "1087968824"
   ) {
+    console.log(
+      "GROUP MEMBER SKIP: anonymous admin",
+      {
+        chatId,
+        userId,
+        username: user.username,
+      }
+    );
+
     return;
   }
 
@@ -433,6 +458,29 @@ async function ensureGroupMember(message) {
       first_name = EXCLUDED.first_name,
       updated_at = NOW()
   `;
+
+  console.log(
+    "GROUP MEMBER REGISTERED:",
+    {
+      chatId,
+      userId,
+      username: user.username || null,
+      firstName: user.first_name || null,
+    }
+  );
+}
+
+// ============================================================
+// Group Context Registration
+// ============================================================
+
+async function ensureGroupContext(message) {
+  if (!isGroupChat(message)) {
+    return;
+  }
+
+  await ensureGroupRegistered(message);
+  await ensureGroupMember(message);
 }
 
 // ============================================================
@@ -442,6 +490,8 @@ async function ensureGroupMember(message) {
 async function handleStart(message) {
   const chatId = getChatId(message);
   const userId = getTelegramUserId(message);
+
+  await ensureGroupContext(message);
 
   await sendMessage(
     chatId,
@@ -493,6 +543,8 @@ async function handleStart(message) {
 async function handleHelp(message) {
   const chatId = getChatId(message);
 
+  await ensureGroupContext(message);
+
   await sendMessage(
     chatId,
     [
@@ -543,6 +595,9 @@ async function handleHelp(message) {
 async function handleAdd(message) {
   const chatId = getChatId(message);
   const userId = getTelegramUserId(message);
+
+  // グループの場合、/addを使った時点でメンバー登録
+  await ensureGroupContext(message);
 
   const args = String(message?.text || "")
     .trim()
@@ -617,9 +672,6 @@ async function handleAdd(message) {
     return;
   }
 
-  await ensureGroupRegistered(message);
-  await ensureGroupMember(message);
-
   const [result] = await sql`
     INSERT INTO delivery_results (
       telegram_user_id,
@@ -685,6 +737,8 @@ async function handleAdd(message) {
 async function handleCancel(message) {
   const chatId = getChatId(message);
   const userId = getTelegramUserId(message);
+
+  await ensureGroupContext(message);
 
   let result;
 
@@ -773,6 +827,8 @@ async function handleReset(message) {
   const chatId = getChatId(message);
   const userId = getTelegramUserId(message);
 
+  await ensureGroupContext(message);
+
   const [countResult] = await sql`
     SELECT COUNT(*)::int AS count
     FROM delivery_results
@@ -825,6 +881,8 @@ async function handleReset(message) {
 async function handleGoal(message) {
   const chatId = getChatId(message);
   const userId = getTelegramUserId(message);
+
+  await ensureGroupContext(message);
 
   const args = String(message?.text || "")
     .trim()
@@ -928,7 +986,7 @@ async function handleGoal(message) {
 }
 
 // ============================================================
-// Group summary helper
+// Group summary
 // ============================================================
 
 async function getGroupSummary(
@@ -960,16 +1018,6 @@ async function getGroupSummary(
       AND created_at < ${end}
   `;
 
-  /*
-   * メンバー別では以下を除外
-   *
-   * 1. Telegram Bot
-   * 2. delivery_result_bot
-   * 3. GroupAnonymousBot
-   * 4. 現在確認できている匿名管理者ID
-   *
-   * グループ全体集計には影響しない。
-   */
   const members = await sql`
     SELECT
       gm.telegram_user_id,
@@ -996,26 +1044,18 @@ async function getGroupSummary(
       AND dr.created_at >= ${start}
       AND dr.created_at < ${end}
     WHERE gm.chat_id = ${chatId}
-
-      -- Bot自身を除外
       AND COALESCE(gm.username, '') <>
         'delivery_result_bot'
-
-      -- Telegram匿名管理者Botを除外
       AND COALESCE(gm.username, '') <>
         'GroupAnonymousBot'
-
-      -- 現在確認できているBot / 匿名管理者IDを除外
       AND gm.telegram_user_id NOT IN (
         '8981642532',
         '1087968824'
       )
-
     GROUP BY
       gm.telegram_user_id,
       gm.username,
       gm.first_name
-
     ORDER BY
       total_sales DESC,
       gm.telegram_user_id
@@ -1028,7 +1068,7 @@ async function getGroupSummary(
 }
 
 // ============================================================
-// Group result message builder
+// Group result message
 // ============================================================
 
 function buildGroupResultMessage({
@@ -1070,9 +1110,11 @@ function buildGroupResultMessage({
     for (const member of members) {
       const name =
         member.first_name ||
-        (member.username
-          ? `@${member.username}`
-          : member.telegram_user_id);
+        (
+          member.username
+            ? `@${member.username}`
+            : member.telegram_user_id
+        );
 
       lines.push("");
       lines.push(`👤 ${name}`);
@@ -1119,8 +1161,7 @@ async function handleGroup(message) {
     return;
   }
 
-  await ensureGroupRegistered(message);
-  await ensureGroupMember(message);
+  await ensureGroupContext(message);
 
   const [period] = await sql`
     SELECT
@@ -1237,8 +1278,7 @@ async function handleLastMonth(message) {
     return;
   }
 
-  await ensureGroupRegistered(message);
-  await ensureGroupMember(message);
+  await ensureGroupContext(message);
 
   const now = new Date(
     new Date().toLocaleString(
@@ -1249,8 +1289,11 @@ async function handleLastMonth(message) {
     )
   );
 
-  let year = now.getFullYear();
-  let month = now.getMonth() + 1;
+  let year =
+    now.getFullYear();
+
+  let month =
+    now.getMonth() + 1;
 
   month -= 1;
 
@@ -1359,8 +1402,11 @@ async function handleMonth(message) {
     return;
   }
 
-  const year = Number(match[1]);
-  const month = Number(match[2]);
+  const year =
+    Number(match[1]);
+
+  const month =
+    Number(match[2]);
 
   if (
     month < 1 ||
@@ -1376,8 +1422,7 @@ async function handleMonth(message) {
     return;
   }
 
-  await ensureGroupRegistered(message);
-  await ensureGroupMember(message);
+  await ensureGroupContext(message);
 
   const {
     start,
@@ -1664,10 +1709,6 @@ async function handleAdmin(message) {
           ) / 100
         : 0;
 
-    // --------------------------------
-    // 管理者メッセージ
-    // --------------------------------
-
     const lines = [
       "🔐 管理者統計",
       "",
@@ -1937,17 +1978,17 @@ export default async function handler(
         chatId,
         chatType:
           message?.chat?.type || "",
+        username:
+          message?.from?.username || "",
+        firstName:
+          message?.from?.first_name || "",
+        isBot:
+          Boolean(message?.from?.is_bot),
       }
     );
 
-    // グループならメンバー情報を自動更新
-    await ensureGroupRegistered(
-      message
-    );
-
-    await ensureGroupMember(
-      message
-    );
+    // グループなら自動登録
+    await ensureGroupContext(message);
 
     const command =
       getCommandName(text);
@@ -2032,7 +2073,6 @@ export default async function handler(
         break;
 
       default:
-        // 未対応コマンドは無視
         break;
     }
 
@@ -2045,8 +2085,6 @@ export default async function handler(
       error
     );
 
-    // Telegram側には200を返して、
-    // 同じUpdateの無限リトライを避ける
     return res.status(200).json({
       ok: false,
       error: String(
