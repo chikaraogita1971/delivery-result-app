@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import crypto from "crypto";
 
-const sql = neon(process.env.POSTGRES_URL);
+const sql = neon(process.env.DATABASE_URL);
 
 const TIME_ZONE = "Asia/Tokyo";
 const MAX_AUTH_AGE_SECONDS = 60 * 60;
@@ -38,7 +38,7 @@ function validateTelegramInitData(initData) {
 
   /*
   ============================================================
-  Telegram Mini App 公式署名方式
+  Telegram公式署名方式
   ============================================================
   */
 
@@ -144,7 +144,7 @@ function validateTelegramInitData(initData) {
 ============================================================
 
 day   : 今日
-week  : 今週（月曜開始）
+week  : 今週
 month : 今月
 year  : 今年
 
@@ -154,9 +154,10 @@ year  : 今年
 
 function getPeriodCondition(period) {
   switch (period) {
+
     /*
     ==========================================================
-    日
+    今日
     ==========================================================
     */
 
@@ -168,6 +169,7 @@ function getPeriodCondition(period) {
             CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
           ) AT TIME ZONE ${TIME_ZONE}
         `,
+
         end: sql`
           (
             date_trunc(
@@ -180,7 +182,7 @@ function getPeriodCondition(period) {
 
     /*
     ==========================================================
-    週
+    今週
     ==========================================================
     */
 
@@ -194,6 +196,7 @@ function getPeriodCondition(period) {
             )
           ) AT TIME ZONE ${TIME_ZONE}
         `,
+
         end: sql`
           (
             date_trunc(
@@ -206,7 +209,7 @@ function getPeriodCondition(period) {
 
     /*
     ==========================================================
-    月
+    今月
     ==========================================================
     */
 
@@ -220,6 +223,7 @@ function getPeriodCondition(period) {
             )
           ) AT TIME ZONE ${TIME_ZONE}
         `,
+
         end: sql`
           (
             date_trunc(
@@ -232,7 +236,7 @@ function getPeriodCondition(period) {
 
     /*
     ==========================================================
-    年
+    今年
     ==========================================================
     */
 
@@ -246,6 +250,7 @@ function getPeriodCondition(period) {
             )
           ) AT TIME ZONE ${TIME_ZONE}
         `,
+
         end: sql`
           (
             date_trunc(
@@ -437,14 +442,11 @@ export default async function handler(req, res) {
     ============================================================
     月間目標
     ============================================================
-
-    現在設定されている月間目標を取得。
-    リセットでは削除されません。
-    ============================================================
     */
 
     const goalRows = await sql`
-      SELECT monthly_goal
+      SELECT
+        monthly_goal
 
       FROM delivery_goals
 
