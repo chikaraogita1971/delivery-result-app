@@ -31,7 +31,10 @@ export default async function handler(req, res) {
     const telegramApiBase =
       `https://api.telegram.org/bot${process.env.BOT_TOKEN}`;
 
+    // ============================================================
     // Telegram API 共通処理
+    // ============================================================
+
     async function telegramRequest(method, body) {
       const response = await fetch(
         `${telegramApiBase}/${method}`,
@@ -66,7 +69,10 @@ export default async function handler(req, res) {
     }
 
     // Callback Queryに回答
-    async function answerCallbackQuery(callbackQueryId, text = "") {
+    async function answerCallbackQuery(
+      callbackQueryId,
+      text = ""
+    ) {
       return telegramRequest("answerCallbackQuery", {
         callback_query_id: callbackQueryId,
         text
@@ -87,7 +93,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // Telegramのコマンドメニューを登録
+    // ============================================================
+    // Telegram コマンドメニュー
+    // ============================================================
+
     async function setCommands() {
       return telegramRequest("setMyCommands", {
         commands: [
@@ -102,6 +111,10 @@ export default async function handler(req, res) {
           {
             command: "cancel",
             description: "最後の入力を取り消し"
+          },
+          {
+            command: "reset",
+            description: "実績をすべてリセット"
           },
           {
             command: "goal",
@@ -126,9 +139,11 @@ export default async function handler(req, res) {
 
       /*
       ------------------------------------------------------------
+      /cancel
       「取り消さない」
       ------------------------------------------------------------
       */
+
       if (callbackData === "cancel_abort") {
         await answerCallbackQuery(
           callbackQuery.id,
@@ -145,9 +160,11 @@ export default async function handler(req, res) {
 
       /*
       ------------------------------------------------------------
+      /cancel
       「取り消す」
       ------------------------------------------------------------
       */
+
       if (callbackData.startsWith("cancel_confirm:")) {
         const recordIdText =
           callbackData.split(":")[1];
@@ -155,7 +172,10 @@ export default async function handler(req, res) {
         const recordId = Number(recordIdText);
 
         // IDが不正なら処理しない
-        if (!Number.isInteger(recordId) || recordId <= 0) {
+        if (
+          !Number.isInteger(recordId) ||
+          recordId <= 0
+        ) {
           await answerCallbackQuery(
             callbackQuery.id,
             "無効な記録です。"
@@ -171,6 +191,7 @@ export default async function handler(req, res) {
         必ず telegram_user_id も一致させる。
         ----------------------------------------------------------
         */
+
         const deletedRows = await sql`
           DELETE FROM delivery_results
           WHERE id = ${recordId}
@@ -186,6 +207,7 @@ export default async function handler(req, res) {
         すでに削除済み / 他ユーザーの記録だった場合
         ----------------------------------------------------------
         */
+
         if (deletedRows.length === 0) {
           await answerCallbackQuery(
             callbackQuery.id,
@@ -221,7 +243,78 @@ export default async function handler(req, res) {
         return res.status(200).send("OK");
       }
 
-      // 未知のCallback Query
+      /*
+      ------------------------------------------------------------
+      /reset
+      「リセットしない」
+      ------------------------------------------------------------
+      */
+
+      if (callbackData === "reset_abort") {
+        await answerCallbackQuery(
+          callbackQuery.id,
+          "リセットしませんでした。"
+        );
+
+        await editMessageText(
+          callbackQuery.message,
+          "↩️ リセットをキャンセルしました。"
+        );
+
+        return res.status(200).send("OK");
+      }
+
+      /*
+      ------------------------------------------------------------
+      /reset
+      「すべての実績を削除」
+      ------------------------------------------------------------
+      */
+
+      if (callbackData === "reset_confirm") {
+        /*
+        ----------------------------------------------------------
+        重要：
+        必ずボタンを押した本人の telegram_user_id のみ削除する。
+        ----------------------------------------------------------
+        */
+
+        const deletedRows = await sql`
+          DELETE FROM delivery_results
+          WHERE telegram_user_id = ${telegramUserId}
+          RETURNING id
+        `;
+
+        const deletedCount = deletedRows.length;
+
+        await answerCallbackQuery(
+          callbackQuery.id,
+          "実績をリセットしました。"
+        );
+
+        if (deletedCount === 0) {
+          await editMessageText(
+            callbackQuery.message,
+            "📭 リセットする実績はありませんでした。"
+          );
+        } else {
+          await editMessageText(
+            callbackQuery.message,
+            `🗑️ 実績をリセットしました。\n\n` +
+            `${deletedCount}件の実績を削除しました。\n\n` +
+            `※ 月間目標はそのまま残っています。`
+          );
+        }
+
+        return res.status(200).send("OK");
+      }
+
+      /*
+      ------------------------------------------------------------
+      未知のCallback Query
+      ------------------------------------------------------------
+      */
+
       await answerCallbackQuery(
         callbackQuery.id,
         "この操作は無効です。"
@@ -257,6 +350,22 @@ export default async function handler(req, res) {
         WHERE telegram_user_id = ${telegramUserId}
       `;
 
+      /*
+      ------------------------------------------------------------
+      JST基準の今月集計
+      ------------------------------------------------------------
+
+      created_at は TIMESTAMPTZ。
+
+      Asia/Tokyo の
+        今月1日 00:00
+      から
+        翌月1日 00:00
+
+      の範囲で集計する。
+      ------------------------------------------------------------
+      */
+
       const resultRows = await sql`
         SELECT
           COALESCE(SUM(sale_amount), 0) AS sales,
@@ -264,10 +373,20 @@ export default async function handler(req, res) {
           COALESCE(SUM(work_hours), 0) AS hours
         FROM delivery_results
         WHERE telegram_user_id = ${telegramUserId}
-          AND created_at >= date_trunc('month', CURRENT_DATE)
-          AND created_at <
-              date_trunc('month', CURRENT_DATE)
-              + INTERVAL '1 month'
+          AND created_at >= (
+            date_trunc(
+              'month',
+              CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'
+            ) AT TIME ZONE 'Asia/Tokyo'
+          )
+          AND created_at < (
+            (
+              date_trunc(
+                'month',
+                CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'
+              ) + INTERVAL '1 month'
+            ) AT TIME ZONE 'Asia/Tokyo'
+          )
       `;
 
       const goal =
@@ -293,6 +412,7 @@ export default async function handler(req, res) {
         `実績追加：/add 売上 件数 時間\n` +
         `目標設定：/goal 金額\n` +
         `取り消し：/cancel\n` +
+        `全実績リセット：/reset\n` +
         `ヘルプ：/help`
       );
 
@@ -318,6 +438,10 @@ export default async function handler(req, res) {
 
         `/cancel\n` +
         `最後の入力を取り消し\n\n` +
+
+        `/reset\n` +
+        `自分の実績をすべてリセット\n` +
+        `※ 月間目標は残ります\n\n` +
 
         `/goal 金額\n` +
         `月間目標を設定・変更\n` +
@@ -473,6 +597,65 @@ export default async function handler(req, res) {
 
     /*
     ============================================================
+    /reset
+    ============================================================
+    */
+
+    if (text === "/reset") {
+      const countRows = await sql`
+        SELECT COUNT(*) AS count
+        FROM delivery_results
+        WHERE telegram_user_id = ${telegramUserId}
+      `;
+
+      const recordCount =
+        Number(countRows[0]?.count ?? 0);
+
+      if (recordCount === 0) {
+        await reply(
+          "📭 リセットする実績がありません。"
+        );
+
+        return res.status(200).send("OK");
+      }
+
+      /*
+      ------------------------------------------------------------
+      すぐには削除しない。
+      必ず確認ボタンを表示する。
+      ------------------------------------------------------------
+      */
+
+      await reply(
+        `⚠️ 実績リセット\n\n` +
+        `現在 ${recordCount}件の実績があります。\n\n` +
+        `このユーザーの実績をすべて削除します。\n` +
+        `この操作は取り消せません。\n\n` +
+        `※ 月間目標は削除されません。\n\n` +
+        `本当にリセットしますか？`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: "❌ キャンセル",
+                  callback_data: "reset_abort"
+                },
+                {
+                  text: "🗑️ 全実績を削除",
+                  callback_data: "reset_confirm"
+                }
+              ]
+            ]
+          }
+        }
+      );
+
+      return res.status(200).send("OK");
+    }
+
+    /*
+    ============================================================
     /goal 金額
     ============================================================
     */
@@ -559,3 +742,4 @@ export default async function handler(req, res) {
       .send("Internal Server Error");
   }
 }
+
