@@ -13,14 +13,24 @@ export default async function handler(req, res) {
     const message = update?.message;
     const callbackQuery = update?.callback_query;
 
+    // ============================================================
     // Telegramユーザー本人のID
+    // ============================================================
+
     const telegramUserId = String(
-      message?.from?.id ?? callbackQuery?.from?.id ?? ""
+      message?.from?.id ??
+      callbackQuery?.from?.id ??
+      ""
     );
 
+    // ============================================================
     // 返信先チャットID
+    // ============================================================
+
     const chatId = String(
-      message?.chat?.id ?? callbackQuery?.message?.chat?.id ?? ""
+      message?.chat?.id ??
+      callbackQuery?.message?.chat?.id ??
+      ""
     );
 
     // ユーザーIDまたはチャットIDが取得できない更新は無視
@@ -59,7 +69,10 @@ export default async function handler(req, res) {
       return data;
     }
 
+    // ============================================================
     // メッセージ送信
+    // ============================================================
+
     async function reply(text, extra = {}) {
       return telegramRequest("sendMessage", {
         chat_id: chatId,
@@ -68,7 +81,10 @@ export default async function handler(req, res) {
       });
     }
 
+    // ============================================================
     // Callback Queryに回答
+    // ============================================================
+
     async function answerCallbackQuery(
       callbackQueryId,
       text = ""
@@ -79,7 +95,10 @@ export default async function handler(req, res) {
       });
     }
 
+    // ============================================================
     // メッセージ本文を編集
+    // ============================================================
+
     async function editMessageText(
       callbackMessage,
       text,
@@ -91,6 +110,145 @@ export default async function handler(req, res) {
         text,
         ...extra
       });
+    }
+
+    // ============================================================
+    // グループ判定
+    // ============================================================
+
+    const messageChatType =
+      message?.chat?.type ??
+      callbackQuery?.message?.chat?.type ??
+      "";
+
+    const isGroup =
+      messageChatType === "group" ||
+      messageChatType === "supergroup";
+
+    // ============================================================
+    // グループ情報・メンバー情報をDBへ登録
+    // ============================================================
+
+    async function registerGroupAndMember() {
+      if (!isGroup) {
+        return;
+      }
+
+      const groupChatId = chatId;
+
+      const groupTitle =
+        message?.chat?.title ??
+        callbackQuery?.message?.chat?.title ??
+        "";
+
+      const username =
+        message?.from?.username ??
+        callbackQuery?.from?.username ??
+        null;
+
+      const firstName =
+        message?.from?.first_name ??
+        callbackQuery?.from?.first_name ??
+        "";
+
+      // ----------------------------------------------------------
+      // グループ登録
+      // ----------------------------------------------------------
+
+      await sql`
+        INSERT INTO telegram_groups
+          (
+            chat_id,
+            title
+          )
+        VALUES
+          (
+            ${groupChatId},
+            ${groupTitle}
+          )
+        ON CONFLICT (chat_id)
+        DO UPDATE SET
+          title = EXCLUDED.title,
+          updated_at = NOW()
+      `;
+
+      // ----------------------------------------------------------
+      // メンバー登録
+      // ----------------------------------------------------------
+
+      await sql`
+        INSERT INTO group_members
+          (
+            chat_id,
+            telegram_user_id,
+            username,
+            first_name
+          )
+        VALUES
+          (
+            ${groupChatId},
+            ${telegramUserId},
+            ${username},
+            ${firstName}
+          )
+        ON CONFLICT (
+          chat_id,
+          telegram_user_id
+        )
+        DO UPDATE SET
+          username = EXCLUDED.username,
+          first_name = EXCLUDED.first_name,
+          updated_at = NOW()
+      `;
+    }
+
+    // ============================================================
+    // グループ情報を登録
+    // ============================================================
+
+    await registerGroupAndMember();
+
+    // ============================================================
+    // 新しくグループへ追加されたメンバーを登録
+    // ============================================================
+
+    if (
+      isGroup &&
+      Array.isArray(message?.new_chat_members)
+    ) {
+      for (
+        const newMember
+        of message.new_chat_members
+      ) {
+        if (!newMember?.id) {
+          continue;
+        }
+
+        await sql`
+          INSERT INTO group_members
+            (
+              chat_id,
+              telegram_user_id,
+              username,
+              first_name
+            )
+          VALUES
+            (
+              ${chatId},
+              ${String(newMember.id)},
+              ${newMember.username ?? null},
+              ${newMember.first_name ?? ""}
+            )
+          ON CONFLICT (
+            chat_id,
+            telegram_user_id
+          )
+          DO UPDATE SET
+            username = EXCLUDED.username,
+            first_name = EXCLUDED.first_name,
+            updated_at = NOW()
+        `;
+      }
     }
 
     // ============================================================
@@ -135,7 +293,8 @@ export default async function handler(req, res) {
     */
 
     if (callbackQuery) {
-      const callbackData = callbackQuery.data || "";
+      const callbackData =
+        callbackQuery.data || "";
 
       /*
       ------------------------------------------------------------
@@ -144,7 +303,27 @@ export default async function handler(req, res) {
       ------------------------------------------------------------
       */
 
-      if (callbackData === "cancel_abort") {
+      if (
+        callbackData.startsWith(
+          "cancel_abort:"
+        )
+      ) {
+        const ownerId =
+          callbackData.split(":")[1];
+
+        // ボタンを押した本人だけ操作可能
+        if (
+          String(callbackQuery.from?.id) !==
+          String(ownerId)
+        ) {
+          await answerCallbackQuery(
+            callbackQuery.id,
+            "この操作は本人のみ実行できます。"
+          );
+
+          return res.status(200).send("OK");
+        }
+
         await answerCallbackQuery(
           callbackQuery.id,
           "取り消しませんでした。"
@@ -165,11 +344,32 @@ export default async function handler(req, res) {
       ------------------------------------------------------------
       */
 
-      if (callbackData.startsWith("cancel_confirm:")) {
-        const recordIdText =
-          callbackData.split(":")[1];
+      if (
+        callbackData.startsWith(
+          "cancel_confirm:"
+        )
+      ) {
+        const parts =
+          callbackData.split(":");
 
-        const recordId = Number(recordIdText);
+        const recordId =
+          Number(parts[1]);
+
+        const ownerId =
+          parts[2];
+
+        // ボタンを押した本人だけ操作可能
+        if (
+          String(callbackQuery.from?.id) !==
+          String(ownerId)
+        ) {
+          await answerCallbackQuery(
+            callbackQuery.id,
+            "この操作は本人のみ実行できます。"
+          );
+
+          return res.status(200).send("OK");
+        }
 
         // IDが不正なら処理しない
         if (
@@ -216,14 +416,15 @@ export default async function handler(req, res) {
 
           await editMessageText(
             callbackQuery.message,
-            "⚠️ この記録はすでに取り消されているか、\n" +
+            "⚠️ この記録はすでに削除されているか、\n" +
             "取り消せない状態です。"
           );
 
           return res.status(200).send("OK");
         }
 
-        const deleted = deletedRows[0];
+        const deleted =
+          deletedRows[0];
 
         await answerCallbackQuery(
           callbackQuery.id,
@@ -250,7 +451,27 @@ export default async function handler(req, res) {
       ------------------------------------------------------------
       */
 
-      if (callbackData === "reset_abort") {
+      if (
+        callbackData.startsWith(
+          "reset_abort:"
+        )
+      ) {
+        const ownerId =
+          callbackData.split(":")[1];
+
+        // ボタンを押した本人だけ操作可能
+        if (
+          String(callbackQuery.from?.id) !==
+          String(ownerId)
+        ) {
+          await answerCallbackQuery(
+            callbackQuery.id,
+            "この操作は本人のみ実行できます。"
+          );
+
+          return res.status(200).send("OK");
+        }
+
         await answerCallbackQuery(
           callbackQuery.id,
           "リセットしませんでした。"
@@ -271,11 +492,32 @@ export default async function handler(req, res) {
       ------------------------------------------------------------
       */
 
-      if (callbackData === "reset_confirm") {
+      if (
+        callbackData.startsWith(
+          "reset_confirm:"
+        )
+      ) {
+        const ownerId =
+          callbackData.split(":")[1];
+
+        // ボタンを押した本人だけ操作可能
+        if (
+          String(callbackQuery.from?.id) !==
+          String(ownerId)
+        ) {
+          await answerCallbackQuery(
+            callbackQuery.id,
+            "この操作は本人のみ実行できます。"
+          );
+
+          return res.status(200).send("OK");
+        }
+
         /*
         ----------------------------------------------------------
         重要：
-        必ずボタンを押した本人の telegram_user_id のみ削除する。
+        必ずボタンを押した本人の
+        telegram_user_id のみ削除する。
         ----------------------------------------------------------
         */
 
@@ -285,7 +527,8 @@ export default async function handler(req, res) {
           RETURNING id
         `;
 
-        const deletedCount = deletedRows.length;
+        const deletedCount =
+          deletedRows.length;
 
         await answerCallbackQuery(
           callbackQuery.id,
@@ -333,7 +576,8 @@ export default async function handler(req, res) {
       return res.status(200).send("OK");
     }
 
-    const text = message.text.trim();
+    const text =
+      message.text.trim();
 
     /*
     ============================================================
@@ -353,16 +597,6 @@ export default async function handler(req, res) {
       /*
       ------------------------------------------------------------
       JST基準の今月集計
-      ------------------------------------------------------------
-
-      created_at は TIMESTAMPTZ。
-
-      Asia/Tokyo の
-        今月1日 00:00
-      から
-        翌月1日 00:00
-
-      の範囲で集計する。
       ------------------------------------------------------------
       */
 
@@ -462,7 +696,8 @@ export default async function handler(req, res) {
     */
 
     if (text.startsWith("/add")) {
-      const parts = text.split(/\s+/);
+      const parts =
+        text.split(/\s+/);
 
       if (parts.length !== 4) {
         await reply(
@@ -473,9 +708,14 @@ export default async function handler(req, res) {
         return res.status(200).send("OK");
       }
 
-      const sale = Number(parts[1]);
-      const count = Number(parts[2]);
-      const hours = Number(parts[3]);
+      const sale =
+        Number(parts[1]);
+
+      const count =
+        Number(parts[2]);
+
+      const hours =
+        Number(parts[3]);
 
       // 異常値対策
       if (
@@ -556,7 +796,8 @@ export default async function handler(req, res) {
         return res.status(200).send("OK");
       }
 
-      const last = rows[0];
+      const last =
+        rows[0];
 
       /*
       ------------------------------------------------------------
@@ -579,12 +820,13 @@ export default async function handler(req, res) {
               [
                 {
                   text: "❌ 取り消さない",
-                  callback_data: "cancel_abort"
+                  callback_data:
+                    `cancel_abort:${telegramUserId}`
                 },
                 {
                   text: "↩️ 取り消す",
                   callback_data:
-                    `cancel_confirm:${last.id}`
+                    `cancel_confirm:${last.id}:${telegramUserId}`
                 }
               ]
             ]
@@ -609,7 +851,9 @@ export default async function handler(req, res) {
       `;
 
       const recordCount =
-        Number(countRows[0]?.count ?? 0);
+        Number(
+          countRows[0]?.count ?? 0
+        );
 
       if (recordCount === 0) {
         await reply(
@@ -639,11 +883,13 @@ export default async function handler(req, res) {
               [
                 {
                   text: "❌ キャンセル",
-                  callback_data: "reset_abort"
+                  callback_data:
+                    `reset_abort:${telegramUserId}`
                 },
                 {
                   text: "🗑️ 全実績を削除",
-                  callback_data: "reset_confirm"
+                  callback_data:
+                    `reset_confirm:${telegramUserId}`
                 }
               ]
             ]
@@ -661,7 +907,8 @@ export default async function handler(req, res) {
     */
 
     if (text.startsWith("/goal")) {
-      const parts = text.split(/\s+/);
+      const parts =
+        text.split(/\s+/);
 
       if (parts.length !== 2) {
         await reply(
@@ -673,7 +920,8 @@ export default async function handler(req, res) {
         return res.status(200).send("OK");
       }
 
-      const goal = Number(parts[1]);
+      const goal =
+        Number(parts[1]);
 
       // 0円以上を許可
       if (
