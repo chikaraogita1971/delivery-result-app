@@ -2,145 +2,154 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-
   <meta
     name="viewport"
-    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
   />
 
   <title>配達リザルト</title>
 
-  <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
-    :root {
-      --bg: var(--tg-theme-bg-color, #f5f7fa);
-      --card: var(--tg-theme-secondary-bg-color, #ffffff);
-      --text: var(--tg-theme-text-color, #111111);
-      --hint: var(--tg-theme-hint-color, #777777);
-      --button: var(--tg-theme-button-color, #2481cc);
-      --button-text: var(--tg-theme-button-text-color, #ffffff);
-      --danger: var(--tg-theme-destructive-text-color, #e53935);
-      --border: rgba(127, 127, 127, 0.16);
-      --shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
-    }
-
     * {
       box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
     }
 
-    html,
     body {
       margin: 0;
       padding: 0;
-      background: var(--bg);
-      color: var(--text);
+      background: #f5f6f8;
+      color: #222;
       font-family:
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
-        Roboto,
-        Helvetica,
-        Arial,
         sans-serif;
     }
 
-    body {
-      min-height: 100vh;
-      padding:
-        calc(14px + env(safe-area-inset-top))
-        14px
-        calc(24px + env(safe-area-inset-bottom));
-    }
-
     .app {
-      width: 100%;
-      max-width: 720px;
+      max-width: 760px;
       margin: 0 auto;
+      padding: 12px;
     }
 
     .header {
-      margin-bottom: 14px;
+      padding: 10px 4px 14px;
     }
 
-    .title {
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
     }
 
-    .subtitle {
-      margin-top: 4px;
-      color: var(--hint);
+    .header p {
+      margin: 5px 0 0;
+      color: #777;
       font-size: 13px;
     }
 
-    /*
-    ============================================================
-    メインタブ
-    ============================================================
-    */
-
-    .main-tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+    .tabs {
+      display: flex;
+      gap: 6px;
       margin-bottom: 12px;
+      background: #fff;
+      padding: 5px;
+      border-radius: 12px;
     }
 
-    .main-tab {
+    .tab {
+      flex: 1;
       border: 0;
-      border-radius: 14px;
-      padding: 13px 10px;
-      background: var(--card);
-      color: var(--hint);
-      font-size: 14px;
-      font-weight: 700;
-      box-shadow: var(--shadow);
+      background: transparent;
+      padding: 10px 6px;
+      border-radius: 9px;
+      font-size: 13px;
       cursor: pointer;
     }
 
-    .main-tab.active {
-      background: var(--button);
-      color: var(--button-text);
+    .tab.active {
+      background: #222;
+      color: #fff;
     }
 
-    /*
-    ============================================================
-    個人期間タブ
-    ============================================================
-    */
-
     .period-tabs {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      display: flex;
       gap: 6px;
       margin-bottom: 12px;
     }
 
     .period-tab {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 6px;
-      background: var(--card);
-      color: var(--hint);
+      flex: 1;
+      border: 1px solid #ddd;
+      background: #fff;
+      border-radius: 9px;
+      padding: 8px 4px;
       font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
     }
 
     .period-tab.active {
-      background: var(--button);
-      color: var(--button-text);
-      border-color: transparent;
+      background: #222;
+      color: #fff;
+      border-color: #222;
     }
 
-    /*
-    ============================================================
-    セレクト
-    ============================================================
-    */
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 17px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .stat-card {
+      background: #f7f7f8;
+      border-radius: 11px;
+      padding: 12px;
+    }
+
+    .stat-label {
+      color: #777;
+      font-size: 11px;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .stat-unit {
+      color: #888;
+      font-size: 10px;
+      margin-top: 2px;
+    }
+
+    .summary-main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .summary-main .stat-card {
+      padding: 15px;
+    }
+
+    .summary-main .stat-value {
+      font-size: 25px;
+    }
 
     .select-wrap {
       margin-bottom: 12px;
@@ -148,1113 +157,1163 @@
 
     select {
       width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 13px 14px;
-      background: var(--card);
-      color: var(--text);
+      padding: 11px;
+      border: 1px solid #ddd;
+      border-radius: 9px;
+      background: #fff;
       font-size: 14px;
-      outline: none;
     }
 
-    /*
-    ============================================================
-    カード
-    ============================================================
-    */
-
-    .card {
-      background: var(--card);
-      border-radius: 18px;
-      padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: var(--shadow);
+    .record {
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
     }
 
-    .card-title {
-      font-size: 14px;
-      font-weight: 800;
-      margin-bottom: 12px;
+    .record:last-child {
+      border-bottom: none;
     }
 
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
+    .record-top {
+      display: flex;
+      justify-content: space-between;
       gap: 10px;
+      margin-bottom: 6px;
     }
 
-    .summary-item {
-      padding: 14px;
-      border-radius: 14px;
-      background: rgba(127, 127, 127, 0.07);
-    }
-
-    .summary-label {
-      color: var(--hint);
+    .record-date {
       font-size: 12px;
-      margin-bottom: 5px;
+      color: #777;
     }
 
-    .summary-value {
-      font-size: 21px;
-      font-weight: 800;
-      line-height: 1.2;
+    .record-sales {
+      font-weight: 700;
     }
 
-    .summary-unit {
+    .record-detail {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      color: #666;
       font-size: 12px;
-      font-weight: 600;
-      color: var(--hint);
-      margin-left: 2px;
     }
 
-    /*
-    ============================================================
-    ランキング
-    ============================================================
-    */
-
-    .member {
-      display: grid;
-      grid-template-columns: 42px 1fr auto;
-      gap: 10px;
+    .ranking-row {
+      display: flex;
       align-items: center;
+      gap: 10px;
       padding: 13px 0;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid #eee;
     }
 
-    .member:last-child {
-      border-bottom: 0;
-      padding-bottom: 0;
+    .ranking-row:last-child {
+      border-bottom: none;
     }
 
     .rank {
-      width: 36px;
-      height: 36px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .member-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .member-name {
+      font-weight: 600;
+      margin-bottom: 5px;
+      word-break: break-word;
+    }
+
+    .member-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px 12px;
+      color: #777;
+      font-size: 11px;
+    }
+
+    .empty {
+      text-align: center;
+      color: #888;
+      padding: 20px 8px;
+      font-size: 13px;
+    }
+
+    .error {
+      background: #fff1f1;
+      color: #c62828;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .loading {
+      text-align: center;
+      color: #888;
+      padding: 20px;
+      font-size: 13px;
+    }
+
+    .button {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .button-danger {
+      background: #e53935;
+      color: #fff;
+    }
+
+    .goal-box {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .goal-box input {
+      flex: 1;
+      min-width: 0;
+      padding: 11px;
+      border: 1px solid #ddd;
+      border-radius: 9px;
+      font-size: 14px;
+    }
+
+    .goal-value {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .goal-label {
+      color: #777;
+      font-size: 12px;
+    }
+
+    .progress {
+      height: 9px;
+      background: #eee;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: #222;
+      transition: width .3s ease;
+    }
+
+    .admin-user-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .admin-user-row:last-child {
+      border-bottom: none;
+    }
+
+    .admin-user-rank {
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(127, 127, 127, 0.1);
-      font-size: 16px;
-      font-weight: 800;
+      background: #f1f1f1;
+      font-weight: bold;
+      flex-shrink: 0;
     }
 
-    .member-name {
-      font-size: 14px;
-      font-weight: 800;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    .admin-user-main {
+      flex: 1;
+      min-width: 0;
     }
 
-    .member-sub {
-      margin-top: 3px;
-      color: var(--hint);
-      font-size: 11px;
+    .admin-user-id {
+      font-size: 13px;
+      margin-bottom: 8px;
+      word-break: break-all;
     }
 
-    .member-sales {
-      text-align: right;
-      font-size: 15px;
-      font-weight: 800;
-    }
-
-    .member-detail {
-      margin-top: 3px;
-      color: var(--hint);
-      font-size: 11px;
-      white-space: nowrap;
-    }
-
-    /*
-    ============================================================
-    個人実績
-    ============================================================
-    */
-
-    .records {
+    .admin-user-stats {
       display: flex;
-      flex-direction: column;
-    }
-
-    .record {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 13px 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .record:last-child {
-      border-bottom: 0;
-    }
-
-    .record-date {
-      color: var(--hint);
-      font-size: 11px;
-      margin-bottom: 4px;
-    }
-
-    .record-main {
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .record-sub {
-      margin-top: 3px;
-      color: var(--hint);
-      font-size: 11px;
-    }
-
-    .record-sale {
-      font-size: 15px;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    /*
-    ============================================================
-    目標
-    ============================================================
-    */
-
-    .goal-progress {
-      height: 10px;
-      border-radius: 999px;
-      overflow: hidden;
-      background: rgba(127, 127, 127, 0.14);
-      margin-top: 10px;
-    }
-
-    .goal-bar {
-      height: 100%;
-      width: 0%;
-      border-radius: inherit;
-      background: var(--button);
-      transition: width 0.35s ease;
-    }
-
-    .goal-text {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 8px;
-      color: var(--hint);
+      flex-wrap: wrap;
+      gap: 8px 14px;
       font-size: 12px;
+      color: #777;
     }
 
-    /*
-    ============================================================
-    ボタン
-    ============================================================
-    */
-
-    button {
-      font: inherit;
+    .admin-user-stats strong {
+      color: #222;
+      margin-left: 3px;
     }
 
-    .danger-button {
-      width: 100%;
-      border: 0;
-      border-radius: 14px;
-      padding: 14px;
-      background: transparent;
-      color: var(--danger);
-      font-weight: 800;
-      cursor: pointer;
+    .admin-group {
+      padding: 14px 0;
+      border-bottom: 1px solid #eee;
     }
 
-    /*
-    ============================================================
-    状態
-    ============================================================
-    */
+    .admin-group:last-child {
+      border-bottom: none;
+    }
 
-    .status {
+    .admin-group-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .admin-group-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      font-size: 12px;
+      color: #777;
+    }
+
+    .admin-group-stats strong {
+      color: #222;
+      margin-left: 3px;
+    }
+
+    .admin-log {
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .admin-log:last-child {
+      border-bottom: none;
+    }
+
+    .admin-log-meta {
+      margin-top: 4px;
+      font-size: 11px;
+      color: #888;
+      word-break: break-all;
+    }
+
+    .footer {
       text-align: center;
-      color: var(--hint);
-      font-size: 13px;
-      padding: 22px 10px;
-    }
-
-    .error-box {
-      background: var(--card);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: var(--shadow);
-    }
-
-    .error-title {
-      font-weight: 800;
-      margin-bottom: 7px;
-    }
-
-    .error-message {
-      color: var(--hint);
-      font-size: 13px;
-      line-height: 1.6;
-      word-break: break-word;
-    }
-
-    .retry-button {
-      margin-top: 12px;
-      width: 100%;
-      border: 0;
-      border-radius: 12px;
-      padding: 12px;
-      background: var(--button);
-      color: var(--button-text);
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .loading {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .spinner {
-      width: 15px;
-      height: 15px;
-      border: 2px solid rgba(127, 127, 127, 0.25);
-      border-top-color: var(--button);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+      color: #999;
+      font-size: 10px;
+      padding: 15px 0 25px;
     }
 
     @media (min-width: 600px) {
-      .summary-grid {
-        grid-template-columns: repeat(4, 1fr);
+      .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
       }
     }
   </style>
 </head>
 
 <body>
-  <div class="app">
 
-    <!-- ======================================================
-         HEADER
-    ======================================================= -->
+<div class="app">
 
-    <header class="header">
-      <div class="title">📦 配達リザルト</div>
-      <div class="subtitle">
-        配達実績をかんたんに確認
-      </div>
-    </header>
+  <div class="header">
+    <h1>🚴 配達リザルト</h1>
+    <p id="userName">読み込み中...</p>
+  </div>
 
-    <!-- ======================================================
-         メイン切替
-    ======================================================= -->
+  <div id="errorBox"></div>
 
-    <div class="main-tabs">
+  <!-- ==========================
+       メインタブ
+  =========================== -->
 
-      <button
-        id="personalTab"
-        class="main-tab active"
-        type="button"
-      >
-        👤 個人
-      </button>
+  <div class="tabs">
 
-      <button
-        id="groupTab"
-        class="main-tab"
-        type="button"
-      >
-        👥 グループ
-      </button>
-
-    </div>
-
-    <!-- ======================================================
-         LOADING
-    ======================================================= -->
-
-    <div
-      id="loading"
-      class="status hidden"
+    <button
+      class="tab active"
+      data-tab="personal"
+      onclick="showTab('personal')"
     >
-      <span class="loading">
-        <span class="spinner"></span>
-        読み込み中...
-      </span>
-    </div>
+      👤 個人
+    </button>
 
-    <!-- ======================================================
-         ERROR
-    ======================================================= -->
-
-    <div
-      id="errorBox"
-      class="error-box hidden"
+    <button
+      class="tab"
+      data-tab="group"
+      onclick="showTab('group')"
     >
-      <div class="error-title">
-        ⚠️ データを取得できませんでした
-      </div>
+      👥 グループ
+    </button>
 
-      <div
-        id="errorMessage"
-        class="error-message"
-      ></div>
+    <button
+      class="tab"
+      data-tab="admin"
+      id="adminTabButton"
+      onclick="showTab('admin')"
+      style="display:none;"
+    >
+      🔐 管理
+    </button>
+
+  </div>
+
+
+  <!-- ==========================
+       個人
+  =========================== -->
+
+  <section
+    id="personal"
+    class="tab-content"
+  >
+
+    <div class="period-tabs">
 
       <button
-        id="retryButton"
-        class="retry-button"
-        type="button"
+        class="period-tab active"
+        data-period="today"
+        onclick="loadPersonal('today')"
       >
-        再読み込み
+        今日
       </button>
+
+      <button
+        class="period-tab"
+        data-period="week"
+        onclick="loadPersonal('week')"
+      >
+        今週
+      </button>
+
+      <button
+        class="period-tab"
+        data-period="month"
+        onclick="loadPersonal('month')"
+      >
+        今月
+      </button>
+
+      <button
+        class="period-tab"
+        data-period="year"
+        onclick="loadPersonal('year')"
+      >
+        今年
+      </button>
+
     </div>
 
-    <!-- ======================================================
-         PERSONAL
-    ======================================================= -->
 
-    <main id="personalView">
+    <div class="card">
 
-      <!-- 期間 -->
-      <div class="period-tabs">
+      <h2>📊 実績</h2>
 
-        <button
-          class="period-tab active"
-          data-period="day"
-          type="button"
-        >
-          今日
-        </button>
+      <div class="summary-main">
 
-        <button
-          class="period-tab"
-          data-period="week"
-          type="button"
-        >
-          今週
-        </button>
-
-        <button
-          class="period-tab"
-          data-period="month"
-          type="button"
-        >
-          今月
-        </button>
-
-        <button
-          class="period-tab"
-          data-period="year"
-          type="button"
-        >
-          今年
-        </button>
-
-      </div>
-
-      <!-- メイン集計 -->
-      <section class="card">
-
-        <div class="card-title">
-          📊 実績
-        </div>
-
-        <div class="summary-grid">
-
-          <div class="summary-item">
-            <div class="summary-label">
-              売上
-            </div>
-            <div class="summary-value">
-              <span id="sales">0</span>
-              <span class="summary-unit">円</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              配達
-            </div>
-            <div class="summary-value">
-              <span id="count">0</span>
-              <span class="summary-unit">件</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              稼働
-            </div>
-            <div class="summary-value">
-              <span id="hours">0</span>
-              <span class="summary-unit">時間</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              平均単価
-            </div>
-            <div class="summary-value">
-              <span id="average">0</span>
-              <span class="summary-unit">円/件</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              稼働日
-            </div>
-            <div class="summary-value">
-              <span id="workDays">0</span>
-              <span class="summary-unit">日</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              日平均売上
-            </div>
-            <div class="summary-value">
-              <span id="dailyAverage">0</span>
-              <span class="summary-unit">円</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              時給換算
-            </div>
-            <div class="summary-value">
-              <span id="hourlyAverage">0</span>
-              <span class="summary-unit">円</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              配達/時間
-            </div>
-            <div class="summary-value">
-              <span id="countPerHour">0</span>
-              <span class="summary-unit">件</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              最高売上
-            </div>
-            <div class="summary-value">
-              <span id="maxSales">0</span>
-              <span class="summary-unit">円</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              最高配達
-            </div>
-            <div class="summary-value">
-              <span id="maxCount">0</span>
-              <span class="summary-unit">件</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              累計配達
-            </div>
-            <div class="summary-value">
-              <span id="totalCount">0</span>
-              <span class="summary-unit">件</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              登録実績
-            </div>
-            <div class="summary-value">
-              <span id="recordCount">0</span>
-              <span class="summary-unit">件</span>
-            </div>
-          </div>
-
-        </div>
-
-      </section>
-
-      <!-- 目標 -->
-      <section
-        id="goalCard"
-        class="card"
-      >
-
-        <div class="card-title">
-          🎯 月間目標
-        </div>
-
-        <div>
-          <strong id="goalSales">0円</strong>
-          /
-          <strong id="goalValue">0円</strong>
-        </div>
-
-        <div class="goal-progress">
+        <div class="stat-card">
+          <div class="stat-label">売上</div>
           <div
-            id="goalBar"
-            class="goal-bar"
+            class="stat-value"
+            id="personalSales"
+          >
+            0
+          </div>
+          <div class="stat-unit">円</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">配達</div>
+          <div
+            class="stat-value"
+            id="personalCount"
+          >
+            0
+          </div>
+          <div class="stat-unit">件</div>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>📈 詳細</h2>
+
+      <div class="stats-grid">
+
+        <div class="stat-card">
+          <div class="stat-label">稼働時間</div>
+          <div
+            class="stat-value"
+            id="personalHours"
+          >
+            0
+          </div>
+          <div class="stat-unit">時間</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">平均単価</div>
+          <div
+            class="stat-value"
+            id="personalAverage"
+          >
+            0
+          </div>
+          <div class="stat-unit">円/件</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">稼働日数</div>
+          <div
+            class="stat-value"
+            id="personalWorkDays"
+          >
+            0
+          </div>
+          <div class="stat-unit">日</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">日平均売上</div>
+          <div
+            class="stat-value"
+            id="personalDailyAverage"
+          >
+            0
+          </div>
+          <div class="stat-unit">円/日</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">時間単価</div>
+          <div
+            class="stat-value"
+            id="personalHourlyAverage"
+          >
+            0
+          </div>
+          <div class="stat-unit">円/時間</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">配達効率</div>
+          <div
+            class="stat-value"
+            id="personalCountPerHour"
+          >
+            0
+          </div>
+          <div class="stat-unit">件/時間</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">最高売上</div>
+          <div
+            class="stat-value"
+            id="personalMaxSales"
+          >
+            0
+          </div>
+          <div class="stat-unit">円</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">最多配達</div>
+          <div
+            class="stat-value"
+            id="personalMaxCount"
+          >
+            0
+          </div>
+          <div class="stat-unit">件</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">総配達</div>
+          <div
+            class="stat-value"
+            id="personalTotalCount"
+          >
+            0
+          </div>
+          <div class="stat-unit">件</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">登録実績</div>
+          <div
+            class="stat-value"
+            id="personalRecordCount"
+          >
+            0
+          </div>
+          <div class="stat-unit">件</div>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>🎯 月間目標</h2>
+
+      <div>
+        <div
+          class="goal-value"
+          id="goalValue"
+        >
+          0
+        </div>
+
+        <div class="goal-label">
+          配達件数目標
+        </div>
+
+        <div class="progress">
+          <div
+            class="progress-bar"
+            id="goalProgress"
           ></div>
         </div>
 
-        <div class="goal-text">
-          <span>
-            達成率
-          </span>
-
-          <span id="goalRate">
-            0%
-          </span>
-        </div>
-
-      </section>
-
-      <!-- 最新実績 -->
-      <section class="card">
-
-        <div class="card-title">
-          📝 最新実績
-        </div>
-
         <div
-          id="records"
-          class="records"
-        ></div>
-
-        <div
-          id="noRecords"
-          class="status hidden"
+          class="goal-label"
+          id="goalText"
+          style="margin-top:8px;"
         >
-          この期間の実績はありません。
+          0 / 0 件
         </div>
-
-      </section>
-
-      <!-- リセット -->
-      <section class="card">
-
-        <button
-          id="resetButton"
-          class="danger-button"
-          type="button"
-        >
-          🗑️ 自分の実績を全削除
-        </button>
-
-      </section>
-
-    </main>
-
-    <!-- ======================================================
-         GROUP
-    ======================================================= -->
-
-    <main
-      id="groupView"
-      class="hidden"
-    >
-
-      <!-- グループ選択 -->
-      <div
-        id="groupSelectWrap"
-        class="select-wrap"
-      >
-        <select id="groupSelect"></select>
       </div>
 
-      <!-- 月選択 -->
+      <div
+        class="goal-box"
+        style="margin-top:12px;"
+      >
+
+        <input
+          id="goalInput"
+          type="number"
+          min="1"
+          placeholder="月間目標件数"
+        />
+
+        <button
+          class="button"
+          style="width:100px;background:#222;color:#fff;"
+          onclick="saveGoal()"
+        >
+          保存
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>📝 最新実績</h2>
+
+      <div id="personalRecords">
+        <div class="loading">
+          読み込み中...
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <button
+        class="button button-danger"
+        onclick="resetPersonalResults()"
+      >
+        🗑 自分の実績を全削除
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- ==========================
+       グループ
+  =========================== -->
+
+  <section
+    id="group"
+    class="tab-content"
+    style="display:none;"
+  >
+
+    <div class="card">
+
+      <h2>👥 グループ実績</h2>
+
       <div class="select-wrap">
 
-        <select id="groupMonth">
-          <option value="">今月</option>
+        <select
+          id="groupSelect"
+          onchange="loadGroup()"
+        >
+          <option value="">
+            グループを選択
+          </option>
         </select>
 
       </div>
 
-      <!-- グループ集計 -->
-      <section class="card">
+      <div class="select-wrap">
 
-        <div
-          id="groupTitle"
-          class="card-title"
+        <select
+          id="groupMonth"
+          onchange="loadGroup()"
         >
-          👥 グループ実績
+        </select>
+
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>📊 グループ集計</h2>
+
+      <div class="summary-main">
+
+        <div class="stat-card">
+          <div class="stat-label">売上</div>
+          <div
+            class="stat-value"
+            id="groupSales"
+          >
+            0
+          </div>
+          <div class="stat-unit">円</div>
         </div>
 
-        <div class="summary-grid">
-
-          <div class="summary-item">
-            <div class="summary-label">
-              売上
-            </div>
-
-            <div class="summary-value">
-              <span id="groupSales">0</span>
-              <span class="summary-unit">円</span>
-            </div>
+        <div class="stat-card">
+          <div class="stat-label">配達</div>
+          <div
+            class="stat-value"
+            id="groupCount"
+          >
+            0
           </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              配達
-            </div>
-
-            <div class="summary-value">
-              <span id="groupCount">0</span>
-              <span class="summary-unit">件</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              稼働
-            </div>
-
-            <div class="summary-value">
-              <span id="groupHours">0</span>
-              <span class="summary-unit">時間</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              アクティブ
-            </div>
-
-            <div class="summary-value">
-              <span id="groupUsers">0</span>
-              <span class="summary-unit">人</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-label">
-              平均単価
-            </div>
-
-            <div class="summary-value">
-              <span id="groupAverage">0</span>
-              <span class="summary-unit">円/件</span>
-            </div>
-          </div>
-
+          <div class="stat-unit">件</div>
         </div>
 
-      </section>
+      </div>
 
-      <!-- ランキング -->
-      <section class="card">
+      <div
+        class="stats-grid"
+        style="margin-top:8px;"
+      >
 
-        <div class="card-title">
-          🏆 メンバー別
+        <div class="stat-card">
+          <div class="stat-label">稼働</div>
+          <div
+            class="stat-value"
+            id="groupHours"
+          >
+            0
+          </div>
+          <div class="stat-unit">時間</div>
         </div>
 
-        <div
-          id="groupMembers"
-        ></div>
-
-        <div
-          id="noMembers"
-          class="status hidden"
-        >
-          この月の実績はありません。
+        <div class="stat-card">
+          <div class="stat-label">人数</div>
+          <div
+            class="stat-value"
+            id="groupActiveUsers"
+          >
+            0
+          </div>
+          <div class="stat-unit">人</div>
         </div>
 
-      </section>
+        <div class="stat-card">
+          <div class="stat-label">平均単価</div>
+          <div
+            class="stat-value"
+            id="groupAverage"
+          >
+            0
+          </div>
+          <div class="stat-unit">円/件</div>
+        </div>
 
-    </main>
+      </div>
 
+    </div>
+
+
+    <div class="card">
+
+      <h2>🏆 メンバーランキング</h2>
+
+      <div id="groupMembers">
+        <div class="loading">
+          読み込み中...
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ==========================
+       管理
+  =========================== -->
+
+  <section
+    id="admin"
+    class="tab-content"
+    style="display:none;"
+  >
+
+    <div class="card">
+
+      <h2>🔐 管理者ダッシュボード</h2>
+
+      <div class="stats-grid">
+
+        <div class="stat-card">
+          <div class="stat-label">登録実績</div>
+          <div
+            class="stat-value"
+            id="adminRecords"
+          >
+            0
+          </div>
+          <div class="stat-unit">件</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">ユーザー</div>
+          <div
+            class="stat-value"
+            id="adminUsers"
+          >
+            0
+          </div>
+          <div class="stat-unit">人</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">総売上</div>
+          <div
+            class="stat-value"
+            id="adminSales"
+          >
+            0
+          </div>
+          <div class="stat-unit">円</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">総配達</div>
+          <div
+            class="stat-value"
+            id="adminCount"
+          >
+            0
+          </div>
+          <div class="stat-unit">件</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">総稼働</div>
+          <div
+            class="stat-value"
+            id="adminHours"
+          >
+            0
+          </div>
+          <div class="stat-unit">時間</div>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>📅 今月</h2>
+
+      <div class="stats-grid">
+
+        <div class="stat-card">
+          <div class="stat-label">実績登録</div>
+          <div
+            class="stat-value"
+            id="adminMonthRecords"
+          >
+            0
+          </div>
+          <div class="stat-unit">件</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">アクティブ</div>
+          <div
+            class="stat-value"
+            id="adminMonthUsers"
+          >
+            0
+          </div>
+          <div class="stat-unit">人</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">売上</div>
+          <div
+            class="stat-value"
+            id="adminMonthSales"
+          >
+            0
+          </div>
+          <div class="stat-unit">円</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">配達</div>
+          <div
+            class="stat-value"
+            id="adminMonthCount"
+          >
+            0
+          </div>
+          <div class="stat-unit">件</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">稼働</div>
+          <div
+            class="stat-value"
+            id="adminMonthHours"
+          >
+            0
+          </div>
+          <div class="stat-unit">時間</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">平均単価</div>
+          <div
+            class="stat-value"
+            id="adminMonthAverage"
+          >
+            0
+          </div>
+          <div class="stat-unit">円/件</div>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>🏆 今月ユーザーランキング</h2>
+
+      <div id="adminUsersRanking">
+        <div class="loading">
+          読み込み中...
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>👥 グループ</h2>
+
+      <div id="adminGroups">
+        <div class="loading">
+          読み込み中...
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>📝 最新ログ</h2>
+
+      <div id="adminLogs">
+        <div class="loading">
+          読み込み中...
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <div class="footer">
+    配達リザルト Bot
   </div>
 
-  <script>
-    /*
-    ============================================================
-    Telegram
-    ============================================================
-    */
+</div>
 
-    const tg =
-      window.Telegram?.WebApp || null;
 
-    if (tg) {
-      tg.ready();
-      tg.expand();
+<script>
 
-      try {
-        tg.setHeaderColor(
-          tg.themeParams?.bg_color ||
-          "#f5f7fa"
-        );
+  const tg =
+    window.Telegram?.WebApp;
 
-        tg.setBackgroundColor(
-          tg.themeParams?.bg_color ||
-          "#f5f7fa"
-        );
-      } catch {}
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+
+
+  /*
+  ==========================================================
+  共通
+  ==========================================================
+  */
+
+  function formatNumber(value) {
+
+    return Number(
+      value || 0
+    ).toLocaleString(
+      "ja-JP"
+    );
+
+  }
+
+
+  function formatHours(value) {
+
+    const num =
+      Number(value || 0);
+
+    return num
+      .toFixed(2)
+      .replace(/\.00$/, "")
+      .replace(/(\.\d)0$/, "$1");
+
+  }
+
+
+  function formatDateJST(value) {
+
+    if (!value) {
+      return "-";
     }
 
-    /*
-    ============================================================
-    DOM
-    ============================================================
-    */
+    const date =
+      new Date(value);
 
-    const personalTab =
-      document.getElementById(
-        "personalTab"
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+      return "-";
+    }
+
+    return new Intl.DateTimeFormat(
+      "ja-JP",
+      {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      }
+    ).format(date);
+
+  }
+
+
+  function escapeHtml(value) {
+
+    return String(
+      value ?? ""
+    )
+      .replace(
+        /&/g,
+        "&amp;"
+      )
+      .replace(
+        /</g,
+        "&lt;"
+      )
+      .replace(
+        />/g,
+        "&gt;"
+      )
+      .replace(
+        /"/g,
+        "&quot;"
+      )
+      .replace(
+        /'/g,
+        "&#039;"
       );
 
-    const groupTab =
-      document.getElementById(
-        "groupTab"
-      );
+  }
 
-    const personalView =
-      document.getElementById(
-        "personalView"
-      );
 
-    const groupView =
-      document.getElementById(
-        "groupView"
-      );
+  function showError(message) {
 
-    const loading =
-      document.getElementById(
-        "loading"
-      );
-
-    const errorBox =
+    const box =
       document.getElementById(
         "errorBox"
       );
 
-    const errorMessage =
-      document.getElementById(
-        "errorMessage"
-      );
-
-    const retryButton =
-      document.getElementById(
-        "retryButton"
-      );
-
-    /*
-    ============================================================
-    状態
-    ============================================================
-    */
-
-    let currentView =
-      "personal";
-
-    let currentPeriod =
-      "day";
-
-    let currentGroupId =
-      null;
-
-    let currentGroupMonth =
-      "";
-
-    let groupData =
-      null;
-
-    /*
-    ============================================================
-    共通
-    ============================================================
-    */
-
-    function haptic(
-      type = "light"
-    ) {
-      try {
-        tg?.HapticFeedback?.impactOccurred(
-          type
-        );
-      } catch {}
+    if (!message) {
+      box.innerHTML = "";
+      return;
     }
 
-    function formatNumber(
-      value
-    ) {
-      return Number(
-        value || 0
-      ).toLocaleString(
-        "ja-JP"
-      );
-    }
+    box.innerHTML =
+      `<div class="error">
+        ${escapeHtml(message)}
+      </div>`;
 
-    function formatHours(
-      value
-    ) {
-      return Number(
-        value || 0
-      ).toFixed(2)
-        .replace(/\.00$/, "");
-    }
+  }
 
-    function formatDate(
-      value
-    ) {
-      if (!value) {
-        return "";
-      }
 
-      const date =
-        new Date(value);
+  /*
+  ==========================================================
+  Telegram API
+  ==========================================================
+  */
 
-      if (
-        Number.isNaN(
-          date.getTime()
-        )
-      ) {
-        return "";
-      }
+  async function apiFetch(
+    url,
+    options = {}
+  ) {
 
-      return new Intl.DateTimeFormat(
-        "ja-JP",
+    const initData =
+      tg?.initData || "";
+
+    const headers = {
+      ...(options.headers || {}),
+      "X-Telegram-Init-Data":
+        initData
+    };
+
+    const response =
+      await fetch(
+        url,
         {
-          timeZone:
-            "Asia/Tokyo",
-          year:
-            "numeric",
-          month:
-            "2-digit",
-          day:
-            "2-digit",
-          hour:
-            "2-digit",
-          minute:
-            "2-digit"
+          ...options,
+          headers
         }
-      ).format(date);
+      );
+
+    let data = null;
+
+    try {
+      data =
+        await response.json();
+    } catch {
+      throw new Error(
+        "サーバーから正しいデータを取得できませんでした。"
+      );
     }
 
-    function escapeHtml(
-      value
-    ) {
-      return String(
-        value ?? ""
+    if (!response.ok) {
+
+      throw new Error(
+        data?.error ||
+        `HTTP ${response.status}`
+      );
+
+    }
+
+    return data;
+
+  }
+
+
+  /*
+  ==========================================================
+  タブ
+  ==========================================================
+  */
+
+  function showTab(name) {
+
+    document
+      .querySelectorAll(
+        ".tab-content"
       )
-        .replaceAll(
-          "&",
-          "&amp;"
-        )
-        .replaceAll(
-          "<",
-          "&lt;"
-        )
-        .replaceAll(
-          ">",
-          "&gt;"
-        )
-        .replaceAll(
-          '"',
-          "&quot;"
-        )
-        .replaceAll(
-          "'",
-          "&#039;"
-        );
-    }
-
-    function showLoading(
-      visible
-    ) {
-      loading.classList.toggle(
-        "hidden",
-        !visible
-      );
-    }
-
-    function showError(
-      message
-    ) {
-      errorMessage.textContent =
-        message ||
-        "データ取得に失敗しました。";
-
-      errorBox.classList.remove(
-        "hidden"
-      );
-    }
-
-    function hideError() {
-      errorBox.classList.add(
-        "hidden"
-      );
-    }
-
-    /*
-    ============================================================
-    Telegram initData
-    ============================================================
-    */
-
-    function getInitData() {
-
-      const initData =
-        tg?.initData || "";
-
-      if (!initData) {
-        throw new Error(
-          "Telegram Mini App から起動してください。"
-        );
-      }
-
-      return initData;
-    }
-
-    /*
-    ============================================================
-    API fetch
-    ============================================================
-    */
-
-    async function apiFetch(
-      url,
-      options = {}
-    ) {
-
-      const initData =
-        getInitData();
-
-      const headers = {
-        ...(options.headers || {}),
-        "X-Telegram-Init-Data":
-          initData
-      };
-
-      const response =
-        await fetch(
-          url,
-          {
-            ...options,
-            headers,
-            cache:
-              "no-store"
-          }
-        );
-
-      let data;
-
-      try {
-        data =
-          await response.json();
-      } catch {
-        throw new Error(
-          "サーバーから正しいレスポンスを取得できませんでした。"
-        );
-      }
-
-      if (
-        !response.ok ||
-        data?.ok === false
-      ) {
-        throw new Error(
-          data?.error ||
-          `HTTP ${response.status}`
-        );
-      }
-
-      return data;
-    }
-
-    /*
-    ============================================================
-    VIEW切替
-    ============================================================
-    */
-
-    function switchView(
-      view
-    ) {
-
-      currentView =
-        view;
-
-      const isPersonal =
-        view === "personal";
-
-      personalTab.classList.toggle(
-        "active",
-        isPersonal
+      .forEach(
+        section => {
+          section.style.display =
+            section.id === name
+              ? "block"
+              : "none";
+        }
       );
 
-      groupTab.classList.toggle(
-        "active",
-        !isPersonal
+    document
+      .querySelectorAll(
+        ".tab"
+      )
+      .forEach(
+        button => {
+
+          button.classList.toggle(
+            "active",
+            button.dataset.tab === name
+          );
+
+        }
       );
 
-      personalView.classList.toggle(
-        "hidden",
-        !isPersonal
-      );
-
-      groupView.classList.toggle(
-        "hidden",
-        isPersonal
-      );
-
-      haptic("light");
-
-      hideError();
-
-      if (isPersonal) {
-        loadPersonal();
-      } else {
-        loadGroup();
-      }
+    if (name === "group") {
+      loadGroup();
     }
 
-    personalTab.addEventListener(
-      "click",
-      () => {
-        switchView(
-          "personal"
-        );
-      }
-    );
+    if (name === "admin") {
+      loadAdmin();
+    }
 
-    groupTab.addEventListener(
-      "click",
-      () => {
-        switchView(
-          "group"
-        );
-      }
-    );
+  }
 
-    /*
-    ============================================================
-    PERSONAL
-    ============================================================
-    */
+
+  /*
+  ==========================================================
+  個人
+  ==========================================================
+  */
+
+  async function loadPersonal(
+    period = "today"
+  ) {
 
     document
       .querySelectorAll(
@@ -1263,1121 +1322,1306 @@
       .forEach(
         button => {
 
-          button.addEventListener(
-            "click",
-            () => {
-
-              document
-                .querySelectorAll(
-                  ".period-tab"
-                )
-                .forEach(
-                  item =>
-                    item.classList.remove(
-                      "active"
-                    )
-                );
-
-              button.classList.add(
-                "active"
-              );
-
-              currentPeriod =
-                button.dataset.period;
-
-              haptic("light");
-
-              loadPersonal();
-            }
+          button.classList.toggle(
+            "active",
+            button.dataset.period === period
           );
+
         }
       );
 
-    async function loadPersonal() {
+    try {
 
-      if (
-        currentView !==
-        "personal"
-      ) {
-        return;
-      }
-
-      hideError();
-
-      showLoading(true);
-
-      try {
-
-        const data =
-          await apiFetch(
-            `/api/result?period=${encodeURIComponent(
-              currentPeriod
-            )}`
-          );
-
-        renderPersonal(
-          data
+      const data =
+        await apiFetch(
+          `/api/result?period=${encodeURIComponent(period)}`
         );
 
-      } catch (
-        error
-      ) {
-
-        console.error(
-          error
-        );
-
-        showError(
-          error?.message ||
+      if (!data?.ok) {
+        throw new Error(
+          data?.error ||
           "個人実績を取得できませんでした。"
         );
-
-      } finally {
-
-        showLoading(false);
-
-      }
-    }
-
-    function renderPersonal(
-      data
-    ) {
-
-      const sales =
-        Number(
-          data.sales || 0
-        );
-
-      const count =
-        Number(
-          data.count || 0
-        );
-
-      const hours =
-        Number(
-          data.hours || 0
-        );
-
-      const workDays =
-        Number(
-          data.workDays || 0
-        );
-
-      const average =
-        Number(
-          data.average || 0
-        );
-
-      const maxSales =
-        Number(
-          data.maxSales || 0
-        );
-
-      const maxCount =
-        Number(
-          data.maxCount || 0
-        );
-
-      const totalCount =
-        Number(
-          data.totalCount || 0
-        );
-
-      const goal =
-        Number(
-          data.goal || 0
-        );
-
-      const rate =
-        Number(
-          data.rate || 0
-        );
-
-      const dailyAverage =
-        workDays > 0
-          ? sales / workDays
-          : 0;
-
-      const hourlyAverage =
-        hours > 0
-          ? sales / hours
-          : 0;
-
-      const countPerHour =
-        hours > 0
-          ? count / hours
-          : 0;
-
-      document.getElementById(
-        "sales"
-      ).textContent =
-        formatNumber(
-          sales
-        );
-
-      document.getElementById(
-        "count"
-      ).textContent =
-        formatNumber(
-          count
-        );
-
-      document.getElementById(
-        "hours"
-      ).textContent =
-        formatHours(
-          hours
-        );
-
-      document.getElementById(
-        "average"
-      ).textContent =
-        formatNumber(
-          Math.round(
-            average
-          )
-        );
-
-      document.getElementById(
-        "workDays"
-      ).textContent =
-        formatNumber(
-          workDays
-        );
-
-      document.getElementById(
-        "dailyAverage"
-      ).textContent =
-        formatNumber(
-          Math.round(
-            dailyAverage
-          )
-        );
-
-      document.getElementById(
-        "hourlyAverage"
-      ).textContent =
-        formatNumber(
-          Math.round(
-            hourlyAverage
-          )
-        );
-
-      document.getElementById(
-        "countPerHour"
-      ).textContent =
-        countPerHour
-          .toFixed(1);
-
-      document.getElementById(
-        "maxSales"
-      ).textContent =
-        formatNumber(
-          maxSales
-        );
-
-      document.getElementById(
-        "maxCount"
-      ).textContent =
-        formatNumber(
-          maxCount
-        );
-
-      document.getElementById(
-        "totalCount"
-      ).textContent =
-        formatNumber(
-          totalCount
-        );
-
-      document.getElementById(
-        "recordCount"
-      ).textContent =
-        formatNumber(
-          data.records?.length ||
-          0
-        );
-
-      /*
-      ==========================================================
-      目標
-      ==========================================================
-      */
-
-      document.getElementById(
-        "goalSales"
-      ).textContent =
-        `${formatNumber(
-          sales
-        )}円`;
-
-      document.getElementById(
-        "goalValue"
-      ).textContent =
-        `${formatNumber(
-          goal
-        )}円`;
-
-      document.getElementById(
-        "goalRate"
-      ).textContent =
-        goal > 0
-          ? `${rate.toFixed(1)}%`
-          : "未設定";
-
-      document.getElementById(
-        "goalBar"
-      ).style.width =
-        `${Math.min(
-          Math.max(
-            rate,
-            0
-          ),
-          100
-        )}%`;
-
-      /*
-      ==========================================================
-      最新実績
-      ==========================================================
-      */
-
-      renderRecords(
-        data.records || []
-      );
-    }
-
-    function renderRecords(
-      records
-    ) {
-
-      const container =
-        document.getElementById(
-          "records"
-        );
-
-      const empty =
-        document.getElementById(
-          "noRecords"
-        );
-
-      if (
-        !records.length
-      ) {
-
-        container.innerHTML =
-          "";
-
-        empty.classList.remove(
-          "hidden"
-        );
-
-        return;
       }
 
-      empty.classList.add(
-        "hidden"
+      renderPersonal(
+        data
       );
 
-      container.innerHTML =
-        records
-          .map(
-            record => {
+    } catch (error) {
 
-              const sale =
-                Number(
-                  record.sale || 0
-                );
+      showError(
+        error?.message ||
+        "個人実績の取得に失敗しました。"
+      );
 
-              const count =
-                Number(
-                  record.count || 0
-                );
-
-              const hours =
-                Number(
-                  record.hours || 0
-                );
-
-              return `
-                <div class="record">
-
-                  <div>
-                    <div class="record-date">
-                      ${escapeHtml(
-                        formatDate(
-                          record.createdAt
-                        )
-                      )}
-                    </div>
-
-                    <div class="record-main">
-                      📦 ${formatNumber(
-                        count
-                      )}件
-                    </div>
-
-                    <div class="record-sub">
-                      ⏱ ${formatHours(
-                        hours
-                      )}時間
-                    </div>
-                  </div>
-
-                  <div class="record-sale">
-                    ¥${formatNumber(
-                      sale
-                    )}
-                  </div>
-
-                </div>
-              `;
-            }
-          )
-          .join("");
     }
+
+  }
+
+
+  function renderPersonal(
+    data
+  ) {
+
+    const summary =
+      data.summary || {};
+
+    const sales =
+      Number(
+        summary.sales || 0
+      );
+
+    const count =
+      Number(
+        summary.count || 0
+      );
+
+    const hours =
+      Number(
+        summary.hours || 0
+      );
+
+    const average =
+      count > 0
+        ? sales / count
+        : 0;
+
+    const workDays =
+      Number(
+        summary.workDays || 0
+      );
+
+    const dailyAverage =
+      workDays > 0
+        ? sales / workDays
+        : 0;
+
+    const hourlyAverage =
+      hours > 0
+        ? sales / hours
+        : 0;
+
+    const countPerHour =
+      hours > 0
+        ? count / hours
+        : 0;
+
+
+    setText(
+      "personalSales",
+      formatNumber(sales)
+    );
+
+    setText(
+      "personalCount",
+      formatNumber(count)
+    );
+
+    setText(
+      "personalHours",
+      formatHours(hours)
+    );
+
+    setText(
+      "personalAverage",
+      formatNumber(
+        Math.round(average)
+      )
+    );
+
+    setText(
+      "personalWorkDays",
+      formatNumber(workDays)
+    );
+
+    setText(
+      "personalDailyAverage",
+      formatNumber(
+        Math.round(dailyAverage)
+      )
+    );
+
+    setText(
+      "personalHourlyAverage",
+      formatNumber(
+        Math.round(hourlyAverage)
+      )
+    );
+
+    setText(
+      "personalCountPerHour",
+      countPerHour.toFixed(2)
+    );
+
+    setText(
+      "personalMaxSales",
+      formatNumber(
+        summary.maxSales || 0
+      )
+    );
+
+    setText(
+      "personalMaxCount",
+      formatNumber(
+        summary.maxCount || 0
+      )
+    );
+
+    setText(
+      "personalTotalCount",
+      formatNumber(
+        summary.totalCount ?? count
+      )
+    );
+
+    setText(
+      "personalRecordCount",
+      formatNumber(
+        summary.recordCount ??
+        (data.records || []).length
+      )
+    );
+
 
     /*
-    ============================================================
-    GROUP
-    ============================================================
+    ==========================
+    ユーザー名
+    ==========================
     */
 
-    async function loadGroup() {
+    const user =
+      data.user ||
+      data.telegramUser ||
+      null;
 
-      if (
-        currentView !==
-        "group"
-      ) {
-        return;
+    if (user) {
+
+      const name =
+        user.firstName ||
+        user.first_name ||
+        user.username ||
+        "";
+
+      if (name) {
+
+        setText(
+          "userName",
+          `${name} さん`
+        );
+
       }
 
-      hideError();
+    }
 
-      showLoading(true);
 
-      try {
+    /*
+    ==========================
+    目標
+    ==========================
+    */
 
-        const params =
-          new URLSearchParams();
+    const goal =
+      Number(
+        data.goal?.monthlyGoal ||
+        data.monthlyGoal ||
+        0
+      );
 
-        if (
-          currentGroupId
-        ) {
-          params.set(
-            "chatId",
-            currentGroupId
-          );
+    setText(
+      "goalValue",
+      formatNumber(goal)
+    );
+
+    const progress =
+      goal > 0
+        ? Math.min(
+            100,
+            count / goal * 100
+          )
+        : 0;
+
+    const progressEl =
+      document.getElementById(
+        "goalProgress"
+      );
+
+    if (progressEl) {
+      progressEl.style.width =
+        `${progress}%`;
+    }
+
+    setText(
+      "goalText",
+      `${formatNumber(count)} / ${formatNumber(goal)} 件`
+    );
+
+
+    /*
+    ==========================
+    最新実績
+    ==========================
+    */
+
+    renderPersonalRecords(
+      data.records || []
+    );
+
+  }
+
+
+  function renderPersonalRecords(
+    records
+  ) {
+
+    const el =
+      document.getElementById(
+        "personalRecords"
+      );
+
+    if (!records.length) {
+
+      el.innerHTML =
+        `<div class="empty">
+          実績がありません。
+        </div>`;
+
+      return;
+    }
+
+    el.innerHTML =
+      records.map(
+        record => {
+
+          return `
+            <div class="record">
+
+              <div class="record-top">
+
+                <span class="record-date">
+                  ${escapeHtml(
+                    formatDateJST(
+                      record.createdAt ||
+                      record.created_at
+                    )
+                  )}
+                </span>
+
+                <span class="record-sales">
+                  ${formatNumber(
+                    record.saleAmount ??
+                    record.sales ??
+                    record.sale_amount ??
+                    0
+                  )}円
+                </span>
+
+              </div>
+
+              <div class="record-detail">
+
+                <span>
+                  📦
+                  ${formatNumber(
+                    record.deliveryCount ??
+                    record.count ??
+                    record.delivery_count ??
+                    0
+                  )}件
+                </span>
+
+                <span>
+                  ⏱
+                  ${formatHours(
+                    record.workHours ??
+                    record.hours ??
+                    record.work_hours ??
+                    0
+                  )}時間
+                </span>
+
+              </div>
+
+            </div>
+          `;
+
         }
+      ).join("");
 
-        if (
-          currentGroupMonth
-        ) {
-          params.set(
-            "month",
-            currentGroupMonth
-          );
+  }
+
+
+  /*
+  ==========================================================
+  目標保存
+  ==========================================================
+  */
+
+  async function saveGoal() {
+
+    const input =
+      document.getElementById(
+        "goalInput"
+      );
+
+    const value =
+      Number(input.value);
+
+    if (
+      !Number.isInteger(value) ||
+      value <= 0
+    ) {
+
+      alert(
+        "1以上の整数を入力してください。"
+      );
+
+      return;
+    }
+
+    try {
+
+      const data =
+        await apiFetch(
+          "/api/result",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body:
+              JSON.stringify({
+                action: "goal",
+                monthlyGoal: value
+              })
+          }
+        );
+
+      if (!data?.ok) {
+        throw new Error(
+          data?.error ||
+          "目標を保存できませんでした。"
+        );
+      }
+
+      input.value = "";
+
+      await loadPersonal(
+        "month"
+      );
+
+      alert(
+        "月間目標を保存しました。"
+      );
+
+    } catch (error) {
+
+      alert(
+        error?.message ||
+        "目標保存に失敗しました。"
+      );
+
+    }
+
+  }
+
+
+  /*
+  ==========================================================
+  個人実績削除
+  ==========================================================
+  */
+
+  async function resetPersonalResults() {
+
+    const confirmed =
+      confirm(
+        "自分の実績をすべて削除します。\n\n本当に削除しますか？"
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+
+      const data =
+        await apiFetch(
+          "/api/reset",
+          {
+            method: "POST"
+          }
+        );
+
+      if (!data?.ok) {
+        throw new Error(
+          data?.error ||
+          "実績削除に失敗しました。"
+        );
+      }
+
+      alert(
+        "実績を削除しました。"
+      );
+
+      await loadPersonal(
+        "today"
+      );
+
+    } catch (error) {
+
+      alert(
+        error?.message ||
+        "実績削除に失敗しました。"
+      );
+
+    }
+
+  }
+
+
+  /*
+  ==========================================================
+  グループ月選択
+  ==========================================================
+  */
+
+  function buildGroupMonths() {
+
+    const select =
+      document.getElementById(
+        "groupMonth"
+      );
+
+    if (!select) {
+      return;
+    }
+
+    if (
+      select.options.length > 0
+    ) {
+      return;
+    }
+
+    const now =
+      new Date();
+
+    const formatter =
+      new Intl.DateTimeFormat(
+        "ja-JP",
+        {
+          timeZone:
+            "Asia/Tokyo",
+          year: "numeric",
+          month: "2-digit"
         }
+      );
 
-        const query =
-          params.toString();
+    for (
+      let i = 0;
+      i < 12;
+      i++
+    ) {
 
-        const url =
-          query
-            ? `/api/group?${query}`
-            : "/api/group";
+      const date =
+        new Date(
+          now.getFullYear(),
+          now.getMonth() - i,
+          1
+        );
 
-        const data =
-          await apiFetch(
-            url
+      const parts =
+        formatter.formatToParts(
+          date
+        );
+
+      const year =
+        parts.find(
+          p => p.type === "year"
+        )?.value;
+
+      const month =
+        parts.find(
+          p => p.type === "month"
+        )?.value;
+
+      if (!year || !month) {
+        continue;
+      }
+
+      const value =
+        `${year}-${month}`;
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+      option.value =
+        value;
+
+      option.textContent =
+        `${year}年${Number(month)}月`;
+
+      select.appendChild(
+        option
+      );
+
+    }
+
+  }
+
+
+  /*
+  ==========================================================
+  グループ
+  ==========================================================
+  */
+
+  async function loadGroup() {
+
+    buildGroupMonths();
+
+    const groupSelect =
+      document.getElementById(
+        "groupSelect"
+      );
+
+    const monthSelect =
+      document.getElementById(
+        "groupMonth"
+      );
+
+    if (!groupSelect) {
+      return;
+    }
+
+    try {
+
+      const params =
+        new URLSearchParams();
+
+      if (
+        groupSelect.value
+      ) {
+        params.set(
+          "chatId",
+          groupSelect.value
+        );
+      }
+
+      if (
+        monthSelect?.value
+      ) {
+        params.set(
+          "month",
+          monthSelect.value
+        );
+      }
+
+      const query =
+        params.toString();
+
+      const data =
+        await apiFetch(
+          `/api/group${
+            query
+              ? `?${query}`
+              : ""
+          }`
+        );
+
+      if (!data?.ok) {
+        throw new Error(
+          data?.error ||
+          "グループ実績を取得できませんでした。"
+        );
+      }
+
+      /*
+      ==========================
+      グループ一覧
+      ==========================
+      */
+
+      const groups =
+        data.groups || [];
+
+      const current =
+        groupSelect.value;
+
+      groupSelect.innerHTML = "";
+
+      if (!groups.length) {
+
+        const option =
+          document.createElement(
+            "option"
           );
 
-        groupData =
-          data;
+        option.value = "";
+
+        option.textContent =
+          "所属しているグループがありません";
+
+        groupSelect.appendChild(
+          option
+        );
 
         renderGroup(
           data
         );
 
-      } catch (
-        error
-      ) {
-
-        console.error(
-          error
-        );
-
-        showError(
-          error?.message ||
-          "グループ実績を取得できませんでした。"
-        );
-
-      } finally {
-
-        showLoading(false);
-
-      }
-    }
-
-    function renderGroup(
-      data
-    ) {
-
-      const groups =
-        data.groups || [];
-
-      /*
-      ==========================================================
-      グループなし
-      ==========================================================
-      */
-
-      if (
-        groups.length === 0
-      ) {
-
-        document.getElementById(
-          "groupSelectWrap"
-        ).classList.add(
-          "hidden"
-        );
-
-        document.getElementById(
-          "groupTitle"
-        ).textContent =
-          "👥 グループ実績";
-
-        document.getElementById(
-          "groupSales"
-        ).textContent =
-          "0";
-
-        document.getElementById(
-          "groupCount"
-        ).textContent =
-          "0";
-
-        document.getElementById(
-          "groupHours"
-        ).textContent =
-          "0";
-
-        document.getElementById(
-          "groupUsers"
-        ).textContent =
-          "0";
-
-        document.getElementById(
-          "groupAverage"
-        ).textContent =
-          "0";
-
-        document.getElementById(
-          "groupMembers"
-        ).innerHTML =
-          `
-            <div class="status">
-              所属しているグループがありません。
-            </div>
-          `;
-
         return;
       }
 
-      /*
-      ==========================================================
-      グループ選択
-      ==========================================================
-      */
+      groups.forEach(
+        group => {
 
-      const select =
-        document.getElementById(
-          "groupSelect"
-        );
+          const option =
+            document.createElement(
+              "option"
+            );
 
-      const currentExists =
+          option.value =
+            String(
+              group.chatId
+            );
+
+          option.textContent =
+            group.title ||
+            "グループ";
+
+          groupSelect.appendChild(
+            option
+          );
+
+        }
+      );
+
+      if (
+        current &&
         groups.some(
           group =>
             String(
               group.chatId
-            ) ===
-            String(
-              currentGroupId
-            )
-        );
-
-      if (
-        !currentGroupId ||
-        !currentExists
+            ) === current
+        )
       ) {
 
-        currentGroupId =
+        groupSelect.value =
+          current;
+
+      } else if (
+        data.selectedChatId
+      ) {
+
+        groupSelect.value =
+          String(
+            data.selectedChatId
+          );
+
+      } else {
+
+        groupSelect.value =
           String(
             groups[0].chatId
           );
+
       }
 
-      select.innerHTML =
-        groups
-          .map(
-            group => `
-              <option
-                value="${escapeHtml(
-                  group.chatId
-                )}"
-              >
-                ${escapeHtml(
-                  group.title ||
-                  "グループ"
-                )}
-              </option>
-            `
-          )
-          .join("");
-
-      select.value =
-        String(
-          currentGroupId
-        );
-
-      document.getElementById(
-        "groupSelectWrap"
-      ).classList.remove(
-        "hidden"
+      renderGroup(
+        data
       );
 
-      /*
-      ==========================================================
-      グループ名
-      ==========================================================
-      */
+    } catch (error) {
 
-      const group =
-        groups.find(
-          item =>
-            String(
-              item.chatId
-            ) ===
-            String(
-              currentGroupId
-            )
-        );
-
-      document.getElementById(
-        "groupTitle"
-      ).textContent =
-        `👥 ${
-          group?.title ||
-          "グループ実績"
-        }`;
-
-      /*
-      ==========================================================
-      月選択
-      ==========================================================
-      */
-
-      buildMonthOptions();
-
-      /*
-      ==========================================================
-      集計
-      ==========================================================
-      */
-
-      const summary =
-        data.summary || {};
-
-      document.getElementById(
-        "groupSales"
-      ).textContent =
-        formatNumber(
-          summary.sales || 0
-        );
-
-      document.getElementById(
-        "groupCount"
-      ).textContent =
-        formatNumber(
-          summary.count || 0
-        );
-
-      document.getElementById(
-        "groupHours"
-      ).textContent =
-        formatHours(
-          summary.hours || 0
-        );
-
-      document.getElementById(
-        "groupUsers"
-      ).textContent =
-        formatNumber(
-          summary.activeUsers || 0
-        );
-
-      document.getElementById(
-        "groupAverage"
-      ).textContent =
-        formatNumber(
-          Math.round(
-            summary.average || 0
-          )
-        );
-
-      /*
-      ==========================================================
-      メンバー
-      ==========================================================
-      */
-
-      renderGroupMembers(
-        data.members || []
+      showError(
+        error?.message ||
+        "グループ実績の取得に失敗しました。"
       );
+
     }
 
-    /*
-    ============================================================
-    グループ選択変更
-    ============================================================
-    */
+  }
 
-    document
-      .getElementById(
-        "groupSelect"
+
+  function renderGroup(
+    data
+  ) {
+
+    const summary =
+      data.summary || {};
+
+    setText(
+      "groupSales",
+      formatNumber(
+        summary.sales || 0
       )
-      .addEventListener(
-        "change",
-        event => {
+    );
 
-          currentGroupId =
-            String(
-              event.target.value
-            );
-
-          currentGroupMonth =
-            document.getElementById(
-              "groupMonth"
-            ).value;
-
-          haptic("light");
-
-          loadGroup();
-        }
-      );
-
-    /*
-    ============================================================
-    月セレクタ
-    ============================================================
-    */
-
-    function getCurrentJSTMonth() {
-
-      const parts =
-        new Intl.DateTimeFormat(
-          "en-CA",
-          {
-            timeZone:
-              "Asia/Tokyo",
-            year:
-              "numeric",
-            month:
-              "2-digit"
-          }
-        ).formatToParts(
-          new Date()
-        );
-
-      const year =
-        parts.find(
-          part =>
-            part.type === "year"
-        )?.value;
-
-      const month =
-        parts.find(
-          part =>
-            part.type === "month"
-        )?.value;
-
-      return `${year}-${month}`;
-    }
-
-    function shiftMonth(
-      year,
-      month,
-      offset
-    ) {
-
-      const date =
-        new Date(
-          Date.UTC(
-            year,
-            month - 1,
-            1
-          )
-        );
-
-      date.setUTCMonth(
-        date.getUTCMonth() +
-        offset
-      );
-
-      return {
-        year:
-          date.getUTCFullYear(),
-
-        month:
-          date.getUTCMonth() + 1
-      };
-    }
-
-    function buildMonthOptions() {
-
-      const select =
-        document.getElementById(
-          "groupMonth"
-        );
-
-      const current =
-        getCurrentJSTMonth();
-
-      const [currentYear, currentMonth] =
-        current
-          .split("-")
-          .map(Number);
-
-      let html = "";
-
-      /*
-      ==========================================================
-      今年から過去12ヶ月
-      ==========================================================
-      */
-
-      for (
-        let offset = 0;
-        offset < 12;
-        offset++
-      ) {
-
-        const {
-          year,
-          month
-        } =
-          shiftMonth(
-            currentYear,
-            currentMonth,
-            -offset
-          );
-
-        const value =
-          `${year}-${String(
-            month
-          ).padStart(
-            2,
-            "0"
-          )}`;
-
-        const label =
-          offset === 0
-            ? "今月"
-            : `${year}年${month}月`;
-
-        html += `
-          <option
-            value="${value}"
-          >
-            ${label}
-          </option>
-        `;
-      }
-
-      select.innerHTML =
-        html;
-
-      /*
-      ==========================================================
-      初回は今月
-      ==========================================================
-      */
-
-      if (
-        !currentGroupMonth
-      ) {
-        currentGroupMonth =
-          current;
-      }
-
-      select.value =
-        currentGroupMonth;
-    }
-
-    document
-      .getElementById(
-        "groupMonth"
+    setText(
+      "groupCount",
+      formatNumber(
+        summary.count || 0
       )
-      .addEventListener(
-        "change",
-        event => {
+    );
 
-          currentGroupMonth =
-            event.target.value;
+    setText(
+      "groupHours",
+      formatHours(
+        summary.hours || 0
+      )
+    );
 
-          haptic("light");
+    setText(
+      "groupActiveUsers",
+      formatNumber(
+        summary.activeUsers || 0
+      )
+    );
 
-          loadGroup();
-        }
+    setText(
+      "groupAverage",
+      formatNumber(
+        Math.round(
+          summary.average || 0
+        )
+      )
+    );
+
+
+    const members =
+      data.members || [];
+
+    const el =
+      document.getElementById(
+        "groupMembers"
       );
 
-    /*
-    ============================================================
-    メンバーランキング
-    ============================================================
-    */
+    if (!members.length) {
 
-    function renderGroupMembers(
-      members
-    ) {
+      el.innerHTML =
+        `<div class="empty">
+          所属しているグループがありません。
+        </div>`;
 
-      const container =
-        document.getElementById(
-          "groupMembers"
+      return;
+    }
+
+    el.innerHTML =
+      members.map(
+        member => {
+
+          return `
+            <div class="ranking-row">
+
+              <div class="rank">
+                ${member.rank}
+              </div>
+
+              <div class="member-main">
+
+                <div class="member-name">
+                  ${escapeHtml(
+                    member.displayName ||
+                    member.firstName ||
+                    member.username ||
+                    `ユーザー${member.telegramUserId}`
+                  )}
+                </div>
+
+                <div class="member-stats">
+
+                  <span>
+                    売上
+                    <strong>
+                      ${formatNumber(
+                        member.sales
+                      )}円
+                    </strong>
+                  </span>
+
+                  <span>
+                    配達
+                    <strong>
+                      ${formatNumber(
+                        member.count
+                      )}件
+                    </strong>
+                  </span>
+
+                  <span>
+                    稼働
+                    <strong>
+                      ${formatHours(
+                        member.hours
+                      )}時間
+                    </strong>
+                  </span>
+
+                  <span>
+                    平均
+                    <strong>
+                      ${formatNumber(
+                        Math.round(
+                          member.average || 0
+                        )
+                      )}円
+                    </strong>
+                  </span>
+
+                </div>
+
+              </div>
+
+            </div>
+          `;
+
+        }
+      ).join("");
+
+  }
+
+
+  /*
+  ==========================================================
+  管理者
+  ==========================================================
+  */
+
+  async function loadAdmin() {
+
+    const adminButton =
+      document.getElementById(
+        "adminTabButton"
+      );
+
+    try {
+
+      const data =
+        await apiFetch(
+          "/api/admin"
         );
 
-      const empty =
-        document.getElementById(
-          "noMembers"
-        );
+      if (!data?.ok) {
 
-      if (
-        !members.length
-      ) {
-
-        container.innerHTML =
-          "";
-
-        empty.classList.remove(
-          "hidden"
-        );
+        adminButton.style.display =
+          "none";
 
         return;
       }
 
-      empty.classList.add(
-        "hidden"
+      adminButton.style.display =
+        "block";
+
+
+      /*
+      ==========================
+      全体
+      ==========================
+      */
+
+      setText(
+        "adminRecords",
+        formatNumber(
+          data.overall?.records || 0
+        )
       );
 
-      container.innerHTML =
-        members
-          .map(
-            member => {
+      setText(
+        "adminUsers",
+        formatNumber(
+          data.overall?.users || 0
+        )
+      );
 
-              const rank =
-                Number(
-                  member.rank || 0
-                );
+      setText(
+        "adminSales",
+        formatNumber(
+          data.overall?.sales || 0
+        )
+      );
 
-              const sales =
-                Number(
-                  member.sales || 0
-                );
+      setText(
+        "adminCount",
+        formatNumber(
+          data.overall?.count || 0
+        )
+      );
 
-              const count =
-                Number(
-                  member.count || 0
-                );
+      setText(
+        "adminHours",
+        formatHours(
+          data.overall?.hours || 0
+        )
+      );
 
-              const hours =
-                Number(
-                  member.hours || 0
-                );
 
-              let rankLabel =
-                `${rank}`;
+      /*
+      ==========================
+      今月
+      ==========================
+      */
 
-              if (
-                rank === 1
-              ) {
-                rankLabel =
-                  "🥇";
-              } else if (
-                rank === 2
-              ) {
-                rankLabel =
-                  "🥈";
-              } else if (
-                rank === 3
-              ) {
-                rankLabel =
-                  "🥉";
-              }
+      setText(
+        "adminMonthRecords",
+        formatNumber(
+          data.month?.records || 0
+        )
+      );
+
+      setText(
+        "adminMonthUsers",
+        formatNumber(
+          data.month?.activeUsers || 0
+        )
+      );
+
+      setText(
+        "adminMonthSales",
+        formatNumber(
+          data.month?.sales || 0
+        )
+      );
+
+      setText(
+        "adminMonthCount",
+        formatNumber(
+          data.month?.count || 0
+        )
+      );
+
+      setText(
+        "adminMonthHours",
+        formatHours(
+          data.month?.hours || 0
+        )
+      );
+
+      setText(
+        "adminMonthAverage",
+        formatNumber(
+          Math.round(
+            data.month?.average || 0
+          )
+        )
+      );
+
+
+      /*
+      ==========================
+      ユーザーランキング
+      ==========================
+      */
+
+      const users =
+        data.users || [];
+
+      const usersEl =
+        document.getElementById(
+          "adminUsersRanking"
+        );
+
+      if (!users.length) {
+
+        usersEl.innerHTML =
+          `<div class="empty">
+            今月の実績がありません。
+          </div>`;
+
+      } else {
+
+        usersEl.innerHTML =
+          users.map(
+            user => {
 
               return `
-                <div class="member">
+                <div class="admin-user-row">
 
-                  <div class="rank">
-                    ${rankLabel}
+                  <div class="admin-user-rank">
+                    ${user.rank}
                   </div>
 
-                  <div>
+                  <div class="admin-user-main">
 
-                    <div class="member-name">
+                    <div class="admin-user-id">
+                      ID:
                       ${escapeHtml(
-                        member.displayName ||
-                        "メンバー"
+                        user.telegramUserId
                       )}
                     </div>
 
-                    <div class="member-sub">
-                      ${formatNumber(
-                        count
-                      )}件
-                      ・
-                      ${formatHours(
-                        hours
-                      )}時間
-                    </div>
+                    <div class="admin-user-stats">
 
-                  </div>
+                      <span>
+                        売上
+                        <strong>
+                          ${formatNumber(
+                            user.sales
+                          )}円
+                        </strong>
+                      </span>
 
-                  <div>
+                      <span>
+                        配達
+                        <strong>
+                          ${formatNumber(
+                            user.count
+                          )}件
+                        </strong>
+                      </span>
 
-                    <div class="member-sales">
-                      ¥${formatNumber(
-                        sales
-                      )}
-                    </div>
+                      <span>
+                        稼働
+                        <strong>
+                          ${formatHours(
+                            user.hours
+                          )}時間
+                        </strong>
+                      </span>
 
-                    <div class="member-detail">
-                      ${formatNumber(
-                        Math.round(
-                          member.average ||
-                          0
-                        )
-                      )}円/件
+                      <span>
+                        実績
+                        <strong>
+                          ${formatNumber(
+                            user.records
+                          )}件
+                        </strong>
+                      </span>
+
                     </div>
 
                   </div>
 
                 </div>
               `;
+
             }
-          )
-          .join("");
-    }
+          ).join("");
 
-    /*
-    ============================================================
-    RESET
-    ============================================================
-    */
+      }
 
-    document
-      .getElementById(
-        "resetButton"
-      )
-      .addEventListener(
-        "click",
-        async () => {
 
-          const confirmed =
-            window.confirm(
-              "自分の実績をすべて削除します。\n\nこの操作は元に戻せません。\n\n本当に削除しますか？"
-            );
+      /*
+      ==========================
+      グループ
+      ==========================
+      */
 
-          if (!confirmed) {
-            return;
-          }
+      const groups =
+        data.groups || [];
 
-          haptic("medium");
+      const groupsEl =
+        document.getElementById(
+          "adminGroups"
+        );
 
-          try {
+      if (!groups.length) {
 
-            showLoading(true);
+        groupsEl.innerHTML =
+          `<div class="empty">
+            登録グループがありません。
+          </div>`;
 
-            await apiFetch(
-              "/api/reset",
-              {
-                method:
-                  "POST"
-              }
-            );
+      } else {
 
-            if (
-              tg?.showAlert
-            ) {
+        groupsEl.innerHTML =
+          groups.map(
+            group => {
 
-              tg.showAlert(
-                "実績をすべて削除しました。"
-              );
+              return `
+                <div class="admin-group">
 
-            } else {
+                  <div class="admin-group-title">
+                    👥
+                    ${escapeHtml(
+                      group.title
+                    )}
+                  </div>
 
-              alert(
-                "実績をすべて削除しました。"
-              );
+                  <div class="admin-group-stats">
+
+                    <span>
+                      売上
+                      <strong>
+                        ${formatNumber(
+                          group.sales
+                        )}円
+                      </strong>
+                    </span>
+
+                    <span>
+                      配達
+                      <strong>
+                        ${formatNumber(
+                          group.count
+                        )}件
+                      </strong>
+                    </span>
+
+                    <span>
+                      稼働
+                      <strong>
+                        ${formatHours(
+                          group.hours
+                        )}時間
+                      </strong>
+                    </span>
+
+                    <span>
+                      人数
+                      <strong>
+                        ${formatNumber(
+                          group.activeUsers
+                        )}人
+                      </strong>
+                    </span>
+
+                  </div>
+
+                </div>
+              `;
+
             }
+          ).join("");
 
-            await loadPersonal();
+      }
 
-          } catch (
-            error
-          ) {
 
-            console.error(
-              error
-            );
+      /*
+      ==========================
+      ログ
+      ==========================
+      */
 
-            showError(
-              error?.message ||
-              "実績削除に失敗しました。"
-            );
+      const logs =
+        data.logs || [];
 
-          } finally {
+      const logsEl =
+        document.getElementById(
+          "adminLogs"
+        );
 
-            showLoading(false);
+      if (!logs.length) {
 
-          }
-        }
+        logsEl.innerHTML =
+          `<div class="empty">
+            ログがありません。
+          </div>`;
+
+      } else {
+
+        logsEl.innerHTML =
+          logs.map(
+            log => {
+
+              return `
+                <div class="admin-log">
+
+                  <div>
+                    <strong>
+                      ${escapeHtml(
+                        log.action
+                      )}
+                    </strong>
+                  </div>
+
+                  <div class="admin-log-meta">
+                    ${escapeHtml(
+                      formatDateJST(
+                        log.createdAt
+                      )
+                    )}
+                    /
+                    ${escapeHtml(
+                      log.telegramUserId
+                    )}
+
+                    ${
+                      log.chatId
+                        ? ` /
+                          ${escapeHtml(
+                            log.chatId
+                          )}`
+                        : ""
+                    }
+                  </div>
+
+                </div>
+              `;
+
+            }
+          ).join("");
+
+      }
+
+    } catch (error) {
+
+      adminButton.style.display =
+        "none";
+
+      console.log(
+        "Admin API:",
+        error
       );
 
-    /*
-    ============================================================
-    RETRY
-    ============================================================
-    */
+    }
 
-    retryButton.addEventListener(
-      "click",
-      () => {
+  }
 
-        hideError();
 
-        if (
-          currentView ===
-          "personal"
-        ) {
+  /*
+  ==========================================================
+  DOMヘルパー
+  ==========================================================
+  */
 
-          loadPersonal();
+  function setText(
+    id,
+    value
+  ) {
 
-        } else {
+    const el =
+      document.getElementById(id);
 
-          loadGroup();
+    if (el) {
+      el.textContent =
+        value;
+    }
 
-        }
-      }
+  }
+
+
+  /*
+  ==========================================================
+  初期化
+  ==========================================================
+  */
+
+  async function init() {
+
+    showError("");
+
+    buildGroupMonths();
+
+    await loadPersonal(
+      "today"
     );
 
-    /*
-    ============================================================
-    初期表示
-    ============================================================
-    */
+    await loadGroup();
 
-    loadPersonal();
-  </script>
+    await loadAdmin();
+
+  }
+
+
+  init();
+
+</script>
+
 </body>
 </html>
-
