@@ -1,4 +1,3 @@
-```javascript
 import { neon } from "@neondatabase/serverless";
 import crypto from "crypto";
 
@@ -203,7 +202,6 @@ export default async function handler(req, res) {
     });
   }
 }
-```
 
     return res.status(500).json({
       error: "Internal Server Error",
