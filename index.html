@@ -429,6 +429,17 @@
       line-height: 1.6;
     }
 
+    .success-box {
+      background: #f1fff4;
+      border: 1px solid #b8e8c0;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      color: #267a35;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
     .footer {
       text-align: center;
       color: #999;
@@ -473,12 +484,12 @@
       👥 グループ
     </button>
 
+    <!-- 管理タブは常に表示 -->
     <button
       class="tab"
       data-tab="admin"
       id="adminTabButton"
       onclick="showTab('admin')"
-      style="display:none;"
     >
       🔐 管理
     </button>
@@ -798,7 +809,8 @@
 
       <div class="danger-box">
         選択中のグループの配達実績だけを削除します。<br>
-        グループ・メンバー情報は削除されません。
+        グループ・メンバー情報は削除されません。<br>
+        この操作は管理者のみ実行できます。
       </div>
 
       <button
@@ -953,6 +965,7 @@
       <div class="danger-box">
         全ユーザーの配達実績と月間目標を削除します。<br>
         グループ・メンバー情報・監査ログは残ります。<br>
+        この操作は管理者のみ実行できます。<br>
         この操作は元に戻せません。
       </div>
 
@@ -1149,6 +1162,8 @@
           );
         }
       );
+
+    showError("");
 
     if (name === "group") {
       loadGroup();
@@ -2063,13 +2078,7 @@
 
       await loadGroup();
 
-      if (
-        document.getElementById(
-          "admin"
-        ).style.display !== "none"
-      ) {
-        await loadAdmin();
-      }
+      await loadAdmin();
 
     } catch (error) {
 
@@ -2088,11 +2097,6 @@
 
   async function loadAdmin() {
 
-    const adminButton =
-      document.getElementById(
-        "adminTabButton"
-      );
-
     try {
 
       const data =
@@ -2102,14 +2106,17 @@
 
       if (!data?.ok) {
 
-        adminButton.style.display =
-          "none";
-
-        return;
+        throw new Error(
+          data?.error ||
+          "管理データを取得できませんでした。"
+        );
       }
 
-      adminButton.style.display =
-        "block";
+      /*
+      ==========================
+      全体
+      ==========================
+      */
 
       setText(
         "adminRecords",
@@ -2145,6 +2152,12 @@
           data.overall?.hours || 0
         )
       );
+
+      /*
+      ==========================
+      今月
+      ==========================
+      */
 
       setText(
         "adminMonthRecords",
@@ -2431,13 +2444,44 @@
 
     } catch (error) {
 
-      adminButton.style.display =
-        "none";
-
       console.log(
         "Admin API:",
         error
       );
+
+      const usersEl =
+        document.getElementById(
+          "adminUsersRanking"
+        );
+
+      const groupsEl =
+        document.getElementById(
+          "adminGroups"
+        );
+
+      const logsEl =
+        document.getElementById(
+          "adminLogs"
+        );
+
+      if (usersEl) {
+
+        usersEl.innerHTML =
+          `<div class="error">
+            ${escapeHtml(
+              error?.message ||
+              "管理データを取得できませんでした。"
+            )}
+          </div>`;
+      }
+
+      if (groupsEl) {
+        groupsEl.innerHTML = "";
+      }
+
+      if (logsEl) {
+        logsEl.innerHTML = "";
+      }
     }
   }
 
@@ -2507,7 +2551,9 @@
       );
 
       await loadPersonal("today");
+
       await loadGroup();
+
       await loadAdmin();
 
     } catch (error) {
@@ -2552,8 +2598,13 @@
     buildGroupMonths();
 
     try {
-      await loadPersonal("today");
+
+      await loadPersonal(
+        "today"
+      );
+
     } catch (error) {
+
       console.error(
         "Personal init error:",
         error
@@ -2561,17 +2612,28 @@
     }
 
     try {
+
       await loadGroup();
+
     } catch (error) {
+
       console.error(
         "Group init error:",
         error
       );
     }
 
+    /*
+    管理タブは常に存在する。
+    管理データの取得だけを試みる。
+    */
+
     try {
+
       await loadAdmin();
+
     } catch (error) {
+
       console.error(
         "Admin init error:",
         error
