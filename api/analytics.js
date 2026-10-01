@@ -6,7 +6,6 @@ const BOT_TOKEN = process.env.BOT_TOKEN;
 
 const JST = "Asia/Tokyo";
 
-
 /* =========================================================
    Telegram initData verification
 ========================================================= */
@@ -51,14 +50,10 @@ function verifyTelegramInitData(initData) {
     );
   }
 
-  const authDate = Number(
-    params.get("auth_date")
-  );
+  const authDate = Number(params.get("auth_date"));
 
   if (!authDate) {
-    throw new Error(
-      "auth_date がありません"
-    );
+    throw new Error("auth_date がありません");
   }
 
   const age =
@@ -102,7 +97,6 @@ function verifyTelegramInitData(initData) {
   };
 }
 
-
 /* =========================================================
    JST helpers
 ========================================================= */
@@ -133,10 +127,7 @@ function getJSTParts(date = new Date()) {
   };
 }
 
-
-function getJSTDateString(
-  date = new Date()
-) {
+function getJSTDateString(date = new Date()) {
   const p = getJSTParts(date);
 
   return [
@@ -146,11 +137,7 @@ function getJSTDateString(
   ].join("-");
 }
 
-
-function addDays(
-  dateString,
-  days
-) {
+function addDays(dateString, days) {
   const date = new Date(
     `${dateString}T00:00:00Z`
   );
@@ -164,10 +151,7 @@ function addDays(
     .slice(0, 10);
 }
 
-
-function getMonthStart(
-  date = new Date()
-) {
+function getMonthStart(date = new Date()) {
   const p = getJSTParts(date);
 
   return `${p.year}-${String(
@@ -175,10 +159,7 @@ function getMonthStart(
   ).padStart(2, "0")}-01`;
 }
 
-
-function getMonthEnd(
-  date = new Date()
-) {
+function getMonthEnd(date = new Date()) {
   const p = getJSTParts(date);
 
   if (p.month === 12) {
@@ -190,10 +171,7 @@ function getMonthEnd(
   ).padStart(2, "0")}-01`;
 }
 
-
-function getPreviousMonthStart(
-  date = new Date()
-) {
+function getPreviousMonthStart(date = new Date()) {
   const p = getJSTParts(date);
 
   if (p.month === 1) {
@@ -205,10 +183,7 @@ function getPreviousMonthStart(
   ).padStart(2, "0")}-01`;
 }
 
-
-function getWeekStart(
-  date = new Date()
-) {
+function getWeekStart(date = new Date()) {
   const p = getJSTParts(date);
 
   const utcDate = new Date(
@@ -230,7 +205,6 @@ function getWeekStart(
     .toISOString()
     .slice(0, 10);
 }
-
 
 /* =========================================================
    Aggregate
@@ -309,7 +283,6 @@ async function getAggregate(
   };
 }
 
-
 /* =========================================================
    Daily statistics
    ※ created_at GROUP BY エラー対策済み
@@ -383,14 +356,11 @@ async function getDailyStats(
   }));
 }
 
-
 /* =========================================================
    All-time best
 ========================================================= */
 
-async function getBestRecords(
-  userId
-) {
+async function getBestRecords(userId) {
   const rows = await sql`
     SELECT
       id,
@@ -527,19 +497,20 @@ async function getBestRecords(
   };
 }
 
-
 /* =========================================================
    Streak
+   ※ 今日の実績があれば必ず1日
 ========================================================= */
 
-async function getStreak(
-  userId
-) {
+async function getStreak(userId) {
   const rows = await sql`
     SELECT DISTINCT
-      (
-        created_at AT TIME ZONE ${JST}
-      )::date AS day
+      TO_CHAR(
+        (
+          created_at AT TIME ZONE ${JST}
+        )::date,
+        'YYYY-MM-DD'
+      ) AS day
 
     FROM delivery_results
 
@@ -557,7 +528,7 @@ async function getStreak(
 
   const dates =
     rows.map(row =>
-      String(row.day).slice(0, 10)
+      String(row.day)
     );
 
   const today =
@@ -568,6 +539,10 @@ async function getStreak(
 
   let current = 0;
 
+  /*
+   * 今日または昨日に実績があれば
+   * 現在の連続稼働を計算する
+   */
   if (
     dates[0] === today ||
     dates[0] === yesterday
@@ -590,6 +565,9 @@ async function getStreak(
     }
   }
 
+  /*
+   * 過去最高連続稼働
+   */
   let best = 0;
   let streak = 0;
   let previous = null;
@@ -626,7 +604,6 @@ async function getStreak(
     best
   };
 }
-
 
 /* =========================================================
    Recent records
@@ -686,7 +663,6 @@ async function getRecentRecords(
       row.created_at
   }));
 }
-
 
 /* =========================================================
    Main handler
@@ -750,7 +726,6 @@ module.exports = async function handler(
     const yearEnd =
       `${currentYear + 1}-01-01`;
 
-
     /* =====================================================
        Period data
     ===================================================== */
@@ -800,7 +775,6 @@ module.exports = async function handler(
       )
     ]);
 
-
     /* =====================================================
        Daily
     ===================================================== */
@@ -812,7 +786,6 @@ module.exports = async function handler(
         tomorrow
       );
 
-
     /* =====================================================
        Best
     ===================================================== */
@@ -822,7 +795,6 @@ module.exports = async function handler(
         user.id
       );
 
-
     /* =====================================================
        Streak
     ===================================================== */
@@ -831,7 +803,6 @@ module.exports = async function handler(
       await getStreak(
         user.id
       );
-
 
     /* =====================================================
        Today's records
@@ -843,7 +814,6 @@ module.exports = async function handler(
         today,
         tomorrow
       );
-
 
     /* =====================================================
        Analysis
@@ -867,13 +837,11 @@ module.exports = async function handler(
         daysInMonth
       );
 
-
     const averageDailyCount =
       monthData.workDays > 0
         ? monthData.count /
           monthData.workDays
         : 0;
-
 
     const averageDailySales =
       monthData.workDays > 0
@@ -881,13 +849,11 @@ module.exports = async function handler(
           monthData.workDays
         : 0;
 
-
     const currentDailyPace =
       elapsedDays > 0
         ? monthData.count /
           elapsedDays
         : 0;
-
 
     const currentDailySalesPace =
       elapsedDays > 0
@@ -895,16 +861,13 @@ module.exports = async function handler(
           elapsedDays
         : 0;
 
-
     const projectedMonthCount =
       currentDailyPace *
       daysInMonth;
 
-
     const projectedMonthSales =
       currentDailySalesPace *
       daysInMonth;
-
 
     const averageUnitPrice =
       monthData.count > 0
@@ -912,13 +875,11 @@ module.exports = async function handler(
           monthData.count
         : 0;
 
-
     const countPerHour =
       monthData.hours > 0
         ? monthData.count /
           monthData.hours
         : 0;
-
 
     const salesPerHour =
       monthData.hours > 0
@@ -926,13 +887,11 @@ module.exports = async function handler(
           monthData.hours
         : 0;
 
-
     const todayHourlySales =
       todayData.hours > 0
         ? todayData.sales /
           todayData.hours
         : 0;
-
 
     const todayCountPerHour =
       todayData.hours > 0
@@ -940,33 +899,27 @@ module.exports = async function handler(
           todayData.hours
         : 0;
 
-
     const todayAverageUnitPrice =
       todayData.count > 0
         ? todayData.sales /
           todayData.count
         : 0;
 
-
     const salesChangeFromYesterday =
       todayData.sales -
       yesterdayData.sales;
-
 
     const countChangeFromYesterday =
       todayData.count -
       yesterdayData.count;
 
-
     const salesChangeFromPreviousMonth =
       monthData.sales -
       previousMonthData.sales;
 
-
     const countChangeFromPreviousMonth =
       monthData.count -
       previousMonthData.count;
-
 
     const salesChangeFromPreviousMonthRate =
       previousMonthData.sales > 0
@@ -976,7 +929,6 @@ module.exports = async function handler(
           ) * 100
         : 0;
 
-
     const countChangeFromPreviousMonthRate =
       previousMonthData.count > 0
         ? (
@@ -984,7 +936,6 @@ module.exports = async function handler(
             previousMonthData.count
           ) * 100
         : 0;
-
 
     const monthlyBestCount =
       monthlyDaily.length > 0
@@ -995,7 +946,6 @@ module.exports = async function handler(
           )
         : 0;
 
-
     const monthlyBestSales =
       monthlyDaily.length > 0
         ? Math.max(
@@ -1005,14 +955,12 @@ module.exports = async function handler(
           )
         : 0;
 
-
     const monthlyBestCountRow =
       monthlyDaily.find(
         row =>
           row.count ===
           monthlyBestCount
       );
-
 
     const monthlyBestSalesRow =
       monthlyDaily.find(
@@ -1021,18 +969,15 @@ module.exports = async function handler(
           monthlyBestSales
       );
 
-
     const isBestCount =
       todayData.count > 0 &&
       todayData.count >=
         best.count;
 
-
     const isBestSales =
       todayData.sales > 0 &&
       todayData.sales >=
         best.sales;
-
 
     const monthProgressRate =
       daysInMonth > 0
@@ -1041,7 +986,6 @@ module.exports = async function handler(
             daysInMonth
           ) * 100
         : 0;
-
 
     /* =====================================================
        Response
@@ -1193,4 +1137,5 @@ module.exports = async function handler(
         "分析データの取得に失敗しました"
     });
   }
+};
 };
