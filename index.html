@@ -2736,7 +2736,9 @@
         );
 
       }
-      <script>
+
+    }
+    <script>
 
     /* =====================================================
        Telegram
@@ -5273,6 +5275,695 @@
         ).join("");
 
     }
+    /* =====================================================
+       月別・年別セレクター
+    ===================================================== */
 
+    function populateMonthSelector() {
+
+      if (!monthSelector) {
+        return;
+      }
+
+      const now =
+        new Date();
+
+      const currentYear =
+        now.getFullYear();
+
+      const currentMonth =
+        now.getMonth();
+
+      monthSelector.innerHTML = `
+        <option value="">
+          月を選択
+        </option>
+      `;
+
+      for (let i = 0; i < 24; i++) {
+
+        const date =
+          new Date(
+            currentYear,
+            currentMonth - i,
+            1
+          );
+
+        const year =
+          date.getFullYear();
+
+        const month =
+          String(
+            date.getMonth() + 1
+          ).padStart(2, "0");
+
+        const value =
+          `${year}-${month}`;
+
+        const option =
+          document.createElement(
+            "option"
+          );
+
+        option.value =
+          value;
+
+        option.textContent =
+          `${year}年${Number(month)}月`;
+
+        monthSelector.appendChild(
+          option
+        );
+
+      }
 
     }
+
+
+    function populateYearSelector() {
+
+      if (!yearSelector) {
+        return;
+      }
+
+      const currentYear =
+        new Date().getFullYear();
+
+      yearSelector.innerHTML = `
+        <option value="">
+          年を選択
+        </option>
+      `;
+
+      for (let i = 0; i < 5; i++) {
+
+        const year =
+          currentYear - i;
+
+        const option =
+          document.createElement(
+            "option"
+          );
+
+        option.value =
+          String(year);
+
+        option.textContent =
+          `${year}年`;
+
+        yearSelector.appendChild(
+          option
+        );
+
+      }
+
+    }
+
+
+    /* =====================================================
+       月選択
+    ===================================================== */
+
+    if (monthSelector) {
+
+      monthSelector.addEventListener(
+        "change",
+        async () => {
+
+          if (!monthSelector.value) {
+
+            currentPeriod =
+              "month";
+
+            monthlyReport.innerHTML = `
+              <div
+                class="empty"
+                style="grid-column:1/-1;"
+              >
+                月を選択すると
+                月次レポートが表示されます。
+              </div>
+            `;
+
+            monthlyReportBest.textContent =
+              "";
+
+            return;
+          }
+
+
+          currentPeriod =
+            "month";
+
+
+          document
+            .querySelectorAll(
+              ".period-btn"
+            )
+            .forEach(
+              button => {
+
+                button.classList.toggle(
+                  "active",
+                  button.dataset.period ===
+                  "month"
+                );
+
+              }
+            );
+
+
+          await loadResult();
+
+        }
+      );
+
+    }
+
+
+    /* =====================================================
+       年選択
+    ===================================================== */
+
+    if (yearSelector) {
+
+      yearSelector.addEventListener(
+        "change",
+        async () => {
+
+          if (!yearSelector.value) {
+            return;
+          }
+
+
+          currentPeriod =
+            "year";
+
+
+          document
+            .querySelectorAll(
+              ".period-btn"
+            )
+            .forEach(
+              button => {
+
+                button.classList.toggle(
+                  "active",
+                  button.dataset.period ===
+                  "year"
+                );
+
+              }
+            );
+
+
+          await loadResult();
+
+        }
+      );
+
+    }
+
+
+    /* =====================================================
+       期間タブ
+    ===================================================== */
+
+    document
+      .querySelectorAll(
+        ".period-btn"
+      )
+      .forEach(
+        button => {
+
+          button.addEventListener(
+            "click",
+            async () => {
+
+              const period =
+                button.dataset.period;
+
+              if (!period) {
+                return;
+              }
+
+
+              currentPeriod =
+                period;
+
+
+              document
+                .querySelectorAll(
+                  ".period-btn"
+                )
+                .forEach(
+                  item => {
+
+                    item.classList.toggle(
+                      "active",
+                      item === button
+                    );
+
+                  }
+                );
+
+
+              /*
+               * 今月・年間を通常タブから
+               * 開いた場合は、
+               * 過去指定を解除する。
+               */
+
+              if (
+                period === "month"
+              ) {
+
+                monthSelector.value =
+                  "";
+
+              }
+
+
+              if (
+                period === "year"
+              ) {
+
+                yearSelector.value =
+                  "";
+
+              }
+
+
+              await loadResult();
+
+            }
+          );
+
+        }
+      );
+
+
+    /* =====================================================
+       メインタブ
+    ===================================================== */
+
+    document
+      .querySelectorAll(
+        ".main-tab"
+      )
+      .forEach(
+        button => {
+
+          button.addEventListener(
+            "click",
+            async () => {
+
+              const tab =
+                button.dataset.tab;
+
+              if (!tab) {
+                return;
+              }
+
+
+              document
+                .querySelectorAll(
+                  ".main-tab"
+                )
+                .forEach(
+                  item => {
+
+                    item.classList.toggle(
+                      "active",
+                      item === button
+                    );
+
+                  }
+                );
+
+
+              if (
+                tab === "personal"
+              ) {
+
+                personalSection.classList.remove(
+                  "hidden"
+                );
+
+                analyticsSection.classList.add(
+                  "hidden"
+                );
+
+                return;
+
+              }
+
+
+              if (
+                tab === "analytics"
+              ) {
+
+                personalSection.classList.add(
+                  "hidden"
+                );
+
+                analyticsSection.classList.remove(
+                  "hidden"
+                );
+
+                await loadAnalytics();
+
+              }
+
+            }
+          );
+
+        }
+      );
+
+
+    /* =====================================================
+       編集モーダル
+    ===================================================== */
+
+    if (editCancelBtn) {
+
+      editCancelBtn.addEventListener(
+        "click",
+        closeEditModal
+      );
+
+    }
+
+
+    if (editSaveBtn) {
+
+      editSaveBtn.addEventListener(
+        "click",
+        saveEdit
+      );
+
+    }
+
+
+    if (editModal) {
+
+      editModal.addEventListener(
+        "click",
+        event => {
+
+          if (
+            event.target ===
+            editModal
+          ) {
+
+            closeEditModal();
+
+          }
+
+        }
+      );
+
+    }
+
+
+    document.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          event.key === "Escape" &&
+          editModal?.classList.contains(
+            "show"
+          )
+        ) {
+
+          closeEditModal();
+
+        }
+
+      }
+    );
+
+
+    /* =====================================================
+       リセット
+    ===================================================== */
+
+    if (resetBtn) {
+
+      resetBtn.addEventListener(
+        "click",
+        async () => {
+
+          const confirmed =
+            window.confirm(
+              "すべての実績を削除しますか？\nこの操作は元に戻せません。"
+            );
+
+          if (!confirmed) {
+            return;
+          }
+
+
+          resetBtn.disabled =
+            true;
+
+          resetBtn.textContent =
+            "削除中...";
+
+
+          try {
+
+            await apiFetch(
+              "/api/reset",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":
+                    "application/json"
+                },
+                body: JSON.stringify({
+                  confirm: true
+                })
+              }
+            );
+
+
+            currentData =
+              null;
+
+
+            await loadResult();
+
+
+            if (
+              analyticsSection.classList.contains(
+                "hidden"
+              ) === false
+            ) {
+
+              await loadAnalytics();
+
+            }
+
+
+          } catch (error) {
+
+            console.error(
+              "reset error:",
+              error
+            );
+
+            window.alert(
+              error.message ||
+              "リセットに失敗しました。"
+            );
+
+          } finally {
+
+            resetBtn.disabled =
+              false;
+
+            resetBtn.textContent =
+              "実績をすべて削除";
+
+          }
+
+        }
+      );
+
+    }
+
+
+    /* =====================================================
+       Telegram テーマ
+    ===================================================== */
+
+    function applyTelegramTheme() {
+
+      if (!tg) {
+        return;
+      }
+
+
+      const root =
+        document.documentElement;
+
+      const theme =
+        tg.themeParams || {};
+
+
+      if (
+        theme.bg_color
+      ) {
+
+        root.style.setProperty(
+          "--tg-bg",
+          theme.bg_color
+        );
+
+      }
+
+
+      if (
+        theme.text_color
+      ) {
+
+        root.style.setProperty(
+          "--tg-text",
+          theme.text_color
+        );
+
+      }
+
+
+      if (
+        theme.hint_color
+      ) {
+
+        root.style.setProperty(
+          "--tg-muted",
+          theme.hint_color
+        );
+
+      }
+
+
+      if (
+        theme.button_color
+      ) {
+
+        root.style.setProperty(
+          "--tg-button",
+          theme.button_color
+        );
+
+      }
+
+
+      if (
+        theme.button_text_color
+      ) {
+
+        root.style.setProperty(
+          "--tg-button-text",
+          theme.button_text_color
+        );
+
+      }
+
+    }
+
+
+    /* =====================================================
+       ユーザー名
+    ===================================================== */
+
+    function renderUserName() {
+
+      if (!userNameEl) {
+        return;
+      }
+
+
+      userNameEl.textContent =
+        getDisplayName();
+
+    }
+
+
+    /* =====================================================
+       初期化
+    ===================================================== */
+
+    async function initialize() {
+
+      applyTelegramTheme();
+
+      renderUserName();
+
+      populateMonthSelector();
+
+      populateYearSelector();
+
+
+      /*
+       * 履歴は自動表示しない。
+       *
+       * 初期表示は「今日」。
+       * 過去の月・年はセレクターから
+       * 明示的に選択した場合のみ取得する。
+       */
+
+      currentPeriod =
+        "today";
+
+
+      document
+        .querySelectorAll(
+          ".period-btn"
+        )
+        .forEach(
+          button => {
+
+            button.classList.toggle(
+              "active",
+              button.dataset.period ===
+              "today"
+            );
+
+          }
+        );
+
+
+      await loadResult();
+
+    }
+
+
+    /* =====================================================
+       Start
+    ===================================================== */
+
+    initialize()
+      .catch(
+        error => {
+
+          console.error(
+            "initialize error:",
+            error
+          );
+
+          showPersonalError(
+            error.message ||
+            "初期化に失敗しました。"
+          );
+
+        }
+      );
+
+  </script>
+
+</body>
+</html>
