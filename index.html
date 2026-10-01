@@ -55,10 +55,6 @@
       padding: 16px;
     }
 
-    /* =========================
-       Header
-    ========================= */
-
     .header {
       margin-bottom: 14px;
     }
@@ -73,10 +69,6 @@
       font-size: 13px;
       color: #6b7280;
     }
-
-    /* =========================
-       Main tabs
-    ========================= */
 
     .main-tabs {
       display: grid;
@@ -99,14 +91,9 @@
       color: #ffffff;
     }
 
-    /* =========================
-       Period
-    ========================= */
-
     .period-tabs {
       display: grid;
-      grid-template-columns:
-        repeat(4, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 6px;
       margin-bottom: 10px;
     }
@@ -118,18 +105,13 @@
       background: #ffffff;
       color: #4b5563;
       font-weight: 800;
-      box-shadow:
-        0 1px 4px rgba(0,0,0,.06);
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
     }
 
     .period-tab.active {
       background: #111827;
       color: #ffffff;
     }
-
-    /* =========================
-       History
-    ========================= */
 
     .history-selector {
       display: grid;
@@ -142,8 +124,7 @@
       background: #ffffff;
       border-radius: 12px;
       padding: 10px;
-      box-shadow:
-        0 1px 4px rgba(0,0,0,.06);
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
     }
 
     .history-label {
@@ -162,10 +143,6 @@
       color: #111827;
     }
 
-    /* =========================
-       Section
-    ========================= */
-
     .section {
       display: none;
     }
@@ -174,17 +151,12 @@
       display: block;
     }
 
-    /* =========================
-       Card
-    ========================= */
-
     .card {
       background: #ffffff;
       border-radius: 16px;
       padding: 16px;
       margin-bottom: 12px;
-      box-shadow:
-        0 2px 8px rgba(0,0,0,.06);
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
     }
 
     .card-title {
@@ -202,10 +174,6 @@
       color: #6b7280;
       font-weight: 700;
     }
-
-    /* =========================
-       Hero
-    ========================= */
 
     .hero-grid {
       display: grid;
@@ -233,67 +201,41 @@
       line-height: 1.2;
     }
 
-    /* =========================
-       Stats
-    ========================= */
-
-    .stats-grid {
+    .stats-grid,
+    .highlight-grid,
+    .analytics-grid,
+    .report-grid {
       display: grid;
-      grid-template-columns:
-        repeat(2, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 8px;
     }
 
-    .stat-box {
+    .stat-box,
+    .highlight-box,
+    .analytics-box,
+    .report-box {
       background: #f9fafb;
       border-radius: 12px;
       padding: 12px;
     }
 
-    .stat-label {
-      font-size: 11px;
-      color: #6b7280;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .stat-value {
-      font-size: 18px;
-      font-weight: 900;
-    }
-
-    /* =========================
-       Highlight
-    ========================= */
-
-    .highlight-grid {
-      display: grid;
-      grid-template-columns:
-        repeat(2, 1fr);
-      gap: 8px;
-    }
-
-    .highlight-box {
-      background: #f9fafb;
-      border-radius: 12px;
-      padding: 12px;
-    }
-
-    .highlight-label {
+    .stat-label,
+    .highlight-label,
+    .analytics-label,
+    .report-label {
       font-size: 11px;
       color: #6b7280;
       font-weight: 700;
     }
 
-    .highlight-value {
-      font-size: 18px;
+    .stat-value,
+    .highlight-value,
+    .analytics-value,
+    .report-value {
+      font-size: 17px;
       font-weight: 900;
       margin-top: 4px;
     }
-
-    /* =========================
-       Records
-    ========================= */
 
     .record-list {
       display: flex;
@@ -361,39 +303,10 @@
       color: #b91c1c;
     }
 
-    /* =========================
-       Analytics
-    ========================= */
-
     .analytics-section-title {
       font-size: 13px;
       font-weight: 900;
       margin: 18px 0 8px;
-    }
-
-    .analytics-grid {
-      display: grid;
-      grid-template-columns:
-        repeat(2, 1fr);
-      gap: 8px;
-    }
-
-    .analytics-box {
-      background: #f9fafb;
-      border-radius: 12px;
-      padding: 12px;
-    }
-
-    .analytics-label {
-      font-size: 11px;
-      color: #6b7280;
-      font-weight: 700;
-    }
-
-    .analytics-value {
-      font-size: 17px;
-      font-weight: 900;
-      margin-top: 4px;
     }
 
     .analytics-note {
@@ -401,10 +314,6 @@
       color: #6b7280;
       margin-top: 4px;
     }
-
-    /* =========================
-       Chart
-    ========================= */
 
     .chart-wrap {
       width: 100%;
@@ -425,35 +334,6 @@
       font-size: 13px;
     }
 
-    /* =========================
-       Monthly report
-    ========================= */
-
-    .report-grid {
-      display: grid;
-      grid-template-columns:
-        repeat(2, 1fr);
-      gap: 8px;
-    }
-
-    .report-box {
-      background: #f9fafb;
-      border-radius: 12px;
-      padding: 12px;
-    }
-
-    .report-label {
-      font-size: 11px;
-      color: #6b7280;
-      font-weight: 700;
-    }
-
-    .report-value {
-      font-size: 17px;
-      font-weight: 900;
-      margin-top: 4px;
-    }
-
     .report-best {
       margin-top: 10px;
       padding: 12px;
@@ -463,10 +343,6 @@
       line-height: 1.8;
     }
 
-    /* =========================
-       Modal
-    ========================= */
-
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -475,8 +351,7 @@
       align-items: center;
       justify-content: center;
       padding: 16px;
-      background:
-        rgba(0,0,0,.45);
+      background: rgba(0,0,0,.45);
     }
 
     .modal-backdrop.show {
@@ -489,8 +364,7 @@
       background: #ffffff;
       border-radius: 18px;
       padding: 18px;
-      box-shadow:
-        0 12px 40px rgba(0,0,0,.2);
+      box-shadow: 0 12px 40px rgba(0,0,0,.2);
     }
 
     .modal-title {
@@ -564,10 +438,6 @@
       display: block;
     }
 
-    /* =========================
-       Common
-    ========================= */
-
     .danger-btn {
       width: 100%;
       border: 0;
@@ -627,14 +497,9 @@
 
 </head>
 
-
 <body>
 
   <div class="app">
-
-    <!-- =========================
-         Header
-    ========================== -->
 
     <header class="header">
 
@@ -651,10 +516,6 @@
 
     </header>
 
-
-    <!-- =========================
-         Main Tabs
-    ========================== -->
 
     <div class="main-tabs">
 
@@ -676,10 +537,6 @@
 
     </div>
 
-
-    <!-- =========================
-         Personal Section
-    ========================== -->
 
     <section
       id="personalSection"
@@ -722,8 +579,6 @@
 
       </div>
 
-
-      <!-- 過去の年月 -->
 
       <div class="history-selector">
 
@@ -769,8 +624,6 @@
       ></div>
 
 
-      <!-- Hero -->
-
       <div
         id="personalHero"
         class="hero-grid"
@@ -782,8 +635,6 @@
 
       </div>
 
-
-      <!-- Basic -->
 
       <div class="card">
 
@@ -816,8 +667,6 @@
       </div>
 
 
-      <!-- Highlight -->
-
       <div class="card">
 
         <div class="card-title">
@@ -837,8 +686,6 @@
 
       </div>
 
-
-      <!-- Self best -->
 
       <div class="card">
 
@@ -860,8 +707,6 @@
       </div>
 
 
-      <!-- Streak -->
-
       <div class="card">
 
         <div class="card-title">
@@ -881,8 +726,6 @@
 
       </div>
 
-
-      <!-- Records -->
 
       <div class="card">
 
@@ -915,8 +758,6 @@
       </div>
 
 
-      <!-- Reset -->
-
       <div class="card">
 
         <button
@@ -931,10 +772,6 @@
 
     </section>
 
-
-    <!-- =========================
-         Edit Modal
-    ========================== -->
 
     <div
       id="editModal"
@@ -1044,10 +881,6 @@
     </div>
 
 
-    <!-- =========================
-         Analytics Section
-    ========================== -->
-
     <section
       id="analyticsSection"
       class="section"
@@ -1135,8 +968,6 @@
       </div>
 
 
-      <!-- Monthly Report -->
-
       <div class="card">
 
         <div class="card-title">
@@ -1162,8 +993,6 @@
       </div>
 
 
-      <!-- Daily Chart -->
-
       <div class="card">
 
         <div class="card-title">
@@ -1183,8 +1012,6 @@
 
       </div>
 
-
-      <!-- Daily list -->
 
       <div class="card">
 
@@ -1208,7 +1035,1708 @@
     </section>
 
   </div>
-    <script>
+
+
+  <script>
+
+    const tg =
+      window.Telegram?.WebApp || null;
+
+    if (tg) {
+      tg.ready();
+      tg.expand();
+    }
+
+
+    let currentPeriod =
+      "today";
+
+    let currentData =
+      null;
+
+    let editingRecordId =
+      null;
+
+
+    const userNameEl =
+      document.getElementById(
+        "userName"
+      );
+
+    const personalSection =
+      document.getElementById(
+        "personalSection"
+      );
+
+    const analyticsSection =
+      document.getElementById(
+        "analyticsSection"
+      );
+
+    const personalError =
+      document.getElementById(
+        "personalError"
+      );
+
+    const personalHero =
+      document.getElementById(
+        "personalHero"
+      );
+
+    const personalStats =
+      document.getElementById(
+        "personalStats"
+      );
+
+    const highlightGrid =
+      document.getElementById(
+        "highlightGrid"
+      );
+
+    const bestGrid =
+      document.getElementById(
+        "bestGrid"
+      );
+
+    const streakGrid =
+      document.getElementById(
+        "streakGrid"
+      );
+
+    const recordsEl =
+      document.getElementById(
+        "records"
+      );
+
+    const periodLabel =
+      document.getElementById(
+        "periodLabel"
+      );
+
+    const recordPeriodLabel =
+      document.getElementById(
+        "recordPeriodLabel"
+      );
+
+    const monthSelector =
+      document.getElementById(
+        "monthSelector"
+      );
+
+    const yearSelector =
+      document.getElementById(
+        "yearSelector"
+      );
+
+    const todayAnalytics =
+      document.getElementById(
+        "todayAnalytics"
+      );
+
+    const paceAnalytics =
+      document.getElementById(
+        "paceAnalytics"
+      );
+
+    const bestAnalytics =
+      document.getElementById(
+        "bestAnalytics"
+      );
+
+    const comparisonAnalytics =
+      document.getElementById(
+        "comparisonAnalytics"
+      );
+
+    const analyticsDateLabel =
+      document.getElementById(
+        "analyticsDateLabel"
+      );
+
+    const monthlyReport =
+      document.getElementById(
+        "monthlyReport"
+      );
+
+    const monthlyReportBest =
+      document.getElementById(
+        "monthlyReportBest"
+      );
+
+    const dailyChart =
+      document.getElementById(
+        "dailyChart"
+      );
+
+    const dailyList =
+      document.getElementById(
+        "dailyList"
+      );
+
+    const editModal =
+      document.getElementById(
+        "editModal"
+      );
+
+    const editSaleAmount =
+      document.getElementById(
+        "editSaleAmount"
+      );
+
+    const editDeliveryCount =
+      document.getElementById(
+        "editDeliveryCount"
+      );
+
+    const editWorkHours =
+      document.getElementById(
+        "editWorkHours"
+      );
+
+    const editModalError =
+      document.getElementById(
+        "editModalError"
+      );
+
+    const editCancelBtn =
+      document.getElementById(
+        "editCancelBtn"
+      );
+
+    const editSaveBtn =
+      document.getElementById(
+        "editSaveBtn"
+      );
+
+    const resetBtn =
+      document.getElementById(
+        "resetBtn"
+      );
+
+
+    /* =====================================================
+       Telegram user
+    ===================================================== */
+
+    function getTelegramUser() {
+
+      try {
+
+        if (
+          tg?.initDataUnsafe?.user
+        ) {
+
+          return tg.initDataUnsafe.user;
+
+        }
+
+        const params =
+          new URLSearchParams(
+            tg?.initData || ""
+          );
+
+        const raw =
+          params.get("user");
+
+        if (!raw) {
+          return null;
+        }
+
+        return JSON.parse(raw);
+
+      } catch (error) {
+
+        console.error(
+          "Telegram user parse error:",
+          error
+        );
+
+        return null;
+
+      }
+
+    }
+
+
+    function getInitData() {
+
+      return tg?.initData || "";
+
+    }
+
+
+    function getDisplayName() {
+
+      const user =
+        getTelegramUser();
+
+      if (!user) {
+        return "個人ダッシュボード";
+      }
+
+      if (user.first_name) {
+        return `${user.first_name}さん`;
+      }
+
+      if (user.username) {
+        return `@${user.username}`;
+      }
+
+      return "個人ダッシュボード";
+
+    }
+
+
+    /* =====================================================
+       Number format
+    ===================================================== */
+
+    function formatNumber(value) {
+
+      const number =
+        Number(value || 0);
+
+      return number.toLocaleString(
+        "ja-JP"
+      );
+
+    }
+
+
+    function formatYen(value) {
+
+      return `¥${formatNumber(value)}`;
+
+    }
+
+
+    function formatHours(value) {
+
+      const number =
+        Number(value || 0);
+
+      return number.toFixed(2);
+
+    }
+
+
+    function formatHourly(value) {
+
+      const number =
+        Number(value || 0);
+
+      return `${formatYen(
+        Math.round(number)
+      )}/h`;
+
+    }
+
+
+    /* =====================================================
+       日付処理
+       ★ ここが今回の修正ポイント
+    ===================================================== */
+
+    function parseDateValue(value) {
+
+      if (!value) {
+        return null;
+      }
+
+      const text =
+        String(value).trim();
+
+      /*
+       * YYYY-MM-DD は「日付だけ」なので、
+       * new Date("2026-10-02") にすると
+       * UTC解釈によるズレが起こる可能性がある。
+       *
+       * そのため、この形式は手動で作る。
+       */
+
+      const dateOnly =
+        text.match(
+          /^(\d{4})-(\d{2})-(\d{2})$/
+        );
+
+      if (dateOnly) {
+
+        return {
+          year: Number(dateOnly[1]),
+          month: Number(dateOnly[2]),
+          day: Number(dateOnly[3])
+        };
+
+      }
+
+
+      const date =
+        new Date(text);
+
+      if (
+        Number.isNaN(
+          date.getTime()
+        )
+      ) {
+
+        return null;
+
+      }
+
+
+      const formatter =
+        new Intl.DateTimeFormat(
+          "ja-JP",
+          {
+            timeZone: "Asia/Tokyo",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+          }
+        );
+
+
+      const parts =
+        formatter.formatToParts(
+          date
+        );
+
+
+      const result = {};
+
+      parts.forEach(
+        part => {
+
+          if (
+            part.type === "year" ||
+            part.type === "month" ||
+            part.type === "day"
+          ) {
+
+            result[part.type] =
+              Number(part.value);
+
+          }
+
+        }
+      );
+
+
+      if (
+        !result.year ||
+        !result.month ||
+        !result.day
+      ) {
+
+        return null;
+
+      }
+
+
+      return result;
+
+    }
+
+
+    function formatDateJST(
+      value
+    ) {
+
+      const parsed =
+        parseDateValue(value);
+
+      if (!parsed) {
+
+        return String(
+          value || ""
+        );
+
+      }
+
+
+      return `${parsed.year}/${String(
+        parsed.month
+      ).padStart(2, "0")}/${String(
+        parsed.day
+      ).padStart(2, "0")}`;
+
+    }
+
+
+    function formatDailyShortDate(
+      value
+    ) {
+
+      const parsed =
+        parseDateValue(value);
+
+      if (!parsed) {
+
+        return String(
+          value || ""
+        );
+
+      }
+
+
+      return `${String(
+        parsed.month
+      ).padStart(2, "0")}/${String(
+        parsed.day
+      ).padStart(2, "0")}`;
+
+    }
+
+
+    function normalizeDailyDate(
+      value
+    ) {
+
+      const parsed =
+        parseDateValue(value);
+
+      if (!parsed) {
+        return "";
+      }
+
+
+      return `${parsed.year}-${String(
+        parsed.month
+      ).padStart(2, "0")}-${String(
+        parsed.day
+      ).padStart(2, "0")}`;
+
+    }
+
+
+    function escapeHtml(value) {
+
+      return String(
+        value ?? ""
+      )
+        .replaceAll(
+          "&",
+          "&amp;"
+        )
+        .replaceAll(
+          "<",
+          "&lt;"
+        )
+        .replaceAll(
+          ">",
+          "&gt;"
+        )
+        .replaceAll(
+          '"',
+          "&quot;"
+        )
+        .replaceAll(
+          "'",
+          "&#039;"
+        );
+
+    }
+
+
+    /* =====================================================
+       Period
+    ===================================================== */
+
+    function getPeriodLabel(
+      period
+    ) {
+
+      switch (period) {
+
+        case "today":
+          return "今日";
+
+        case "week":
+          return "今週";
+
+        case "month":
+          return "今月";
+
+        case "year":
+          return "年間";
+
+        default:
+          return "実績";
+
+      }
+
+    }
+
+
+    function getSelectedPeriodLabel() {
+
+      if (
+        currentPeriod === "month" &&
+        monthSelector.value
+      ) {
+
+        return monthSelector.value;
+
+      }
+
+
+      if (
+        currentPeriod === "year" &&
+        yearSelector.value
+      ) {
+
+        return `${yearSelector.value}年`;
+
+      }
+
+
+      return getPeriodLabel(
+        currentPeriod
+      );
+
+    }
+
+
+    /* =====================================================
+       API
+    ===================================================== */
+
+    async function apiFetch(
+      url,
+      options = {}
+    ) {
+
+      const headers = {
+        ...(options.headers || {})
+      };
+
+      const initData =
+        getInitData();
+
+      if (initData) {
+
+        headers[
+          "X-Telegram-Init-Data"
+        ] = initData;
+
+      }
+
+
+      const response =
+        await fetch(
+          url,
+          {
+            ...options,
+            headers
+          }
+        );
+
+
+      let data = null;
+
+      try {
+
+        data =
+          await response.json();
+
+      } catch {
+
+        data = null;
+
+      }
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data?.error ||
+          `HTTP ${response.status}`
+        );
+
+      }
+
+
+      if (
+        data &&
+        data.ok === false
+      ) {
+
+        throw new Error(
+          data.error ||
+          "APIエラー"
+        );
+
+      }
+
+
+      return data;
+
+    }
+
+
+    function buildResultUrl(
+      period = currentPeriod
+    ) {
+
+      const params =
+        new URLSearchParams();
+
+      params.set(
+        "period",
+        period
+      );
+
+
+      if (
+        period === "month" &&
+        monthSelector.value
+      ) {
+
+        params.set(
+          "month",
+          monthSelector.value
+        );
+
+      }
+
+
+      if (
+        period === "year" &&
+        yearSelector.value
+      ) {
+
+        params.set(
+          "year",
+          yearSelector.value
+        );
+
+      }
+
+
+      return `/api/result?${params.toString()}`;
+
+    }
+
+
+    /* =====================================================
+       Loading
+    ===================================================== */
+
+    function showPersonalLoading() {
+
+      personalHero.innerHTML = `
+        <div class="loading">
+          読み込み中...
+        </div>
+      `;
+
+      personalStats.innerHTML = `
+        <div class="loading">
+          読み込み中...
+        </div>
+      `;
+
+      highlightGrid.innerHTML = `
+        <div class="loading">
+          読み込み中...
+        </div>
+      `;
+
+      bestGrid.innerHTML = `
+        <div class="loading">
+          読み込み中...
+        </div>
+      `;
+
+      streakGrid.innerHTML = `
+        <div class="loading">
+          読み込み中...
+        </div>
+      `;
+
+      recordsEl.innerHTML = `
+        <div class="loading">
+          読み込み中...
+        </div>
+      `;
+
+    }
+
+
+    function showPersonalError(
+      message
+    ) {
+
+      personalError.textContent =
+        message ||
+        "エラーが発生しました。";
+
+      personalError.classList.remove(
+        "hidden"
+      );
+
+    }
+
+
+    function hidePersonalError() {
+
+      personalError.textContent =
+        "";
+
+      personalError.classList.add(
+        "hidden"
+      );
+
+    }
+
+
+    /* =====================================================
+       Load
+    ===================================================== */
+
+    async function loadResult() {
+
+      hidePersonalError();
+
+      showPersonalLoading();
+
+      try {
+
+        const data =
+          await apiFetch(
+            buildResultUrl()
+          );
+
+        currentData =
+          data;
+
+        renderPersonal(
+          data
+        );
+
+      } catch (error) {
+
+        console.error(
+          "loadResult error:",
+          error
+        );
+
+        showPersonalError(
+          error.message ||
+          "実績の取得に失敗しました。"
+        );
+
+      }
+
+    }
+
+
+    /* =====================================================
+       Personal
+    ===================================================== */
+
+    function renderPersonal(
+      data
+    ) {
+
+      const stats =
+        data?.stats || {};
+
+      const periodText =
+        data?.label ||
+        getSelectedPeriodLabel();
+
+
+      periodLabel.textContent =
+        periodText;
+
+      recordPeriodLabel.textContent =
+        periodText;
+
+
+      renderHero(
+        stats
+      );
+
+      renderStats(
+        stats
+      );
+
+      renderHighlights(
+        data
+      );
+
+      renderBest(
+        data
+      );
+
+      renderStreak(
+        data
+      );
+
+      renderRecords(
+        data?.recentResults || []
+      );
+
+      renderAnalytics(
+        data
+      );
+
+    }
+
+
+    function renderHero(
+      stats
+    ) {
+
+      const sales =
+        Number(
+          stats.sales || 0
+        );
+
+      const deliveries =
+        Number(
+          stats.deliveryCount || 0
+        );
+
+      const hourly =
+        Number(
+          stats.hourlySales || 0
+        );
+
+
+      personalHero.innerHTML = `
+
+        <div class="hero-card">
+
+          <div class="hero-label">
+            売上
+          </div>
+
+          <div class="hero-value">
+            ${formatYen(sales)}
+          </div>
+
+        </div>
+
+        <div class="hero-card">
+
+          <div class="hero-label">
+            配達
+          </div>
+
+          <div class="hero-value">
+            ${formatNumber(
+              deliveries
+            )}件
+          </div>
+
+        </div>
+
+        <div class="hero-card">
+
+          <div class="hero-label">
+            稼働時間
+          </div>
+
+          <div class="hero-value">
+            ${formatHours(
+              stats.workHours
+            )}h
+          </div>
+
+        </div>
+
+        <div class="hero-card">
+
+          <div class="hero-label">
+            時給換算
+          </div>
+
+          <div class="hero-value">
+            ${formatHourly(hourly)}
+          </div>
+
+        </div>
+
+      `;
+
+    }
+
+
+    function renderStats(
+      stats
+    ) {
+
+      const unitPrice =
+        Number(
+          stats.unitPrice || 0
+        );
+
+      const hourly =
+        Number(
+          stats.hourlySales || 0
+        );
+
+
+      personalStats.innerHTML = `
+
+        <div class="stat-box">
+
+          <div class="stat-label">
+            売上
+          </div>
+
+          <div class="stat-value">
+            ${formatYen(
+              stats.sales
+            )}
+          </div>
+
+        </div>
+
+        <div class="stat-box">
+
+          <div class="stat-label">
+            配達数
+          </div>
+
+          <div class="stat-value">
+            ${formatNumber(
+              stats.deliveryCount
+            )}件
+          </div>
+
+        </div>
+
+        <div class="stat-box">
+
+          <div class="stat-label">
+            稼働時間
+          </div>
+
+          <div class="stat-value">
+            ${formatHours(
+              stats.workHours
+            )}h
+          </div>
+
+        </div>
+
+        <div class="stat-box">
+
+          <div class="stat-label">
+            平均単価
+          </div>
+
+          <div class="stat-value">
+            ${formatYen(
+              Math.round(unitPrice)
+            )}
+          </div>
+
+        </div>
+
+        <div class="stat-box">
+
+          <div class="stat-label">
+            時給換算
+          </div>
+
+          <div class="stat-value">
+            ${formatHourly(hourly)}
+          </div>
+
+        </div>
+
+        <div class="stat-box">
+
+          <div class="stat-label">
+            記録件数
+          </div>
+
+          <div class="stat-value">
+            ${formatNumber(
+              stats.records
+            )}件
+          </div>
+
+        </div>
+
+      `;
+
+    }
+
+
+    function renderHighlights(
+      data
+    ) {
+
+      const stats =
+        data?.stats || {};
+
+      const deliveries =
+        Number(
+          stats.deliveryCount || 0
+        );
+
+      const hours =
+        Number(
+          stats.workHours || 0
+        );
+
+      const hourly =
+        Number(
+          stats.hourlySales || 0
+        );
+
+
+      highlightGrid.innerHTML = `
+
+        <div class="highlight-box">
+
+          <div class="highlight-label">
+            売上
+          </div>
+
+          <div class="highlight-value">
+            ${formatYen(
+              stats.sales
+            )}
+          </div>
+
+        </div>
+
+        <div class="highlight-box">
+
+          <div class="highlight-label">
+            配達数
+          </div>
+
+          <div class="highlight-value">
+            ${formatNumber(
+              deliveries
+            )}件
+          </div>
+
+        </div>
+
+        <div class="highlight-box">
+
+          <div class="highlight-label">
+            稼働
+          </div>
+
+          <div class="highlight-value">
+            ${formatHours(
+              hours
+            )}h
+          </div>
+
+        </div>
+
+        <div class="highlight-box">
+
+          <div class="highlight-label">
+            時給
+          </div>
+
+          <div class="highlight-value">
+            ${formatHourly(hourly)}
+          </div>
+
+        </div>
+
+      `;
+
+    }
+
+
+    function renderBest(
+      data
+    ) {
+
+      const best =
+        data?.best ||
+        data?.stats?.best ||
+        {};
+
+      const bestSales =
+        Number(
+          best.sales ||
+          data?.bestSales ||
+          0
+        );
+
+      const bestDeliveries =
+        Number(
+          best.deliveryCount ||
+          data?.bestDeliveryCount ||
+          0
+        );
+
+      const bestHourly =
+        Number(
+          best.hourlySales ||
+          data?.bestHourlySales ||
+          0
+        );
+
+
+      bestGrid.innerHTML = `
+
+        <div class="highlight-box">
+
+          <div class="highlight-label">
+            最高売上
+          </div>
+
+          <div class="highlight-value">
+            ${formatYen(
+              bestSales
+            )}
+          </div>
+
+        </div>
+
+        <div class="highlight-box">
+
+          <div class="highlight-label">
+            最高配達数
+          </div>
+
+          <div class="highlight-value">
+            ${formatNumber(
+              bestDeliveries
+            )}件
+          </div>
+
+        </div>
+
+        <div class="highlight-box">
+
+          <div class="highlight-label">
+            最高時給
+          </div>
+
+          <div class="highlight-value">
+            ${formatHourly(
+              bestHourly
+            )}
+          </div>
+
+        </div>
+
+      `;
+
+    }
+
+
+    function renderStreak(
+      data
+    ) {
+
+      const streak =
+        Number(
+          data?.streak ||
+          data?.currentStreak ||
+          0
+        );
+
+      const bestStreak =
+        Number(
+          data?.bestStreak ||
+          0
+        );
+
+
+      streakGrid.innerHTML = `
+
+        <div class="highlight-box">
+
+          <div class="highlight-label">
+            現在の継続
+          </div>
+
+          <div class="highlight-value">
+            ${formatNumber(
+              streak
+            )}日
+          </div>
+
+        </div>
+
+        <div class="highlight-box">
+
+          <div class="highlight-label">
+            最長継続
+          </div>
+
+          <div class="highlight-value">
+            ${formatNumber(
+              bestStreak
+            )}日
+          </div>
+
+        </div>
+
+      `;
+
+    }
+
+
+    /* =====================================================
+       Records
+    ===================================================== */
+
+    function renderRecords(
+      records
+    ) {
+
+      if (
+        !Array.isArray(records) ||
+        records.length === 0
+      ) {
+
+        recordsEl.innerHTML = `
+          <div class="empty">
+            この期間の実績はありません。
+          </div>
+        `;
+
+        return;
+
+      }
+
+
+      recordsEl.innerHTML =
+        records.map(
+          record => {
+
+            const sale =
+              Number(
+                record.sale_amount ??
+                record.saleAmount ??
+                0
+              );
+
+            const delivery =
+              Number(
+                record.delivery_count ??
+                record.deliveryCount ??
+                0
+              );
+
+            const hours =
+              Number(
+                record.work_hours ??
+                record.workHours ??
+                0
+              );
+
+            const id =
+              record.id;
+
+
+            return `
+
+              <div
+                class="record"
+                data-record-id="${escapeHtml(id)}"
+              >
+
+                <div class="record-main">
+
+                  <div class="record-left">
+
+                    <div class="record-date">
+                      ${escapeHtml(
+                        formatDateJST(
+                          record.created_at ??
+                          record.createdAt
+                        )
+                      )}
+                    </div>
+
+                    <div class="record-meta">
+                      配達 ${formatNumber(
+                        delivery
+                      )}件
+                      ／
+                      稼働 ${formatHours(
+                        hours
+                      )}h
+                      ／
+                      時給 ${formatHourly(
+                        hours > 0
+                          ? sale / hours
+                          : 0
+                      )}
+                    </div>
+
+                  </div>
+
+                  <div class="record-sales">
+                    ${formatYen(sale)}
+                  </div>
+
+                </div>
+
+                <div class="record-actions">
+
+                  <button
+                    class="record-action record-edit-btn"
+                    type="button"
+                    data-action="edit"
+                    data-id="${escapeHtml(id)}"
+                  >
+                    ✏️ 編集
+                  </button>
+
+                  <button
+                    class="record-action record-delete-btn"
+                    type="button"
+                    data-action="delete"
+                    data-id="${escapeHtml(id)}"
+                  >
+                    🗑 削除
+                  </button>
+
+                </div>
+
+              </div>
+
+            `;
+
+          }
+        ).join("");
+
+
+      recordsEl
+        .querySelectorAll(
+          '[data-action="edit"]'
+        )
+        .forEach(
+          button => {
+
+            button.addEventListener(
+              "click",
+              () => {
+
+                const id =
+                  button.dataset.id;
+
+                const record =
+                  records.find(
+                    item =>
+                      String(item.id) ===
+                      String(id)
+                  );
+
+                if (record) {
+
+                  openEditModal(
+                    record
+                  );
+
+                }
+
+              }
+            );
+
+          }
+        );
+
+
+      recordsEl
+        .querySelectorAll(
+          '[data-action="delete"]'
+        )
+        .forEach(
+          button => {
+
+            button.addEventListener(
+              "click",
+              () => {
+
+                deleteRecord(
+                  button.dataset.id
+                );
+
+              }
+            );
+
+          }
+        );
+
+    }
+
+
+    /* =====================================================
+       Edit
+    ===================================================== */
+
+    function openEditModal(
+      record
+    ) {
+
+      editingRecordId =
+        record.id;
+
+      editSaleAmount.value =
+        record.sale_amount ??
+        record.saleAmount ??
+        0;
+
+      editDeliveryCount.value =
+        record.delivery_count ??
+        record.deliveryCount ??
+        0;
+
+      editWorkHours.value =
+        record.work_hours ??
+        record.workHours ??
+        0;
+
+      editModalError.textContent =
+        "";
+
+      editModalError.classList.remove(
+        "show"
+      );
+
+      editModal.classList.add(
+        "show"
+      );
+
+    }
+
+
+    function closeEditModal() {
+
+      editingRecordId =
+        null;
+
+      editModal.classList.remove(
+        "show"
+      );
+
+    }
+
+
+    function showEditError(
+      message
+    ) {
+
+      editModalError.textContent =
+        message;
+
+      editModalError.classList.add(
+        "show"
+      );
+
+    }
+
+
+    async function saveEdit() {
+
+      if (!editingRecordId) {
+        return;
+      }
+
+      const saleAmount =
+        Number(
+          editSaleAmount.value
+        );
+
+      const deliveryCount =
+        Number(
+          editDeliveryCount.value
+        );
+
+      const workHours =
+        Number(
+          editWorkHours.value
+        );
+
+
+      if (
+        !Number.isInteger(
+          saleAmount
+        ) ||
+        saleAmount < 0
+      ) {
+
+        showEditError(
+          "売上は0以上の整数で入力してください。"
+        );
+
+        return;
+
+      }
+
+
+      if (
+        !Number.isInteger(
+          deliveryCount
+        ) ||
+        deliveryCount < 0
+      ) {
+
+        showEditError(
+          "配達数は0以上の整数で入力してください。"
+        );
+
+        return;
+
+      }
+
+
+      if (
+        !Number.isFinite(
+          workHours
+        ) ||
+        workHours <= 0 ||
+        workHours > 999.99
+      ) {
+
+        showEditError(
+          "稼働時間を正しく入力してください。"
+        );
+
+        return;
+
+      }
+
+
+      editSaveBtn.disabled =
+        true;
+
+      editSaveBtn.textContent =
+        "保存中...";
+
+
+      try {
+
+        await apiFetch(
+          "/api/result",
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body: JSON.stringify({
+              id:
+                Number(
+                  editingRecordId
+                ),
+              saleAmount,
+              deliveryCount,
+              workHours
+            })
+          }
+        );
+
+
+        closeEditModal();
+
+        await loadResult();
+
+
+        if (
+          analyticsSection.classList.contains(
+            "active"
+          )
+        ) {
+
+          await loadAnalytics();
+
+        }
+
+
+      } catch (error) {
+
+        console.error(
+          "saveEdit error:",
+          error
+        );
+
+        showEditError(
+          error.message ||
+          "保存に失敗しました。"
+        );
+
+      } finally {
+
+        editSaveBtn.disabled =
+          false;
+
+        editSaveBtn.textContent =
+          "保存";
+
+      }
+
+    }
+
+
+    async function deleteRecord(
+      id
+    ) {
+
+      if (!id) {
+        return;
+      }
+
+
+      const confirmed =
+        window.confirm(
+          "この実績を削除しますか？"
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+
+      try {
+
+        await apiFetch(
+          `/api/result?id=${encodeURIComponent(id)}`,
+          {
+            method: "DELETE"
+          }
+        );
+
+
+        await loadResult();
+
+
+        if (
+          analyticsSection.classList.contains(
+            "active"
+          )
+        ) {
+
+          await loadAnalytics();
+
+        }
+
+
+      } catch (error) {
+
+        console.error(
+          "deleteRecord error:",
+          error
+        );
+
+        window.alert(
+          error.message ||
+          "削除に失敗しました。"
+        );
+
+      }
+      <script>
 
     /* =====================================================
        Telegram
@@ -3142,6 +4670,8 @@
       `;
 
     }
+
+
     /* =====================================================
        Monthly Report
     ===================================================== */
@@ -3745,754 +5275,4 @@
     }
 
 
-    /* =====================================================
-       Historical selectors
-    ===================================================== */
-
-    function pad2(
-      value
-    ) {
-
-      return String(
-        value
-      ).padStart(
-        2,
-        "0"
-      );
-
     }
-
-
-    function populateMonthSelector() {
-
-      const current =
-        new Date();
-
-      const currentYear =
-        current.getFullYear();
-
-      const currentMonth =
-        current.getMonth() + 1;
-
-
-      monthSelector.innerHTML = `
-        <option value="">
-          月を選択
-        </option>
-      `;
-
-
-      /*
-       * 現在月を含めて過去24か月。
-       * ただし、ここでは自動選択しない。
-       */
-
-      for (
-        let i = 0;
-        i < 24;
-        i++
-      ) {
-
-        const date =
-          new Date(
-            currentYear,
-            currentMonth - 1 - i,
-            1
-          );
-
-        const year =
-          date.getFullYear();
-
-        const month =
-          date.getMonth() + 1;
-
-        const value =
-          `${year}-${pad2(month)}`;
-
-        const label =
-          `${year}年${month}月`;
-
-        const option =
-          document.createElement(
-            "option"
-          );
-
-        option.value =
-          value;
-
-        option.textContent =
-          label;
-
-        monthSelector.appendChild(
-          option
-        );
-
-      }
-
-    }
-
-
-    function populateYearSelector() {
-
-      const currentYear =
-        new Date()
-          .getFullYear();
-
-
-      yearSelector.innerHTML = `
-        <option value="">
-          年を選択
-        </option>
-      `;
-
-
-      /*
-       * 現在年を含めて過去5年。
-       * ただし、自動選択しない。
-       */
-
-      for (
-        let i = 0;
-        i < 5;
-        i++
-      ) {
-
-        const year =
-          currentYear - i;
-
-        const option =
-          document.createElement(
-            "option"
-          );
-
-        option.value =
-          String(year);
-
-        option.textContent =
-          `${year}年`;
-
-        yearSelector.appendChild(
-          option
-        );
-
-      }
-
-    }
-
-
-    /* =====================================================
-       Month selector
-    ===================================================== */
-
-    monthSelector.addEventListener(
-      "change",
-      async () => {
-
-        const value =
-          monthSelector.value;
-
-
-        if (!value) {
-
-          currentPeriod =
-            "today";
-
-          document
-            .querySelectorAll(
-              ".period-tab"
-            )
-            .forEach(
-              button => {
-
-                button.classList.toggle(
-                  "active",
-                  button.dataset.period ===
-                    "today"
-                );
-
-              }
-            );
-
-
-          await loadResult();
-
-          return;
-        }
-
-
-        currentPeriod =
-          "month";
-
-
-        /*
-         * 年セレクターの選択は解除。
-         */
-
-        yearSelector.value =
-          "";
-
-
-        document
-          .querySelectorAll(
-            ".period-tab"
-          )
-          .forEach(
-            button => {
-
-              button.classList.toggle(
-                "active",
-                button.dataset.period ===
-                  "month"
-              );
-
-            }
-          );
-
-
-        await loadResult();
-
-
-        if (
-          analyticsSection.classList.contains(
-            "active"
-          )
-        ) {
-
-          await loadAnalytics();
-
-        }
-
-      }
-    );
-
-
-    /* =====================================================
-       Year selector
-    ===================================================== */
-
-    yearSelector.addEventListener(
-      "change",
-      async () => {
-
-        const value =
-          yearSelector.value;
-
-
-        if (!value) {
-
-          currentPeriod =
-            "today";
-
-
-          document
-            .querySelectorAll(
-              ".period-tab"
-            )
-            .forEach(
-              button => {
-
-                button.classList.toggle(
-                  "active",
-                  button.dataset.period ===
-                    "today"
-                );
-
-              }
-            );
-
-
-          await loadResult();
-
-          return;
-        }
-
-
-        currentPeriod =
-          "year";
-
-
-        /*
-         * 月セレクターの選択は解除。
-         */
-
-        monthSelector.value =
-          "";
-
-
-        document
-          .querySelectorAll(
-            ".period-tab"
-          )
-          .forEach(
-            button => {
-
-              button.classList.toggle(
-                "active",
-                button.dataset.period ===
-                  "year"
-              );
-
-            }
-          );
-
-
-        await loadResult();
-
-
-        if (
-          analyticsSection.classList.contains(
-            "active"
-          )
-        ) {
-
-          await loadAnalytics();
-
-        }
-
-      }
-    );
-
-
-    /* =====================================================
-       Period tabs
-    ===================================================== */
-
-    document
-      .querySelectorAll(
-        ".period-tab"
-      )
-      .forEach(
-        button => {
-
-          button.addEventListener(
-            "click",
-            async () => {
-
-              currentPeriod =
-                button.dataset.period;
-
-
-              /*
-               * 通常の
-               * 今日・今週・今月・年間
-               * を選択した場合は、
-               * 履歴セレクターを解除。
-               */
-
-              if (
-                currentPeriod !==
-                "month"
-              ) {
-
-                monthSelector.value =
-                  "";
-
-              }
-
-
-              if (
-                currentPeriod !==
-                "year"
-              ) {
-
-                yearSelector.value =
-                  "";
-
-              }
-
-
-              document
-                .querySelectorAll(
-                  ".period-tab"
-                )
-                .forEach(
-                  item => {
-
-                    item.classList.toggle(
-                      "active",
-                      item === button
-                    );
-
-                  }
-                );
-
-
-              await loadResult();
-
-
-              if (
-                analyticsSection.classList.contains(
-                  "active"
-                )
-              ) {
-
-                await loadAnalytics();
-
-              }
-
-            }
-          );
-
-        }
-      );
-
-
-    /* =====================================================
-       Main tabs
-    ===================================================== */
-
-    document
-      .querySelectorAll(
-        ".main-tab"
-      )
-      .forEach(
-        button => {
-
-          button.addEventListener(
-            "click",
-            async () => {
-
-              const section =
-                button.dataset.section;
-
-
-              document
-                .querySelectorAll(
-                  ".main-tab"
-                )
-                .forEach(
-                  item => {
-
-                    item.classList.toggle(
-                      "active",
-                      item === button
-                    );
-
-                  }
-                );
-
-
-              personalSection
-                .classList.toggle(
-                  "active",
-                  section ===
-                    "personal"
-                );
-
-
-              analyticsSection
-                .classList.toggle(
-                  "active",
-                  section ===
-                    "analytics"
-                );
-
-
-              if (
-                section ===
-                "analytics"
-              ) {
-
-                await loadAnalytics();
-
-              }
-
-            }
-          );
-
-        }
-      );
-
-
-    /* =====================================================
-       Edit modal events
-    ===================================================== */
-
-    editCancelBtn.addEventListener(
-      "click",
-      () => {
-
-        closeEditModal();
-
-      }
-    );
-
-
-    editSaveBtn.addEventListener(
-      "click",
-      () => {
-
-        saveEdit();
-
-      }
-    );
-
-
-    editModal.addEventListener(
-      "click",
-      event => {
-
-        if (
-          event.target ===
-          editModal
-        ) {
-
-          closeEditModal();
-
-        }
-
-      }
-    );
-
-
-    document.addEventListener(
-      "keydown",
-      event => {
-
-        if (
-          event.key ===
-          "Escape" &&
-          editModal.classList.contains(
-            "show"
-          )
-        ) {
-
-          closeEditModal();
-
-        }
-
-      }
-    );
-
-
-    /* =====================================================
-       Reset
-    ===================================================== */
-
-    resetBtn.addEventListener(
-      "click",
-      async () => {
-
-        const confirmed =
-          window.confirm(
-            "自分の実績をすべて削除しますか？\n\nこの操作は元に戻せません。"
-          );
-
-
-        if (!confirmed) {
-          return;
-        }
-
-
-        const secondConfirm =
-          window.confirm(
-            "本当にすべての実績を削除しますか？"
-          );
-
-
-        if (!secondConfirm) {
-          return;
-        }
-
-
-        resetBtn.disabled =
-          true;
-
-        resetBtn.textContent =
-          "削除中...";
-
-
-        try {
-
-          await apiFetch(
-            "/api/reset",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":
-                  "application/json"
-              }
-            }
-          );
-
-
-          window.alert(
-            "実績をリセットしました。"
-          );
-
-
-          await loadResult();
-
-
-          if (
-            analyticsSection.classList.contains(
-              "active"
-            )
-          ) {
-
-            await loadAnalytics();
-
-          }
-
-
-        } catch (error) {
-
-          console.error(
-            "reset error:",
-            error
-          );
-
-          window.alert(
-            error.message ||
-            "リセットに失敗しました。"
-          );
-
-        } finally {
-
-          resetBtn.disabled =
-            false;
-
-          resetBtn.textContent =
-            "🗑 自分の実績をリセット";
-
-        }
-
-      }
-    );
-
-
-    /* =====================================================
-       Telegram theme
-    ===================================================== */
-
-    function applyTelegramTheme() {
-
-      if (!tg) {
-        return;
-      }
-
-
-      const bg =
-        tg.themeParams?.bg_color;
-
-      const secondaryBg =
-        tg.themeParams?.secondary_bg_color;
-
-      const textColor =
-        tg.themeParams?.text_color;
-
-
-      if (bg) {
-
-        document.body.style.background =
-          bg;
-
-      }
-
-
-      if (textColor) {
-
-        document.body.style.color =
-          textColor;
-
-      }
-
-
-      /*
-       * Telegram側のテーマ値は
-       * 必要最低限だけ利用。
-       */
-
-      if (
-        secondaryBg &&
-        personalSection
-      ) {
-
-        personalSection
-          .style.setProperty(
-            "--telegram-secondary-bg",
-            secondaryBg
-          );
-
-      }
-
-    }
-
-
-    /* =====================================================
-       User display
-    ===================================================== */
-
-    function renderUserName() {
-
-      userNameEl.textContent =
-        getDisplayName();
-
-    }
-
-
-    /* =====================================================
-       Initial load
-    ===================================================== */
-
-    async function initialize() {
-
-      renderUserName();
-
-      applyTelegramTheme();
-
-      populateMonthSelector();
-
-      populateYearSelector();
-
-
-      /*
-       * 初期状態は「今日」。
-       *
-       * 過去月・過去年は
-       * ユーザーが選択した場合のみ
-       * APIへ問い合わせる。
-       */
-
-      currentPeriod =
-        "today";
-
-
-      monthSelector.value =
-        "";
-
-      yearSelector.value =
-        "";
-
-
-      await loadResult();
-
-    }
-
-
-    /* =====================================================
-       Start
-    ===================================================== */
-
-    initialize()
-      .catch(
-        error => {
-
-          console.error(
-            "initialize error:",
-            error
-          );
-
-          showPersonalError(
-            error.message ||
-            "アプリの初期化に失敗しました。"
-          );
-
-        }
-      );
-
-  </script>
-
-</body>
-
-</html>
