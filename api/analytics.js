@@ -6,6 +6,11 @@ const BOT_TOKEN = process.env.BOT_TOKEN;
 
 const JST = "Asia/Tokyo";
 
+
+/* =========================================================
+   Telegram initData verification
+========================================================= */
+
 function verifyTelegramInitData(initData) {
   if (!initData) {
     throw new Error("Telegram initData がありません");
@@ -41,31 +46,53 @@ function verifyTelegramInitData(initData) {
       Buffer.from(calculatedHash, "hex")
     )
   ) {
-    throw new Error("Telegram initData の検証に失敗しました");
+    throw new Error(
+      "Telegram initData の検証に失敗しました"
+    );
   }
 
-  const authDate = Number(params.get("auth_date"));
+  const authDate = Number(
+    params.get("auth_date")
+  );
 
   if (!authDate) {
-    throw new Error("auth_date がありません");
+    throw new Error(
+      "auth_date がありません"
+    );
   }
 
-  const age = Math.floor(Date.now() / 1000) - authDate;
+  const age =
+    Math.floor(Date.now() / 1000) -
+    authDate;
 
   if (age > 60 * 60 || age < -60) {
-    throw new Error("Telegram initData の有効期限が切れています");
+    throw new Error(
+      "Telegram initData の有効期限が切れています"
+    );
   }
 
   const userRaw = params.get("user");
 
   if (!userRaw) {
-    throw new Error("Telegramユーザー情報がありません");
+    throw new Error(
+      "Telegramユーザー情報がありません"
+    );
   }
 
-  const user = JSON.parse(userRaw);
+  let user;
+
+  try {
+    user = JSON.parse(userRaw);
+  } catch {
+    throw new Error(
+      "Telegramユーザー情報を解析できません"
+    );
+  }
 
   if (!user?.id) {
-    throw new Error("TelegramユーザーIDが取得できません");
+    throw new Error(
+      "TelegramユーザーIDが取得できません"
+    );
   }
 
   return {
@@ -77,16 +104,19 @@ function verifyTelegramInitData(initData) {
 
 
 /* =========================================================
-   JST Date Helpers
+   JST helpers
 ========================================================= */
 
-function getJSTDateParts(date = new Date()) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: JST,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).formatToParts(date);
+function getJSTParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: JST,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }
+  ).formatToParts(date);
 
   const result = {};
 
@@ -104,8 +134,10 @@ function getJSTDateParts(date = new Date()) {
 }
 
 
-function getJSTDateString(date = new Date()) {
-  const p = getJSTDateParts(date);
+function getJSTDateString(
+  date = new Date()
+) {
+  const p = getJSTParts(date);
 
   return [
     p.year,
@@ -115,49 +147,71 @@ function getJSTDateString(date = new Date()) {
 }
 
 
-function getJSTMonthStart(date = new Date()) {
-  const p = getJSTDateParts(date);
+function addDays(
+  dateString,
+  days
+) {
+  const date = new Date(
+    `${dateString}T00:00:00Z`
+  );
 
-  return `${p.year}-${String(p.month).padStart(2, "0")}-01`;
+  date.setUTCDate(
+    date.getUTCDate() + days
+  );
+
+  return date
+    .toISOString()
+    .slice(0, 10);
 }
 
 
-function getJSTMonthEnd(date = new Date()) {
-  const p = getJSTDateParts(date);
+function getMonthStart(
+  date = new Date()
+) {
+  const p = getJSTParts(date);
 
-  const nextMonth =
-    p.month === 12
-      ? {
-          year: p.year + 1,
-          month: 1
-        }
-      : {
-          year: p.year,
-          month: p.month + 1
-        };
-
-  return `${nextMonth.year}-${String(nextMonth.month).padStart(
-    2,
-    "0"
-  )}-01`;
+  return `${p.year}-${String(
+    p.month
+  ).padStart(2, "0")}-01`;
 }
 
 
-function getPreviousMonthStart(date = new Date()) {
-  const p = getJSTDateParts(date);
+function getMonthEnd(
+  date = new Date()
+) {
+  const p = getJSTParts(date);
+
+  if (p.month === 12) {
+    return `${p.year + 1}-01-01`;
+  }
+
+  return `${p.year}-${String(
+    p.month + 1
+  ).padStart(2, "0")}-01`;
+}
+
+
+function getPreviousMonthStart(
+  date = new Date()
+) {
+  const p = getJSTParts(date);
 
   if (p.month === 1) {
     return `${p.year - 1}-12-01`;
   }
 
-  return `${p.year}-${String(p.month - 1).padStart(2, "0")}-01`;
+  return `${p.year}-${String(
+    p.month - 1
+  ).padStart(2, "0")}-01`;
 }
 
 
-function getWeekStart(date = new Date()) {
-  const p = getJSTDateParts(date);
+function getWeekStart(
+  date = new Date()
+) {
+  const p = getJSTParts(date);
 
-  const utc = new Date(
+  const utcDate = new Date(
     Date.UTC(
       p.year,
       p.month - 1,
@@ -165,24 +219,16 @@ function getWeekStart(date = new Date()) {
     )
   );
 
-  const day = utc.getUTCDay();
+  const day =
+    utcDate.getUTCDay();
 
-  utc.setUTCDate(
-    utc.getUTCDate() - day
+  utcDate.setUTCDate(
+    utcDate.getUTCDate() - day
   );
 
-  return utc.toISOString().slice(0, 10);
-}
-
-
-function addDays(dateString, days) {
-  const date = new Date(`${dateString}T00:00:00Z`);
-
-  date.setUTCDate(
-    date.getUTCDate() + days
-  );
-
-  return date.toISOString().slice(0, 10);
+  return utcDate
+    .toISOString()
+    .slice(0, 10);
 }
 
 
@@ -197,44 +243,76 @@ async function getAggregate(
 ) {
   const rows = await sql`
     SELECT
-      COALESCE(SUM(sale_amount), 0) AS sales,
-      COALESCE(SUM(delivery_count), 0) AS count,
-      COALESCE(SUM(work_hours), 0) AS hours,
+      COALESCE(
+        SUM(sale_amount),
+        0
+      ) AS sales,
+
+      COALESCE(
+        SUM(delivery_count),
+        0
+      ) AS count,
+
+      COALESCE(
+        SUM(work_hours),
+        0
+      ) AS hours,
+
       COUNT(*) AS records,
+
       COUNT(
         DISTINCT (
           created_at AT TIME ZONE ${JST}
         )::date
       ) AS work_days
+
     FROM delivery_results
+
     WHERE telegram_user_id = ${userId}
+
       AND (
         created_at AT TIME ZONE ${JST}
       )::date >= ${startDate}::date
+
       AND (
         created_at AT TIME ZONE ${JST}
       )::date < ${endDate}::date
   `;
 
-  const row = rows[0] || {};
+  const row =
+    rows[0] || {};
 
-  const sales = Number(row.sales || 0);
-  const count = Number(row.count || 0);
-  const hours = Number(row.hours || 0);
+  const sales =
+    Number(row.sales || 0);
+
+  const count =
+    Number(row.count || 0);
+
+  const hours =
+    Number(row.hours || 0);
 
   return {
     sales,
     count,
     hours,
-    records: Number(row.records || 0),
-    workDays: Number(row.work_days || 0),
-    average: count > 0 ? sales / count : 0
+
+    records:
+      Number(row.records || 0),
+
+    workDays:
+      Number(row.work_days || 0),
+
+    average:
+      count > 0
+        ? sales / count
+        : 0
   };
 }
 
 
 /* =========================================================
-   Daily Stats
+   Daily statistics
+   ※ created_at GROUP BY エラー対策済み
 ========================================================= */
 
 async function getDailyStats(
@@ -244,47 +322,75 @@ async function getDailyStats(
 ) {
   const rows = await sql`
     SELECT
-      (
-        created_at AT TIME ZONE ${JST}
-      )::date AS day,
+      daily_source.day,
 
-      COALESCE(SUM(sale_amount), 0) AS sales,
-      COALESCE(SUM(delivery_count), 0) AS count,
-      COALESCE(SUM(work_hours), 0) AS hours
+      COALESCE(
+        SUM(daily_source.sale_amount),
+        0
+      ) AS sales,
 
-    FROM delivery_results
+      COALESCE(
+        SUM(daily_source.delivery_count),
+        0
+      ) AS count,
 
-    WHERE telegram_user_id = ${userId}
-      AND (
-        created_at AT TIME ZONE ${JST}
-      )::date >= ${startDate}::date
+      COALESCE(
+        SUM(daily_source.work_hours),
+        0
+      ) AS hours
 
-      AND (
-        created_at AT TIME ZONE ${JST}
-      )::date < ${endDate}::date
+    FROM (
+      SELECT
+        (
+          created_at AT TIME ZONE ${JST}
+        )::date AS day,
+
+        sale_amount,
+        delivery_count,
+        work_hours
+
+      FROM delivery_results
+
+      WHERE telegram_user_id = ${userId}
+
+        AND (
+          created_at AT TIME ZONE ${JST}
+        )::date >= ${startDate}::date
+
+        AND (
+          created_at AT TIME ZONE ${JST}
+        )::date < ${endDate}::date
+    ) AS daily_source
 
     GROUP BY
-      (
-        created_at AT TIME ZONE ${JST}
-      )::date
+      daily_source.day
 
-    ORDER BY day ASC
+    ORDER BY
+      daily_source.day ASC
   `;
 
   return rows.map(row => ({
     date: row.day,
-    sales: Number(row.sales || 0),
-    count: Number(row.count || 0),
-    hours: Number(row.hours || 0)
+
+    sales:
+      Number(row.sales || 0),
+
+    count:
+      Number(row.count || 0),
+
+    hours:
+      Number(row.hours || 0)
   }));
 }
 
 
 /* =========================================================
-   Best Records
+   All-time best
 ========================================================= */
 
-async function getBestRecords(userId) {
+async function getBestRecords(
+  userId
+) {
   const rows = await sql`
     SELECT
       id,
@@ -292,9 +398,13 @@ async function getBestRecords(userId) {
       delivery_count,
       work_hours,
       created_at
+
     FROM delivery_results
+
     WHERE telegram_user_id = ${userId}
-    ORDER BY created_at ASC
+
+    ORDER BY
+      created_at ASC
   `;
 
   if (!rows.length) {
@@ -316,9 +426,20 @@ async function getBestRecords(userId) {
   let bestSalesPerHour = null;
 
   for (const row of rows) {
-    const count = Number(row.delivery_count || 0);
-    const sales = Number(row.sale_amount || 0);
-    const hours = Number(row.work_hours || 0);
+    const count =
+      Number(
+        row.delivery_count || 0
+      );
+
+    const sales =
+      Number(
+        row.sale_amount || 0
+      );
+
+    const hours =
+      Number(
+        row.work_hours || 0
+      );
 
     const countPerHour =
       hours > 0
@@ -354,7 +475,8 @@ async function getBestRecords(userId) {
       hours > 0 &&
       (
         !bestCountPerHour ||
-        countPerHour > bestCountPerHour.value
+        countPerHour >
+          bestCountPerHour.value
       )
     ) {
       bestCountPerHour = {
@@ -367,7 +489,8 @@ async function getBestRecords(userId) {
       hours > 0 &&
       (
         !bestSalesPerHour ||
-        salesPerHour > bestSalesPerHour.value
+        salesPerHour >
+          bestSalesPerHour.value
       )
     ) {
       bestSalesPerHour = {
@@ -378,8 +501,11 @@ async function getBestRecords(userId) {
   }
 
   return {
-    count: bestCount?.value || 0,
-    sales: bestSales?.value || 0,
+    count:
+      bestCount?.value || 0,
+
+    sales:
+      bestSales?.value || 0,
 
     countPerHour:
       bestCountPerHour?.value || 0,
@@ -406,7 +532,9 @@ async function getBestRecords(userId) {
    Streak
 ========================================================= */
 
-async function getStreak(userId) {
+async function getStreak(
+  userId
+) {
   const rows = await sql`
     SELECT DISTINCT
       (
@@ -427,12 +555,16 @@ async function getStreak(userId) {
     };
   }
 
-  const dates = rows.map(row =>
-    String(row.day).slice(0, 10)
-  );
+  const dates =
+    rows.map(row =>
+      String(row.day).slice(0, 10)
+    );
 
-  const today = getJSTDateString();
-  const yesterday = addDays(today, -1);
+  const today =
+    getJSTDateString();
+
+  const yesterday =
+    addDays(today, -1);
 
   let current = 0;
 
@@ -440,19 +572,21 @@ async function getStreak(userId) {
     dates[0] === today ||
     dates[0] === yesterday
   ) {
-    let expected = dates[0];
+    let expected =
+      dates[0];
 
     for (const date of dates) {
-      if (date === expected) {
-        current++;
+      if (date !== expected) {
+        break;
+      }
 
-        expected = addDays(
+      current++;
+
+      expected =
+        addDays(
           expected,
           -1
         );
-      } else {
-        break;
-      }
     }
   }
 
@@ -460,14 +594,18 @@ async function getStreak(userId) {
   let streak = 0;
   let previous = null;
 
-  for (const date of [...dates].sort()) {
+  const sortedDates =
+    [...dates].sort();
+
+  for (const date of sortedDates) {
     if (!previous) {
       streak = 1;
     } else {
-      const next = addDays(
-        previous,
-        1
-      );
+      const next =
+        addDays(
+          previous,
+          1
+        );
 
       if (date === next) {
         streak++;
@@ -491,7 +629,7 @@ async function getStreak(userId) {
 
 
 /* =========================================================
-   Records
+   Recent records
 ========================================================= */
 
 async function getRecentRecords(
@@ -506,36 +644,52 @@ async function getRecentRecords(
       delivery_count,
       work_hours,
       created_at
+
     FROM delivery_results
+
     WHERE telegram_user_id = ${userId}
+
       AND (
         created_at AT TIME ZONE ${JST}
       )::date >= ${startDate}::date
+
       AND (
         created_at AT TIME ZONE ${JST}
       )::date < ${endDate}::date
-    ORDER BY created_at DESC
+
+    ORDER BY
+      created_at DESC
+
     LIMIT 20
   `;
 
   return rows.map(row => ({
-    id: Number(row.id),
-    sale_amount: Number(
-      row.sale_amount || 0
-    ),
-    delivery_count: Number(
-      row.delivery_count || 0
-    ),
-    work_hours: Number(
-      row.work_hours || 0
-    ),
-    created_at: row.created_at
+    id:
+      Number(row.id),
+
+    sale_amount:
+      Number(
+        row.sale_amount || 0
+      ),
+
+    delivery_count:
+      Number(
+        row.delivery_count || 0
+      ),
+
+    work_hours:
+      Number(
+        row.work_hours || 0
+      ),
+
+    created_at:
+      row.created_at
   }));
 }
 
 
 /* =========================================================
-   Handler
+   Main handler
 ========================================================= */
 
 module.exports = async function handler(
@@ -551,41 +705,55 @@ module.exports = async function handler(
     }
 
     const initData =
-      req.headers["x-telegram-init-data"];
+      req.headers[
+        "x-telegram-init-data"
+      ];
 
     const user =
-      verifyTelegramInitData(initData);
+      verifyTelegramInitData(
+        initData
+      );
+
+    const now =
+      new Date();
 
     const today =
-      getJSTDateString();
+      getJSTDateString(now);
+
+    const yesterday =
+      addDays(today, -1);
 
     const tomorrow =
       addDays(today, 1);
 
     const weekStart =
-      getWeekStart();
+      getWeekStart(now);
 
     const monthStart =
-      getJSTMonthStart();
+      getMonthStart(now);
 
     const monthEnd =
-      getJSTMonthEnd();
+      getMonthEnd(now);
 
     const previousMonthStart =
-      getPreviousMonthStart();
+      getPreviousMonthStart(now);
 
     const previousMonthEnd =
       monthStart;
 
+    const currentYear =
+      getJSTParts(now).year;
+
     const yearStart =
-      `${getJSTDateParts().year}-01-01`;
+      `${currentYear}-01-01`;
 
     const yearEnd =
-      `${getJSTDateParts().year + 1}-01-01`;
+      `${currentYear + 1}-01-01`;
 
-    /* -------------------------
-       Basic periods
-    ------------------------- */
+
+    /* =====================================================
+       Period data
+    ===================================================== */
 
     const [
       todayData,
@@ -603,7 +771,7 @@ module.exports = async function handler(
 
       getAggregate(
         user.id,
-        addDays(today, -1),
+        yesterday,
         today
       ),
 
@@ -632,9 +800,10 @@ module.exports = async function handler(
       )
     ]);
 
-    /* -------------------------
+
+    /* =====================================================
        Daily
-    ------------------------- */
+    ===================================================== */
 
     const monthlyDaily =
       await getDailyStats(
@@ -643,27 +812,30 @@ module.exports = async function handler(
         tomorrow
       );
 
-    /* -------------------------
+
+    /* =====================================================
        Best
-    ------------------------- */
+    ===================================================== */
 
     const best =
       await getBestRecords(
         user.id
       );
 
-    /* -------------------------
+
+    /* =====================================================
        Streak
-    ------------------------- */
+    ===================================================== */
 
     const streak =
       await getStreak(
         user.id
       );
 
-    /* -------------------------
-       Records
-    ------------------------- */
+
+    /* =====================================================
+       Today's records
+    ===================================================== */
 
     const records =
       await getRecentRecords(
@@ -672,15 +844,13 @@ module.exports = async function handler(
         tomorrow
       );
 
-    /* -------------------------
-       Analysis
-    ------------------------- */
 
-    const now =
-      new Date();
+    /* =====================================================
+       Analysis
+    ===================================================== */
 
     const dateParts =
-      getJSTDateParts(now);
+      getJSTParts(now);
 
     const daysInMonth =
       new Date(
@@ -697,77 +867,106 @@ module.exports = async function handler(
         daysInMonth
       );
 
-    const currentDailyPace =
-      elapsedDays > 0
-        ? monthData.count / elapsedDays
-        : 0;
 
     const averageDailyCount =
       monthData.workDays > 0
-        ? monthData.count / monthData.workDays
+        ? monthData.count /
+          monthData.workDays
         : 0;
+
 
     const averageDailySales =
       monthData.workDays > 0
-        ? monthData.sales / monthData.workDays
+        ? monthData.sales /
+          monthData.workDays
         : 0;
 
-    const projectedMonthCount =
-      currentDailyPace * daysInMonth;
+
+    const currentDailyPace =
+      elapsedDays > 0
+        ? monthData.count /
+          elapsedDays
+        : 0;
+
 
     const currentDailySalesPace =
       elapsedDays > 0
-        ? monthData.sales / elapsedDays
+        ? monthData.sales /
+          elapsedDays
         : 0;
 
+
+    const projectedMonthCount =
+      currentDailyPace *
+      daysInMonth;
+
+
     const projectedMonthSales =
-      currentDailySalesPace * daysInMonth;
+      currentDailySalesPace *
+      daysInMonth;
+
 
     const averageUnitPrice =
       monthData.count > 0
-        ? monthData.sales / monthData.count
+        ? monthData.sales /
+          monthData.count
         : 0;
+
 
     const countPerHour =
       monthData.hours > 0
-        ? monthData.count / monthData.hours
+        ? monthData.count /
+          monthData.hours
         : 0;
+
 
     const salesPerHour =
       monthData.hours > 0
-        ? monthData.sales / monthData.hours
+        ? monthData.sales /
+          monthData.hours
         : 0;
+
 
     const todayHourlySales =
       todayData.hours > 0
-        ? todayData.sales / todayData.hours
+        ? todayData.sales /
+          todayData.hours
         : 0;
+
 
     const todayCountPerHour =
       todayData.hours > 0
-        ? todayData.count / todayData.hours
+        ? todayData.count /
+          todayData.hours
         : 0;
+
 
     const todayAverageUnitPrice =
       todayData.count > 0
-        ? todayData.sales / todayData.count
+        ? todayData.sales /
+          todayData.count
         : 0;
+
 
     const salesChangeFromYesterday =
       todayData.sales -
       yesterdayData.sales;
 
+
     const countChangeFromYesterday =
       todayData.count -
       yesterdayData.count;
+
 
     const salesChangeFromPreviousMonth =
       monthData.sales -
       previousMonthData.sales;
 
+
     const countChangeFromPreviousMonth =
       monthData.count -
       previousMonthData.count;
+
 
     const salesChangeFromPreviousMonthRate =
       previousMonthData.sales > 0
@@ -777,6 +976,7 @@ module.exports = async function handler(
           ) * 100
         : 0;
 
+
     const countChangeFromPreviousMonthRate =
       previousMonthData.count > 0
         ? (
@@ -785,8 +985,9 @@ module.exports = async function handler(
           ) * 100
         : 0;
 
+
     const monthlyBestCount =
-      monthlyDaily.length
+      monthlyDaily.length > 0
         ? Math.max(
             ...monthlyDaily.map(
               row => row.count
@@ -794,14 +995,16 @@ module.exports = async function handler(
           )
         : 0;
 
+
     const monthlyBestSales =
-      monthlyDaily.length
+      monthlyDaily.length > 0
         ? Math.max(
             ...monthlyDaily.map(
               row => row.sales
             )
           )
         : 0;
+
 
     const monthlyBestCountRow =
       monthlyDaily.find(
@@ -810,6 +1013,7 @@ module.exports = async function handler(
           monthlyBestCount
       );
 
+
     const monthlyBestSalesRow =
       monthlyDaily.find(
         row =>
@@ -817,34 +1021,52 @@ module.exports = async function handler(
           monthlyBestSales
       );
 
+
     const isBestCount =
       todayData.count > 0 &&
-      todayData.count >= best.count;
+      todayData.count >=
+        best.count;
+
 
     const isBestSales =
       todayData.sales > 0 &&
-      todayData.sales >= best.sales;
+      todayData.sales >=
+        best.sales;
+
 
     const monthProgressRate =
       daysInMonth > 0
-        ? (elapsedDays / daysInMonth) * 100
+        ? (
+            elapsedDays /
+            daysInMonth
+          ) * 100
         : 0;
+
+
+    /* =====================================================
+       Response
+    ===================================================== */
 
     return res.status(200).json({
       ok: true,
 
-      today: todayData,
+      today:
+        todayData,
 
-      yesterday: yesterdayData,
+      yesterday:
+        yesterdayData,
 
-      week: weekData,
+      week:
+        weekData,
 
-      month: monthData,
+      month:
+        monthData,
 
       previousMonth:
         previousMonthData,
 
-      year: yearData,
+      year:
+        yearData,
 
       best,
 
@@ -852,23 +1074,29 @@ module.exports = async function handler(
 
       analysis: {
         averageDailyCount,
+
         averageDailySales,
 
         currentDailyPace,
 
         projectedMonthCount,
+
         projectedMonthSales,
 
         averageUnitPrice,
 
         countPerHour,
+
         salesPerHour,
 
         todayHourlySales,
+
         todayCountPerHour,
+
         todayAverageUnitPrice,
 
         salesChangeFromYesterday,
+
         countChangeFromYesterday,
 
         previousMonthSales:
@@ -913,6 +1141,7 @@ module.exports = async function handler(
           best.salesPerHour,
 
         isBestCount,
+
         isBestSales,
 
         streak:
@@ -924,28 +1153,33 @@ module.exports = async function handler(
         monthProgressRate,
 
         elapsedDays,
+
         daysInMonth,
 
         remainingDays:
           Math.max(
             0,
-            daysInMonth - elapsedDays
+            daysInMonth -
+              elapsedDays
           ),
 
         today,
-        yesterday:
-          addDays(today, -1),
+
+        yesterday,
 
         monthStart,
+
         monthEnd,
 
         previousMonthStart,
+
         previousMonthEnd
       },
 
       daily:
         monthlyDaily
     });
+
   } catch (error) {
     console.error(
       "analytics API error:",
