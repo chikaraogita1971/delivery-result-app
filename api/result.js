@@ -1,33 +1,132 @@
 const { neon } = require("@neondatabase/serverless");
+const crypto = require("crypto");
 
 const sql = neon(process.env.DATABASE_URL);
+const BOT_TOKEN = process.env.BOT_TOKEN;
 
 // =========================================================
 // Telegram認証
 // =========================================================
 
 function parseInitData(initData) {
-  const params = new URLSearchParams(
-    String(initData || "")
-  );
+  const raw = String(initData || "");
 
-  const userRaw = params.get("user");
+  if (!raw) {
+    return null;
+  }
 
-  if (!userRaw) {
+  const params = new URLSearchParams(raw);
+  const hash = params.get("hash");
+
+  if (!hash) {
+    return null;
+  }
+
+  const dataCheckString = [...params.entries()]
+    .filter(([key]) => key !== "hash")
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n");
+
+  if (!BOT_TOKEN) {
+    console.error(
+      "[RESULT] BOT_TOKEN is not configured"
+    );
     return null;
   }
 
   try {
-    return JSON.parse(userRaw);
-  } catch {
+    const secretKey = crypto
+      .createHmac(
+        "sha256",
+        "WebAppData"
+      )
+      .update(BOT_TOKEN)
+      .digest();
+
+    const calculatedHash = crypto
+      .createHmac(
+        "sha256",
+        secretKey
+      )
+      .update(dataCheckString)
+      .digest("hex");
+
+    const hashBuffer =
+      Buffer.from(hash, "hex");
+
+    const calculatedBuffer =
+      Buffer.from(
+        calculatedHash,
+        "hex"
+      );
+
+    if (
+      hashBuffer.length !==
+      calculatedBuffer.length
+    ) {
+      return null;
+    }
+
+    if (
+      !crypto.timingSafeEqual(
+        hashBuffer,
+        calculatedBuffer
+      )
+    ) {
+      return null;
+    }
+
+    const authDate =
+      Number(
+        params.get("auth_date") || 0
+      );
+
+    if (!authDate) {
+      return null;
+    }
+
+    const now =
+      Math.floor(Date.now() / 1000);
+
+    // 24時間以上古いinitDataは拒否
+    if (
+      now - authDate > 86400 ||
+      authDate - now > 60
+    ) {
+      return null;
+    }
+
+    const userRaw =
+      params.get("user");
+
+    if (!userRaw) {
+      return null;
+    }
+
+    const user =
+      JSON.parse(userRaw);
+
+    if (!user?.id) {
+      return null;
+    }
+
+    return user;
+  } catch (error) {
+    console.error(
+      "[RESULT] Telegram auth error:",
+      error?.message
+    );
+
     return null;
   }
 }
 
 function getTelegramUserId(req) {
   const initData =
-    req.headers["x-telegram-init-data"] ||
-    "";
+    req.headers[
+      "x-telegram-init-data"
+    ] || "";
 
   const user =
     parseInitData(initData);
@@ -37,6 +136,104 @@ function getTelegramUserId(req) {
   }
 
   return String(user.id);
+}
+
+// =========================================================
+// 数値・入力チェック
+// =========================================================
+
+function parseInteger(value) {
+  const number =
+    Number(value);
+
+  if (
+    !Number.isInteger(number)
+  ) {
+    return null;
+  }
+
+  return number;
+}
+
+function parseWorkHours(value) {
+  const number =
+    Number(value);
+
+  if (
+    !Number.isFinite(number)
+  ) {
+    return null;
+  }
+
+  return Math.round(
+    number * 100
+  ) / 100;
+}
+
+function validateResultInput(body) {
+  const saleAmount =
+    parseInteger(
+      body?.saleAmount
+    );
+
+  const deliveryCount =
+    parseInteger(
+      body?.deliveryCount
+    );
+
+  const workHours =
+    parseWorkHours(
+      body?.workHours
+    );
+
+  if (
+    saleAmount === null ||
+    deliveryCount === null ||
+    workHours === null
+  ) {
+    return {
+      error:
+        "売上・配達数・稼働時間を正しく入力してください。",
+    };
+  }
+
+  if (saleAmount < 0) {
+    return {
+      error:
+        "売上は0円以上で入力してください。",
+    };
+  }
+
+  if (deliveryCount < 0) {
+    return {
+      error:
+        "配達数は0件以上で入力してください。",
+    };
+  }
+
+  if (
+    workHours <= 0
+  ) {
+    return {
+      error:
+        "稼働時間は0より大きい値を入力してください。",
+    };
+  }
+
+  if (
+    workHours > 999.99
+  ) {
+    return {
+      error:
+        "稼働時間が大きすぎます。",
+    };
+  }
+
+  return {
+    saleAmount,
+    deliveryCount,
+    workHours,
+  };
 }
 
 // =========================================================
@@ -50,7 +247,8 @@ function getJstTodayParts() {
     new Intl.DateTimeFormat(
       "en-CA",
       {
-        timeZone: "Asia/Tokyo",
+        timeZone:
+          "Asia/Tokyo",
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
@@ -60,29 +258,30 @@ function getJstTodayParts() {
   return {
     year: Number(
       parts.find(
-        item => item.type === "year"
+        item =>
+          item.type === "year"
       )?.value
     ),
 
     month: Number(
       parts.find(
-        item => item.type === "month"
+        item =>
+          item.type === "month"
       )?.value
     ),
 
     day: Number(
       parts.find(
-        item => item.type === "day"
+        item =>
+          item.type === "day"
       )?.value
     ),
   };
 }
 
 function pad2(value) {
-  return String(value).padStart(
-    2,
-    "0"
-  );
+  return String(value)
+    .padStart(2, "0");
 }
 
 function toJstDateString(
@@ -198,7 +397,9 @@ function getPeriodRange(
   // 今日
   // -------------------------------------------------------
 
-  if (period === "today") {
+  if (
+    period === "today"
+  ) {
     const start =
       jstDateToUtc(
         today.year,
@@ -230,8 +431,7 @@ function getPeriodRange(
   }
 
   // -------------------------------------------------------
-  // 今週 / 指定週なし
-  // 月曜始まり
+  // 今週
   // -------------------------------------------------------
 
   if (
@@ -257,7 +457,7 @@ function getPeriodRange(
 
     start.setUTCDate(
       start.getUTCDate() +
-      mondayOffset
+        mondayOffset
     );
 
     const end =
@@ -428,18 +628,20 @@ async function getStats(
 
     unitPrice:
       deliveryCount > 0
-        ? sales / deliveryCount
+        ? sales /
+          deliveryCount
         : 0,
 
     hourlySales:
       workHours > 0
-        ? sales / workHours
+        ? sales /
+          workHours
         : 0,
   };
 }
 
 // =========================================================
-// 最新履歴
+// 実績履歴
 // =========================================================
 
 async function getRecentResults(
@@ -470,7 +672,7 @@ async function getRecentResults(
       created_at DESC,
       id DESC
 
-    LIMIT 20
+    LIMIT 50
   `;
 
   return rows.map(row => {
@@ -502,12 +704,14 @@ async function getRecentResults(
 
       unitPrice:
         deliveryCount > 0
-          ? sales / deliveryCount
+          ? sales /
+            deliveryCount
           : 0,
 
       hourlySales:
         workHours > 0
-          ? sales / workHours
+          ? sales /
+            workHours
           : 0,
 
       createdAt:
@@ -515,7 +719,6 @@ async function getRecentResults(
     };
   });
 }
-
 // =========================================================
 // 日別集計
 // =========================================================
@@ -528,9 +731,7 @@ async function getDailyResults(
   const rows = await sql`
     SELECT
       (
-        created_at
-        AT TIME ZONE
-        'Asia/Tokyo'
+        created_at AT TIME ZONE 'Asia/Tokyo'
       )::date AS result_date,
 
       COALESCE(
@@ -546,7 +747,9 @@ async function getDailyResults(
       COALESCE(
         SUM(work_hours),
         0
-      ) AS work_hours
+      ) AS work_hours,
+
+      COUNT(*) AS records
 
     FROM delivery_results
 
@@ -592,21 +795,555 @@ async function getDailyResults(
 
       workHours,
 
+      records:
+        Number(
+          row.records || 0
+        ),
+
       unitPrice:
         deliveryCount > 0
-          ? sales / deliveryCount
+          ? sales /
+            deliveryCount
           : 0,
 
       hourlySales:
         workHours > 0
-          ? sales / workHours
+          ? sales /
+            workHours
           : 0,
     };
   });
 }
 
 // =========================================================
-// API
+// 月次レポート
+// =========================================================
+
+function buildMonthlyReport(
+  stats,
+  daily
+) {
+  const workingDays =
+    daily.filter(
+      day =>
+        Number(day.records) > 0
+    ).length;
+
+  let bestSalesDay = null;
+  let bestDeliveryDay = null;
+  let bestHourlyDay = null;
+
+  for (const day of daily) {
+    if (
+      !bestSalesDay ||
+      Number(day.sales) >
+        Number(bestSalesDay.sales)
+    ) {
+      bestSalesDay = day;
+    }
+
+    if (
+      !bestDeliveryDay ||
+      Number(day.deliveryCount) >
+        Number(
+          bestDeliveryDay.deliveryCount
+        )
+    ) {
+      bestDeliveryDay = day;
+    }
+
+    if (
+      Number(day.hourlySales) >
+        Number(
+          bestHourlyDay?.hourlySales || 0
+        )
+    ) {
+      bestHourlyDay = day;
+    }
+  }
+
+  return {
+    sales:
+      stats.sales,
+
+    deliveryCount:
+      stats.deliveryCount,
+
+    workHours:
+      stats.workHours,
+
+    records:
+      stats.records,
+
+    workingDays,
+
+    averageDailySales:
+      workingDays > 0
+        ? stats.sales /
+          workingDays
+        : 0,
+
+    averageDailyDeliveryCount:
+      workingDays > 0
+        ? stats.deliveryCount /
+          workingDays
+        : 0,
+
+    averageDailyWorkHours:
+      workingDays > 0
+        ? stats.workHours /
+          workingDays
+        : 0,
+
+    unitPrice:
+      stats.unitPrice,
+
+    hourlySales:
+      stats.hourlySales,
+
+    bestSalesDay,
+
+    bestDeliveryDay,
+
+    bestHourlyDay,
+  };
+}
+
+// =========================================================
+// 実績編集
+// =========================================================
+
+async function updateResult(
+  userId,
+  resultId,
+  body
+) {
+  const id =
+    parseInteger(resultId);
+
+  if (
+    id === null ||
+    id <= 0
+  ) {
+    return {
+      ok: false,
+      status: 400,
+      error:
+        "実績IDが正しくありません。",
+    };
+  }
+
+  const validation =
+    validateResultInput(body);
+
+  if (
+    validation.error
+  ) {
+    return {
+      ok: false,
+      status: 400,
+      error:
+        validation.error,
+    };
+  }
+
+  const {
+    saleAmount,
+    deliveryCount,
+    workHours,
+  } = validation;
+
+  const rows = await sql`
+    UPDATE delivery_results
+
+    SET
+      sale_amount =
+        ${saleAmount},
+
+      delivery_count =
+        ${deliveryCount},
+
+      work_hours =
+        ${workHours}
+
+    WHERE id =
+      ${id}
+
+      AND telegram_user_id =
+        ${userId}
+
+    RETURNING
+      id,
+      sale_amount,
+      delivery_count,
+      work_hours,
+      created_at
+  `;
+
+  if (
+    rows.length === 0
+  ) {
+    return {
+      ok: false,
+      status: 404,
+      error:
+        "実績が見つかりません。",
+    };
+  }
+
+  const row =
+    rows[0];
+
+  // 監査ログ
+  try {
+    await sql`
+      INSERT INTO audit_logs (
+        telegram_user_id,
+        action,
+        details
+      )
+      VALUES (
+        ${userId},
+        ${"result_update"},
+        ${JSON.stringify({
+          resultId: id,
+          saleAmount,
+          deliveryCount,
+          workHours,
+        })}
+      )
+    `;
+  } catch (error) {
+    console.error(
+      "[RESULT] audit log error:",
+      error?.message
+    );
+  }
+
+  return {
+    ok: true,
+    status: 200,
+
+    result: {
+      id:
+        Number(row.id),
+
+      saleAmount:
+        Number(
+          row.sale_amount
+        ),
+
+      deliveryCount:
+        Number(
+          row.delivery_count
+        ),
+
+      workHours:
+        Number(
+          row.work_hours
+        ),
+
+      createdAt:
+        row.created_at,
+    },
+  };
+}
+
+// =========================================================
+// 実績削除
+// =========================================================
+
+async function deleteResult(
+  userId,
+  resultId
+) {
+  const id =
+    parseInteger(resultId);
+
+  if (
+    id === null ||
+    id <= 0
+  ) {
+    return {
+      ok: false,
+      status: 400,
+      error:
+        "実績IDが正しくありません。",
+    };
+  }
+
+  const rows = await sql`
+    DELETE FROM delivery_results
+
+    WHERE id =
+      ${id}
+
+      AND telegram_user_id =
+        ${userId}
+
+    RETURNING
+      id,
+      sale_amount,
+      delivery_count,
+      work_hours,
+      created_at
+  `;
+
+  if (
+    rows.length === 0
+  ) {
+    return {
+      ok: false,
+      status: 404,
+      error:
+        "実績が見つかりません。",
+    };
+  }
+
+  const row =
+    rows[0];
+
+  // 監査ログ
+  try {
+    await sql`
+      INSERT INTO audit_logs (
+        telegram_user_id,
+        action,
+        details
+      )
+      VALUES (
+        ${userId},
+        ${"result_delete"},
+        ${JSON.stringify({
+          resultId: id,
+          saleAmount:
+            Number(
+              row.sale_amount
+            ),
+          deliveryCount:
+            Number(
+              row.delivery_count
+            ),
+          workHours:
+            Number(
+              row.work_hours
+            ),
+          createdAt:
+            row.created_at,
+        })}
+      )
+    `;
+  } catch (error) {
+    console.error(
+      "[RESULT] audit log error:",
+      error?.message
+    );
+  }
+
+  return {
+    ok: true,
+    status: 200,
+
+    deleted: {
+      id:
+        Number(row.id),
+
+      saleAmount:
+        Number(
+          row.sale_amount
+        ),
+
+      deliveryCount:
+        Number(
+          row.delivery_count
+        ),
+
+      workHours:
+        Number(
+          row.work_hours
+        ),
+
+      createdAt:
+        row.created_at,
+    },
+  };
+}
+
+// =========================================================
+// メソッド別処理
+// =========================================================
+
+async function handleGet(
+  req,
+  userId
+) {
+  const query =
+    req.query || {};
+
+  const period =
+    String(
+      query.period || "month"
+    ).toLowerCase();
+
+  if (
+    ![
+      "today",
+      "week",
+      "month",
+      "year",
+    ].includes(period)
+  ) {
+    return {
+      status: 400,
+      body: {
+        ok: false,
+        error:
+          "periodが正しくありません。",
+      },
+    };
+  }
+
+  const requestedMonth =
+    query.month
+      ? String(query.month)
+      : null;
+
+  const requestedYear =
+    query.year
+      ? String(query.year)
+      : null;
+
+  const range =
+    getPeriodRange(
+      period,
+      requestedMonth,
+      requestedYear
+    );
+
+  if (
+    range?.error
+  ) {
+    return {
+      status: 400,
+      body: {
+        ok: false,
+        error:
+          range.error,
+      },
+    };
+  }
+
+  if (!range) {
+    return {
+      status: 400,
+      body: {
+        ok: false,
+        error:
+          "期間指定が正しくありません。",
+      },
+    };
+  }
+
+  const [
+    stats,
+    recentResults,
+    daily,
+  ] = await Promise.all([
+    getStats(
+      userId,
+      range.start,
+      range.end
+    ),
+
+    getRecentResults(
+      userId,
+      range.start,
+      range.end
+    ),
+
+    getDailyResults(
+      userId,
+      range.start,
+      range.end
+    ),
+  ]);
+
+  const monthlyReport =
+    period === "month"
+      ? buildMonthlyReport(
+          stats,
+          daily
+        )
+      : null;
+
+  return {
+    status: 200,
+
+    body: {
+      ok: true,
+
+      period,
+
+      requestedMonth,
+
+      requestedYear,
+
+      label:
+        range.label,
+
+      range: {
+        start:
+          range.start,
+
+        end:
+          range.end,
+      },
+
+      stats,
+
+      monthlyReport,
+
+      recentResults,
+
+      daily,
+    },
+  };
+}
+
+async function handlePut(
+  req,
+  userId
+) {
+  const body =
+    req.body || {};
+
+  const resultId =
+    body.id ??
+    req.query?.id;
+
+  return await updateResult(
+    userId,
+    resultId,
+    body
+  );
+}
+
+async function handleDelete(
+  req,
+  userId
+) {
+  const resultId =
+    req.query?.id ??
+    req.body?.id;
+
+  return await deleteResult(
+    userId,
+    resultId
+  );
+}
+
+// =========================================================
+// Vercel API
 // =========================================================
 
 module.exports =
@@ -614,192 +1351,131 @@ module.exports =
     req,
     res
   ) {
-
-    if (req.method !== "GET") {
-      return res.status(405).json({
-        ok: false,
-        error:
-          "Method Not Allowed",
-      });
-    }
-
     try {
+      console.log(
+        "[RESULT] request:",
+        {
+          method:
+            req.method,
 
-      // -----------------------------------------------------
+          url:
+            req.url,
+        }
+      );
+
+      // ---------------------------------------------------
       // Telegramユーザー認証
-      // -----------------------------------------------------
+      // ---------------------------------------------------
 
       const userId =
         getTelegramUserId(req);
 
       if (!userId) {
-        return res.status(401).json({
-          ok: false,
-          error:
-            "Telegram認証が必要です。",
-        });
+        return res
+          .status(401)
+          .json({
+            ok: false,
+            error:
+              "Telegram認証が確認できません。",
+          });
       }
 
-      // -----------------------------------------------------
-      // パラメータ
-      // -----------------------------------------------------
+      // ---------------------------------------------------
+      // GET
+      // ---------------------------------------------------
 
-      const period =
-        String(
-          req.query?.period ||
-          "today"
-        ).toLowerCase();
+      if (
+        req.method === "GET"
+      ) {
+        const result =
+          await handleGet(
+            req,
+            userId
+          );
 
-      const requestedMonth =
-        req.query?.month
-          ? String(
-              req.query.month
-            )
-          : "";
-
-      const requestedYear =
-        req.query?.year
-          ? String(
-              req.query.year
-            )
-          : "";
-
-      // -----------------------------------------------------
-      // 期間
-      // -----------------------------------------------------
-
-      const range =
-        getPeriodRange(
-          period,
-          requestedMonth,
-          requestedYear
-        );
-
-      if (!range) {
-        return res.status(400).json({
-          ok: false,
-          error:
-            "期間指定が正しくありません。",
-        });
+        return res
+          .status(result.status)
+          .json(result.body);
       }
 
-      if (range.error) {
-        return res.status(400).json({
-          ok: false,
-          error:
-            range.error,
-        });
+      // ---------------------------------------------------
+      // PUT
+      // ---------------------------------------------------
+
+      if (
+        req.method === "PUT"
+      ) {
+        const result =
+          await handlePut(
+            req,
+            userId
+          );
+
+        return res
+          .status(result.status)
+          .json(result);
       }
 
-      // -----------------------------------------------------
-      // 個人集計
-      // -----------------------------------------------------
+      // ---------------------------------------------------
+      // PATCHもPUTと同じ扱い
+      // ---------------------------------------------------
 
-      const stats =
-        await getStats(
-          userId,
-          range.start,
-          range.end
-        );
+      if (
+        req.method === "PATCH"
+      ) {
+        const result =
+          await handlePut(
+            req,
+            userId
+          );
 
-      // -----------------------------------------------------
-      // 履歴
-      // -----------------------------------------------------
+        return res
+          .status(result.status)
+          .json(result);
+      }
 
-      const recentResults =
-        await getRecentResults(
-          userId,
-          range.start,
-          range.end
-        );
+      // ---------------------------------------------------
+      // DELETE
+      // ---------------------------------------------------
 
-      // -----------------------------------------------------
-      // 日別
-      // -----------------------------------------------------
+      if (
+        req.method === "DELETE"
+      ) {
+        const result =
+          await handleDelete(
+            req,
+            userId
+          );
 
-      const daily =
-        await getDailyResults(
-          userId,
-          range.start,
-          range.end
-        );
+        return res
+          .status(result.status)
+          .json(result);
+      }
 
-      // -----------------------------------------------------
-      // Response
-      // -----------------------------------------------------
+      // ---------------------------------------------------
+      // その他
+      // ---------------------------------------------------
 
-      return res.status(200).json({
-
-        ok: true,
-
-        period,
-
-        requestedMonth:
-          requestedMonth ||
-          null,
-
-        requestedYear:
-          requestedYear ||
-          null,
-
-        label:
-          range.label,
-
-        range: {
-          start:
-            range.start,
-
-          end:
-            range.end,
-        },
-
-        stats: {
-
-          records:
-            stats.records,
-
-          sales:
-            stats.sales,
-
-          deliveryCount:
-            stats.deliveryCount,
-
-          workHours:
-            stats.workHours,
-
-          unitPrice:
-            stats.unitPrice,
-
-          hourlySales:
-            stats.hourlySales,
-        },
-
-        recentResults,
-
-        daily,
-
-      });
+      return res
+        .status(405)
+        .json({
+          ok: false,
+          error:
+            "Method Not Allowed",
+        });
 
     } catch (error) {
-
       console.error(
         "[RESULT] API error:",
-        {
-          name:
-            error?.name,
-
-          message:
-            error?.message,
-
-          stack:
-            error?.stack,
-        }
+        error
       );
 
-      return res.status(500).json({
-        ok: false,
-        error:
-          "実績データの取得に失敗しました。",
-      });
+      return res
+        .status(500)
+        .json({
+          ok: false,
+          error:
+            "サーバーエラーが発生しました。",
+        });
     }
   };
