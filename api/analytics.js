@@ -1,373 +1,835 @@
-const crypto = require("crypto");
 const { neon } = require("@neondatabase/serverless");
 
 const sql = neon(process.env.DATABASE_URL);
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const JST = "Asia/Tokyo";
-const MAX_AUTH_AGE = 60 * 60;
 
-function validateTelegramInitData(initData) {
-  if (!initData) {
-    throw new Error("Telegram initData がありません");
-  }
-
-  if (!BOT_TOKEN) {
-    throw new Error("BOT_TOKEN が設定されていません");
-  }
-
-  const params = new URLSearchParams(initData);
-  const hash = params.get("hash");
-  const authDate = Number(params.get("auth_date"));
-
-  if (!hash || !authDate) {
-    throw new Error("Telegram initData が不正です");
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-
-  if (Math.abs(now - authDate) > MAX_AUTH_AGE) {
-    throw new Error("Telegram initData の有効期限が切れています");
-  }
-
-  const dataCheckString = [...params.entries()]
-    .filter(([key]) => key !== "hash")
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${key}=${value}`)
-    .join("\n");
-
-  const secretKey = crypto
-    .createHmac("sha256", "WebAppData")
-    .update(BOT_TOKEN)
-    .digest();
-
-  const calculatedHash = crypto
-    .createHmac("sha256", secretKey)
-    .update(dataCheckString)
-    .digest("hex");
-
-  const receivedBuffer = Buffer.from(hash, "hex");
-  const calculatedBuffer = Buffer.from(calculatedHash, "hex");
-
-  if (
-    receivedBuffer.length !== calculatedBuffer.length ||
-    !crypto.timingSafeEqual(receivedBuffer, calculatedBuffer)
-  ) {
-    throw new Error("Telegram initData の署名が不正です");
-  }
-
-  const userRaw = params.get("user");
-
-  if (!userRaw) {
-    throw new Error("Telegramユーザー情報がありません");
-  }
-
-  const user = JSON.parse(userRaw);
-
-  if (!user.id) {
-    throw new Error("TelegramユーザーIDが取得できません");
-  }
-
-  return String(user.id);
+function json(res, status, data) {
+  res.status(status).json(data);
 }
 
-module.exports = async function handler(req, res) {
-  res.setHeader("Cache-Control", "no-store");
 
-  if (req.method !== "GET") {
-    return res.status(405).json({
-      ok: false,
-      error: "Method Not Allowed",
-    });
+/* =========================================
+   Telegram initData 認証
+========================================= */
+
+function verifyTelegramInitData(initData) {
+  if (!BOT_TOKEN || !initData) {
+    return null;
   }
 
   try {
-    const initData =
-      req.headers["x-telegram-init-data"] ||
-      req.headers["X-Telegram-Init-Data"];
+    const params = new URLSearchParams(initData);
 
-    const telegramUserId = validateTelegramInitData(initData);
+    const hash = params.get("hash");
 
-    const rows = await sql`
-      WITH base AS (
+    if (!hash) {
+      return null;
+    }
+
+    params.delete("hash");
+
+    const dataCheckString = [...params.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, value]) => `${key}=${value}`)
+      .join("\n");
+
+    const crypto = require("crypto");
+
+    const secretKey = crypto
+      .createHmac("sha256", "WebAppData")
+      .update(BOT_TOKEN)
+      .digest();
+
+    const calculatedHash = crypto
+      .createHmac("sha256", secretKey)
+      .update(dataCheckString)
+      .digest("hex");
+
+    if (calculatedHash !== hash) {
+      return null;
+    }
+
+    const authDate = Number(params.get("auth_date"));
+
+    if (!authDate) {
+      return null;
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+
+    if (now - authDate > 3600) {
+      return null;
+    }
+
+    const user = JSON.parse(
+      params.get("user") || "{}"
+    );
+
+    if (!user.id) {
+      return null;
+    }
+
+    return String(user.id);
+
+  } catch (error) {
+
+    console.error(
+      "Telegram auth error:",
+      error
+    );
+
+    return null;
+  }
+}
+
+
+/* =========================================
+   JST日付
+========================================= */
+
+function getJstDate() {
+
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: JST,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }
+  ).format(new Date());
+
+}
+
+
+function getJstDateOffset(days) {
+
+  const now = new Date();
+
+  const jstString =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone: JST,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      }
+    ).format(now);
+
+  const base =
+    new Date(jstString);
+
+  base.setDate(
+    base.getDate() + days
+  );
+
+  const year =
+    base.getFullYear();
+
+  const month =
+    String(
+      base.getMonth() + 1
+    ).padStart(2, "0");
+
+  const day =
+    String(
+      base.getDate()
+    ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+
+}
+
+
+/* =========================================
+   メイン
+========================================= */
+
+module.exports = async function handler(req, res) {
+
+  if (req.method !== "GET") {
+
+    return json(
+      res,
+      405,
+      {
+        ok: false,
+        error: "Method Not Allowed"
+      }
+    );
+
+  }
+
+
+  const userId =
+    verifyTelegramInitData(
+      req.headers["x-telegram-init-data"]
+    );
+
+
+  if (!userId) {
+
+    return json(
+      res,
+      401,
+      {
+        ok: false,
+        error: "Unauthorized"
+      }
+    );
+
+  }
+
+
+  try {
+
+    const today =
+      getJstDate();
+
+    const yesterday =
+      getJstDateOffset(-1);
+
+
+    /* =====================================
+       基本集計
+    ===================================== */
+
+    const [
+      todayResult,
+      yesterdayResult,
+      weekResult,
+      monthResult,
+      goalResult,
+      bestResult
+    ] = await Promise.all([
+
+      sql`
         SELECT
-          sale_amount,
-          delivery_count,
-          work_hours,
-          (created_at AT TIME ZONE ${JST})::date AS local_date
+          COALESCE(SUM(sale_amount), 0) AS sales,
+          COALESCE(SUM(delivery_count), 0) AS count,
+          COALESCE(SUM(work_hours), 0) AS hours
         FROM delivery_results
-        WHERE telegram_user_id = ${telegramUserId}
-      ),
+        WHERE telegram_user_id = ${userId}
+          AND (created_at AT TIME ZONE ${JST})::date = ${today}::date
+      `,
 
-      dates AS (
+      sql`
         SELECT
-          (NOW() AT TIME ZONE ${JST})::date AS today,
+          COALESCE(SUM(sale_amount), 0) AS sales,
+          COALESCE(SUM(delivery_count), 0) AS count
+        FROM delivery_results
+        WHERE telegram_user_id = ${userId}
+          AND (created_at AT TIME ZONE ${JST})::date = ${yesterday}::date
+      `,
+
+      sql`
+        SELECT
+          COALESCE(SUM(sale_amount), 0) AS sales,
+          COALESCE(SUM(delivery_count), 0) AS count,
+          COALESCE(SUM(work_hours), 0) AS hours
+        FROM delivery_results
+        WHERE telegram_user_id = ${userId}
+          AND date_trunc(
+            'week',
+            created_at AT TIME ZONE ${JST}
+          )
+          =
           date_trunc(
             'week',
-            (NOW() AT TIME ZONE ${JST})::timestamp
-          )::date AS week_start,
+            ${today}::date
+          )
+      `,
+
+      sql`
+        SELECT
+          COALESCE(SUM(sale_amount), 0) AS sales,
+          COALESCE(SUM(delivery_count), 0) AS count,
+          COALESCE(SUM(work_hours), 0) AS hours,
+          COUNT(
+            DISTINCT
+            (created_at AT TIME ZONE ${JST})::date
+          ) AS work_days
+        FROM delivery_results
+        WHERE telegram_user_id = ${userId}
+          AND date_trunc(
+            'month',
+            created_at AT TIME ZONE ${JST}
+          )
+          =
           date_trunc(
             'month',
-            (NOW() AT TIME ZONE ${JST})::timestamp
-          )::date AS month_start
-      ),
+            ${today}::date
+          )
+      `,
 
-      summary AS (
+      sql`
+        SELECT monthly_goal
+        FROM delivery_goals
+        WHERE telegram_user_id = ${userId}
+        LIMIT 1
+      `,
+
+      /* =================================
+         自己ベスト
+      ================================= */
+
+      sql`
         SELECT
-          COALESCE(SUM(sale_amount) FILTER (
-            WHERE local_date = today
-          ), 0) AS today_sales,
 
-          COALESCE(SUM(delivery_count) FILTER (
-            WHERE local_date = today
-          ), 0) AS today_count,
+          COALESCE(
+            MAX(delivery_count),
+            0
+          ) AS best_count,
 
-          COALESCE(SUM(work_hours) FILTER (
-            WHERE local_date = today
-          ), 0) AS today_hours,
+          COALESCE(
+            MAX(sale_amount),
+            0
+          ) AS best_sales,
 
-          COALESCE(SUM(sale_amount) FILTER (
-            WHERE local_date = today - INTERVAL '1 day'
-          ), 0) AS yesterday_sales,
+          COALESCE(
+            MAX(
+              CASE
+                WHEN work_hours > 0
+                THEN delivery_count / work_hours
+                ELSE 0
+              END
+            ),
+            0
+          ) AS best_count_per_hour,
 
-          COALESCE(SUM(delivery_count) FILTER (
-            WHERE local_date = today - INTERVAL '1 day'
-          ), 0) AS yesterday_count,
+          COALESCE(
+            MAX(
+              CASE
+                WHEN work_hours > 0
+                THEN sale_amount / work_hours
+                ELSE 0
+              END
+            ),
+            0
+          ) AS best_sales_per_hour
 
-          COALESCE(SUM(delivery_count) FILTER (
-            WHERE local_date >= week_start
-          ), 0) AS week_count,
+        FROM delivery_results
 
-          COALESCE(SUM(sale_amount) FILTER (
-            WHERE local_date >= week_start
-          ), 0) AS week_sales,
+        WHERE telegram_user_id = ${userId}
+      `
+    ]);
 
-          COALESCE(SUM(delivery_count) FILTER (
-            WHERE local_date >= month_start
-          ), 0) AS month_count,
 
-          COALESCE(SUM(sale_amount) FILTER (
-            WHERE local_date >= month_start
-          ), 0) AS month_sales,
+    const todayData =
+      todayResult[0] || {};
 
-          COALESCE(SUM(work_hours) FILTER (
-            WHERE local_date >= month_start
-          ), 0) AS month_hours,
+    const yesterdayData =
+      yesterdayResult[0] || {};
 
-          COUNT(DISTINCT local_date) FILTER (
-            WHERE local_date >= month_start
-          ) AS month_work_days,
+    const weekData =
+      weekResult[0] || {};
 
-          COALESCE(SUM(delivery_count) FILTER (
-            WHERE local_date >= month_start
-              AND local_date < week_start
-          ), 0) AS before_current_week_count
+    const monthData =
+      monthResult[0] || {};
 
-        FROM base
-        CROSS JOIN dates
-      )
+    const goal =
+      Number(
+        goalResult[0]?.monthly_goal || 0
+      );
 
-      SELECT *
-      FROM summary
-    `;
+    const bestData =
+      bestResult[0] || {};
 
-    const goalRows = await sql`
-      SELECT monthly_goal
-      FROM delivery_goals
-      WHERE telegram_user_id = ${telegramUserId}
-      LIMIT 1
-    `;
 
-    const row = rows[0] || {};
+    const todaySales =
+      Number(
+        todayData.sales || 0
+      );
 
-    const goal = Number(
-      goalRows[0]?.monthly_goal || 0
-    );
+    const todayCount =
+      Number(
+        todayData.count || 0
+      );
 
-    const todaySales = Number(row.today_sales || 0);
-    const todayCount = Number(row.today_count || 0);
-    const todayHours = Number(row.today_hours || 0);
+    const todayHours =
+      Number(
+        todayData.hours || 0
+      );
 
-    const yesterdaySales = Number(
-      row.yesterday_sales || 0
-    );
 
-    const yesterdayCount = Number(
-      row.yesterday_count || 0
-    );
+    const yesterdaySales =
+      Number(
+        yesterdayData.sales || 0
+      );
 
-    const weekSales = Number(
-      row.week_sales || 0
-    );
+    const yesterdayCount =
+      Number(
+        yesterdayData.count || 0
+      );
 
-    const weekCount = Number(
-      row.week_count || 0
-    );
 
-    const monthSales = Number(
-      row.month_sales || 0
-    );
+    const monthSales =
+      Number(
+        monthData.sales || 0
+      );
 
-    const monthCount = Number(
-      row.month_count || 0
-    );
+    const monthCount =
+      Number(
+        monthData.count || 0
+      );
 
-    const monthHours = Number(
-      row.month_hours || 0
-    );
+    const monthHours =
+      Number(
+        monthData.hours || 0
+      );
 
-    const monthWorkDays = Number(
-      row.month_work_days || 0
-    );
+    const workDays =
+      Number(
+        monthData.work_days || 0
+      );
 
-    // 平均単価
-    const averageUnitPrice =
-      monthCount > 0
-        ? Math.round(monthSales / monthCount)
-        : 0;
 
-    // 1日平均
-    const averageDailyCount =
-      monthWorkDays > 0
-        ? Math.round(monthCount / monthWorkDays)
-        : 0;
+    /* =====================================
+       月の日数
+    ===================================== */
 
-    const averageDailySales =
-      monthWorkDays > 0
-        ? Math.round(monthSales / monthWorkDays)
-        : 0;
+    const now =
+      new Date();
 
-    // JST現在日
-    const nowJst = new Date(
-      new Date().toLocaleString("en-US", {
-        timeZone: JST,
-      })
-    );
+    const jstNow =
+      new Date(
+        now.toLocaleString(
+          "en-US",
+          {
+            timeZone: JST
+          }
+        )
+      );
 
-    const currentDay = nowJst.getDate();
 
-    const year = nowJst.getFullYear();
-    const month = nowJst.getMonth();
+    const year =
+      jstNow.getFullYear();
 
-    // 今月の日数
-    const daysInMonth = new Date(
-      year,
-      month + 1,
-      0
-    ).getDate();
+    const month =
+      jstNow.getMonth();
+
+
+    const daysInMonth =
+      new Date(
+        year,
+        month + 1,
+        0
+      ).getDate();
+
+
+    const elapsedDays =
+      Math.max(
+        1,
+        jstNow.getDate()
+      );
+
 
     const remainingDays =
-      Math.max(daysInMonth - currentDay, 0);
+      Math.max(
+        0,
+        daysInMonth -
+        elapsedDays
+      );
 
-    // 現在ペース
+
+    /* =====================================
+       基本分析
+    ===================================== */
+
+    const averageDailyCount =
+      monthCount /
+      elapsedDays;
+
+
+    const averageDailySales =
+      monthSales /
+      elapsedDays;
+
+
     const currentDailyPace =
-      currentDay > 0
-        ? monthCount / currentDay
-        : 0;
+      averageDailyCount;
 
-    // 月末予測
-    const projectedMonthCount = Math.round(
-      currentDailyPace * daysInMonth
-    );
 
-    const projectedMonthSales = Math.round(
-      monthSales / Math.max(currentDay, 1) *
-      daysInMonth
-    );
+    const projectedMonthCount =
+      currentDailyPace *
+      daysInMonth;
 
-    // 目標達成率
-    const goalRate =
-      goal > 0
-        ? Math.min(
-            100,
-            Math.round(
-              (monthCount / goal) * 100
-            )
-          )
-        : 0;
 
-    // 残り必要件数
+    const projectedMonthSales =
+      averageDailySales *
+      daysInMonth;
+
+
     const remainingGoalCount =
-      Math.max(goal - monthCount, 0);
+      Math.max(
+        0,
+        goal - monthCount
+      );
 
-    // 目標達成に必要な1日平均
+
     const requiredDailyCount =
       remainingDays > 0
-        ? Math.ceil(
-            remainingGoalCount /
-            remainingDays
-          )
+        ? remainingGoalCount /
+          remainingDays
         : remainingGoalCount;
 
-    // 前日比
+
+    const goalRate =
+      goal > 0
+        ? (monthCount / goal) * 100
+        : 0;
+
+
+    const averageUnitPrice =
+      monthCount > 0
+        ? monthSales / monthCount
+        : 0;
+
+
     const salesChangeFromYesterday =
-      yesterdaySales > 0
-        ? Math.round(
-            ((todaySales - yesterdaySales) /
-              yesterdaySales) *
-              100
-          )
-        : null;
+      todaySales -
+      yesterdaySales;
+
 
     const countChangeFromYesterday =
-      yesterdayCount > 0
-        ? Math.round(
-            ((todayCount - yesterdayCount) /
-              yesterdayCount) *
-              100
+      todayCount -
+      yesterdayCount;
+
+
+    /* =====================================
+       時間効率
+    ===================================== */
+
+    const countPerHour =
+      monthHours > 0
+        ? monthCount / monthHours
+        : 0;
+
+
+    const salesPerHour =
+      monthHours > 0
+        ? monthSales / monthHours
+        : 0;
+
+
+    const todayCountPerHour =
+      todayHours > 0
+        ? todayCount / todayHours
+        : 0;
+
+
+    const todaySalesPerHour =
+      todayHours > 0
+        ? todaySales / todayHours
+        : 0;
+
+
+    /* =====================================
+       自己ベスト
+    ===================================== */
+
+    const bestCount =
+      Number(
+        bestData.best_count || 0
+      );
+
+
+    const bestSales =
+      Number(
+        bestData.best_sales || 0
+      );
+
+
+    const bestCountPerHour =
+      Number(
+        bestData.best_count_per_hour || 0
+      );
+
+
+    const bestSalesPerHour =
+      Number(
+        bestData.best_sales_per_hour || 0
+      );
+
+
+    /* =====================================
+       月間日別推移
+    ===================================== */
+
+    const dailyResult =
+      await sql`
+
+        SELECT
+
+          (created_at AT TIME ZONE ${JST})::date
+            AS date,
+
+          COALESCE(
+            SUM(sale_amount),
+            0
+          ) AS sales,
+
+          COALESCE(
+            SUM(delivery_count),
+            0
+          ) AS count,
+
+          COALESCE(
+            SUM(work_hours),
+            0
+          ) AS hours
+
+        FROM delivery_results
+
+        WHERE telegram_user_id = ${userId}
+
+          AND date_trunc(
+            'month',
+            created_at AT TIME ZONE ${JST}
           )
-        : null;
+          =
+          date_trunc(
+            'month',
+            ${today}::date
+          )
 
-    return res.status(200).json({
-      ok: true,
+        GROUP BY
+          (created_at AT TIME ZONE ${JST})::date
 
-      today: {
-        sales: todaySales,
-        count: todayCount,
-        hours: todayHours,
-      },
+        ORDER BY
+          date ASC
 
-      yesterday: {
-        sales: yesterdaySales,
-        count: yesterdayCount,
-      },
+      `;
 
-      week: {
-        sales: weekSales,
-        count: weekCount,
-      },
 
-      month: {
-        sales: monthSales,
-        count: monthCount,
-        hours: monthHours,
-        workDays: monthWorkDays,
-      },
+    const daily =
+      dailyResult.map(row => ({
 
-      analysis: {
-        averageUnitPrice,
-        averageDailyCount,
-        averageDailySales,
-        currentDailyPace,
-        projectedMonthCount,
-        projectedMonthSales,
-        remainingDays,
-        remainingGoalCount,
-        requiredDailyCount,
+        date:
+          row.date,
+
+        sales:
+          Number(
+            row.sales || 0
+          ),
+
+        count:
+          Number(
+            row.count || 0
+          ),
+
+        hours:
+          Number(
+            row.hours || 0
+          ),
+
+        countPerHour:
+          Number(row.hours || 0) > 0
+            ? Number(row.count || 0) /
+              Number(row.hours)
+            : 0,
+
+        salesPerHour:
+          Number(row.hours || 0) > 0
+            ? Number(row.sales || 0) /
+              Number(row.hours)
+            : 0
+
+      }));
+
+
+    /* =====================================
+       月内最高日
+    ===================================== */
+
+    let bestDayCount = 0;
+    let bestDayCountDate = null;
+
+    let bestDaySales = 0;
+    let bestDaySalesDate = null;
+
+
+    for (const day of daily) {
+
+      if (
+        day.count >
+        bestDayCount
+      ) {
+
+        bestDayCount =
+          day.count;
+
+        bestDayCountDate =
+          day.date;
+
+      }
+
+
+      if (
+        day.sales >
+        bestDaySales
+      ) {
+
+        bestDaySales =
+          day.sales;
+
+        bestDaySalesDate =
+          day.date;
+
+      }
+
+    }
+
+
+    /* =====================================
+       レスポンス
+    ===================================== */
+
+    return json(
+      res,
+      200,
+      {
+
+        ok: true,
+
+        today: {
+          sales: todaySales,
+          count: todayCount,
+          hours: todayHours
+        },
+
+        yesterday: {
+          sales: yesterdaySales,
+          count: yesterdayCount
+        },
+
+        week: {
+          sales: Number(
+            weekData.sales || 0
+          ),
+          count: Number(
+            weekData.count || 0
+          ),
+          hours: Number(
+            weekData.hours || 0
+          )
+        },
+
+        month: {
+          sales: monthSales,
+          count: monthCount,
+          hours: monthHours,
+          workDays
+        },
+
         goal,
-        goalRate,
-        salesChangeFromYesterday,
-        countChangeFromYesterday,
-      },
-    });
-  } catch (error) {
-    console.error("analytics API error:", error);
 
-    return res.status(401).json({
-      ok: false,
-      error:
-        error.message ||
-        "分析データの取得に失敗しました",
-    });
+        analysis: {
+
+          /* 基本 */
+
+          averageDailyCount,
+
+          averageDailySales,
+
+          currentDailyPace,
+
+          projectedMonthCount,
+
+          projectedMonthSales,
+
+          remainingDays,
+
+          remainingGoalCount,
+
+          requiredDailyCount,
+
+          goalRate,
+
+          averageUnitPrice,
+
+          salesChangeFromYesterday,
+
+          countChangeFromYesterday,
+
+
+          /* 時間効率 */
+
+          countPerHour,
+
+          salesPerHour,
+
+          todayCountPerHour,
+
+          todaySalesPerHour,
+
+
+          /* 自己ベスト */
+
+          bestCount,
+
+          bestSales,
+
+          bestCountPerHour,
+
+          bestSalesPerHour,
+
+
+          /* 月間ベスト */
+
+          bestDayCount,
+
+          bestDayCountDate,
+
+          bestDaySales,
+
+          bestDaySalesDate,
+
+
+          /* 補助 */
+
+          elapsedDays,
+
+          daysInMonth
+
+        },
+
+
+        /* =================================
+           グラフ用データ
+        ================================= */
+
+        daily
+
+      }
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "analytics error:",
+      error
+    );
+
+
+    return json(
+      res,
+      500,
+      {
+        ok: false,
+        error:
+          "分析データの取得に失敗しました。"
+      }
+    );
+
   }
+
 };
