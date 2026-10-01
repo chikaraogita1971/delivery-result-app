@@ -1,13 +1,23 @@
 import { neon } from "@neondatabase/serverless";
 import crypto from "crypto";
 
-const sql = neon(process.env.POSTGRES_URL);
+const sql = neon(process.env.DATABASE_URL);
 
 const MAX_AUTH_AGE_SECONDS = 60 * 60;
 
+// =========================================================
+// Telegram initData 検証
+// =========================================================
+
 function validateTelegramInitData(initData) {
-  if (!initData || typeof initData !== "string") {
+  if (!initData) {
     throw new Error("Telegram initData がありません。");
+  }
+
+  const botToken = process.env.BOT_TOKEN;
+
+  if (!botToken) {
+    throw new Error("BOT_TOKEN が設定されていません。");
   }
 
   const params = new URLSearchParams(initData);
@@ -15,6 +25,23 @@ function validateTelegramInitData(initData) {
 
   if (!receivedHash) {
     throw new Error("Telegram hash がありません。");
+  }
+
+  const authDate = Number(params.get("auth_date"));
+
+  if (!Number.isInteger(authDate) || authDate <= 0) {
+    throw new Error("Telegram auth_date が不正です。");
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+
+  if (
+    Math.abs(now - authDate) >
+    MAX_AUTH_AGE_SECONDS
+  ) {
+    throw new Error(
+      "Telegram initData の有効期限が切れています。"
+    );
   }
 
   params.delete("hash");
@@ -26,7 +53,7 @@ function validateTelegramInitData(initData) {
 
   const secretKey = crypto
     .createHmac("sha256", "WebAppData")
-    .update(process.env.BOT_TOKEN)
+    .update(botToken)
     .digest();
 
   const calculatedHash = crypto
@@ -34,8 +61,15 @@ function validateTelegramInitData(initData) {
     .update(dataCheckString)
     .digest("hex");
 
-  const receivedBuffer = Buffer.from(receivedHash, "hex");
-  const calculatedBuffer = Buffer.from(calculatedHash, "hex");
+  const receivedBuffer = Buffer.from(
+    receivedHash,
+    "hex"
+  );
+
+  const calculatedBuffer = Buffer.from(
+    calculatedHash,
+    "hex"
+  );
 
   if (
     receivedBuffer.length !== calculatedBuffer.length ||
@@ -44,36 +78,14 @@ function validateTelegramInitData(initData) {
       calculatedBuffer
     )
   ) {
-    throw new Error("Telegram initData の署名が不正です。");
-  }
-
-  const authDate = Number(
-    params.get("auth_date")
-  );
-
-  if (
-    !Number.isInteger(authDate) ||
-    authDate <= 0
-  ) {
-    throw new Error("Telegram auth_date が不正です。");
-  }
-
-  const now =
-    Math.floor(Date.now() / 1000);
-
-  if (
-    now - authDate >
-    MAX_AUTH_AGE_SECONDS
-  ) {
     throw new Error(
-      "Telegram initData の有効期限が切れています。"
+      "Telegram initData の署名が不正です。"
     );
   }
 
-  const userJson =
-    params.get("user");
+  const userRaw = params.get("user");
 
-  if (!userJson) {
+  if (!userRaw) {
     throw new Error(
       "Telegramユーザー情報がありません。"
     );
@@ -82,10 +94,10 @@ function validateTelegramInitData(initData) {
   let user;
 
   try {
-    user = JSON.parse(userJson);
+    user = JSON.parse(userRaw);
   } catch {
     throw new Error(
-      "Telegramユーザー情報を解析できません。"
+      "Telegramユーザー情報が不正です。"
     );
   }
 
@@ -98,12 +110,16 @@ function validateTelegramInitData(initData) {
   return String(user.id);
 }
 
+// =========================================================
+// 管理者ID
+// =========================================================
+
 function getAdminIds() {
   return String(
-    process.env.ADMIN_TELEGRAM_USER_IDS || ""
+    process.env.ADMIN_TELEGRAM_IDS || ""
   )
     .split(",")
-    .map(id => id.trim())
+    .map((id) => id.trim())
     .filter(Boolean);
 }
 
@@ -113,47 +129,28 @@ function isAdmin(userId) {
   );
 }
 
-async function writeAuditLog(
-  telegramUserId,
-  chatId,
-  action,
-  details = {}
-) {
-  try {
-    await sql`
-      INSERT INTO audit_logs (
-        telegram_user_id,
-        chat_id,
-        action,
-        details
-      )
-      VALUES (
-        ${String(telegramUserId)},
-        ${chatId ? String(chatId) : null},
-        ${action},
-        ${JSON.stringify(details)}
-      )
-    `;
-  } catch (error) {
-    console.error(
-      "Audit log error:",
-      error
-    );
-  }
-}
+// =========================================================
+// API
+// =========================================================
 
-export default async function handler(
-  req,
-  res
-) {
-  if (req.method !== "POST") {
+export default async function handler(req, res) {
+  res.setHeader(
+    "Cache-Control",
+    "no-store"
+  );
+
+  if (req.method !== "GET") {
     return res.status(405).json({
       ok: false,
-      error: "Method Not Allowed"
+      error: "Method Not Allowed",
     });
   }
 
   try {
+    // =====================================================
+    // Telegram認証
+    // =====================================================
+
     const initData =
       req.headers[
         "x-telegram-init-data"
@@ -163,7 +160,7 @@ export default async function handler(
       return res.status(401).json({
         ok: false,
         error:
-          "Telegram認証情報がありません。"
+          "Telegram認証情報がありません。",
       });
     }
 
@@ -172,152 +169,212 @@ export default async function handler(
         initData
       );
 
-    if (!isAdmin(telegramUserId)) {
-      await writeAuditLog(
-        telegramUserId,
-        null,
-        "admin_reset_denied",
-        {}
-      );
+    // =====================================================
+    // 管理者チェック
+    // =====================================================
 
+    if (!isAdmin(telegramUserId)) {
       return res.status(403).json({
         ok: false,
         error:
-          "管理者権限がありません。"
+          "管理者権限がありません。",
       });
     }
 
-    let body = req.body;
+    // =====================================================
+    // 全体集計
+    // 個人データのみ
+    // =====================================================
 
-    if (
-      typeof body === "string"
-    ) {
-      try {
-        body = JSON.parse(body);
-      } catch {
-        body = {};
-      }
-    }
+    const [
+      totalResult,
+      todayResult,
+      monthResult,
+      userResult,
+      latestResult,
+    ] = await Promise.all([
+      sql`
+        SELECT
+          COUNT(*)::int AS record_count,
+          COALESCE(
+            SUM(sale_amount),
+            0
+          )::bigint AS total_sales,
+          COALESCE(
+            SUM(delivery_count),
+            0
+          )::bigint AS total_deliveries,
+          COALESCE(
+            SUM(work_hours),
+            0
+          )::numeric AS total_hours
+        FROM delivery_results
+      `,
 
-    body = body || {};
+      sql`
+        SELECT
+          COUNT(*)::int AS record_count,
+          COUNT(
+            DISTINCT telegram_user_id
+          )::int AS active_users,
+          COALESCE(
+            SUM(sale_amount),
+            0
+          )::bigint AS total_sales,
+          COALESCE(
+            SUM(delivery_count),
+            0
+          )::bigint AS total_deliveries,
+          COALESCE(
+            SUM(work_hours),
+            0
+          )::numeric AS total_hours
+        FROM delivery_results
+        WHERE (
+          created_at AT TIME ZONE
+          'Asia/Tokyo'
+        )::date =
+        (
+          NOW() AT TIME ZONE
+          'Asia/Tokyo'
+        )::date
+      `,
 
-    const action =
-      body.action || "all";
+      sql`
+        SELECT
+          COUNT(*)::int AS record_count,
+          COUNT(
+            DISTINCT telegram_user_id
+          )::int AS active_users,
+          COALESCE(
+            SUM(sale_amount),
+            0
+          )::bigint AS total_sales,
+          COALESCE(
+            SUM(delivery_count),
+            0
+          )::bigint AS total_deliveries,
+          COALESCE(
+            SUM(work_hours),
+            0
+          )::numeric AS total_hours
+        FROM delivery_results
+        WHERE (
+          created_at AT TIME ZONE
+          'Asia/Tokyo'
+        ) >= date_trunc(
+          'month',
+          NOW() AT TIME ZONE
+          'Asia/Tokyo'
+        )
+      `,
 
-    /*
-    ==========================================================
-    全体初期化
-    ==========================================================
-    */
+      sql`
+        SELECT
+          COUNT(
+            DISTINCT telegram_user_id
+          )::int AS user_count
+        FROM delivery_results
+      `,
 
-    if (action === "all") {
-      const result =
-        await sql`
-          DELETE FROM delivery_results
-        `;
+      sql`
+        SELECT
+          id,
+          telegram_user_id,
+          sale_amount,
+          delivery_count,
+          work_hours,
+          created_at
+        FROM delivery_results
+        ORDER BY created_at DESC
+        LIMIT 20
+      `,
+    ]);
 
-      await sql`
-        DELETE FROM delivery_goals
-      `;
+    const total = totalResult[0] || {};
+    const today = todayResult[0] || {};
+    const month = monthResult[0] || {};
+    const users = userResult[0] || {};
 
-      await writeAuditLog(
-        telegramUserId,
-        null,
-        "admin_reset_all",
-        {
-          deletedResults:
-            Number(
-              result?.count || 0
-            ),
-          deletedGoals: true
-        }
-      );
+    // =====================================================
+    // 最新データ
+    // =====================================================
 
-      return res.status(200).json({
-        ok: true,
-        action: "all",
-        message:
-          "管理データを初期化しました。"
-      });
-    }
+    const latest = latestResult.map((row) => ({
+      id: Number(row.id),
+      telegramUserId:
+        String(row.telegram_user_id),
+      sale: Number(row.sale_amount),
+      count: Number(row.delivery_count),
+      hours: Number(row.work_hours),
+      createdAt: row.created_at,
+    }));
 
-    /*
-    ==========================================================
-    グループ初期化
-    ==========================================================
-    */
+    // =====================================================
+    // レスポンス
+    // =====================================================
 
-    if (action === "group") {
-      const chatId =
-        body.chatId
-          ? String(body.chatId)
-          : "";
+    return res.status(200).json({
+      ok: true,
 
-      if (!chatId) {
-        return res.status(400).json({
-          ok: false,
-          error:
-            "chatId が指定されていません。"
-        });
-      }
+      total: {
+        recordCount:
+          Number(total.record_count || 0),
 
-      const groupRows =
-        await sql`
-          SELECT
-            chat_id,
-            title
-          FROM telegram_groups
-          WHERE chat_id = ${chatId}
-          LIMIT 1
-        `;
+        sales:
+          Number(total.total_sales || 0),
 
-      if (!groupRows.length) {
-        return res.status(404).json({
-          ok: false,
-          error:
-            "指定されたグループが登録されていません。"
-        });
-      }
+        deliveries:
+          Number(total.total_deliveries || 0),
 
-      const result =
-        await sql`
-          DELETE FROM delivery_results
-          WHERE chat_id = ${chatId}
-        `;
+        hours:
+          Number(total.total_hours || 0),
+      },
 
-      await writeAuditLog(
-        telegramUserId,
-        chatId,
-        "admin_reset_group",
-        {
-          title:
-            groupRows[0].title ||
-            "グループ",
-          deletedResults:
-            Number(
-              result?.count || 0
-            )
-        }
-      );
+      today: {
+        recordCount:
+          Number(today.record_count || 0),
 
-      return res.status(200).json({
-        ok: true,
-        action: "group",
-        chatId,
-        message:
-          "グループ実績を初期化しました。"
-      });
-    }
+        activeUsers:
+          Number(today.active_users || 0),
 
-    return res.status(400).json({
-      ok: false,
-      error:
-        "初期化対象が不正です。"
+        sales:
+          Number(today.total_sales || 0),
+
+        deliveries:
+          Number(today.total_deliveries || 0),
+
+        hours:
+          Number(today.total_hours || 0),
+      },
+
+      month: {
+        recordCount:
+          Number(month.record_count || 0),
+
+        activeUsers:
+          Number(month.active_users || 0),
+
+        sales:
+          Number(month.total_sales || 0),
+
+        deliveries:
+          Number(month.total_deliveries || 0),
+
+        hours:
+          Number(month.total_hours || 0),
+      },
+
+      users: {
+        count:
+          Number(users.user_count || 0),
+      },
+
+      latest,
     });
-
   } catch (error) {
     console.error(
-      "Admin reset API error:",
+      "Admin API error:",
       error
     );
 
@@ -325,7 +382,7 @@ export default async function handler(
       ok: false,
       error:
         error?.message ||
-        "初期化処理中にエラーが発生しました。"
+        "管理者データの取得に失敗しました。",
     });
   }
 }
