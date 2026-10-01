@@ -3,42 +3,87 @@ const { neon } = require("@neondatabase/serverless");
 const sql = neon(process.env.DATABASE_URL);
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
+
+if (!BOT_TOKEN) {
+  console.error("[BOT] BOT_TOKEN is not configured");
+}
+
 const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
+// =========================================================
+// Telegram API
+// =========================================================
+
 async function telegramApi(method, payload = {}) {
-  const response = await fetch(
-    `${TELEGRAM_API}/${method}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    }
-  );
+  try {
+    console.log("[BOT] Telegram API request:", method);
 
-  const data = await response.json();
-
-  if (!data.ok) {
-    throw new Error(
-      data.description || "Telegram API error"
+    const response = await fetch(
+      `${TELEGRAM_API}/${method}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
     );
-  }
 
-  return data.result;
+    const data = await response.json();
+
+    if (!data.ok) {
+      console.error("[BOT] Telegram API error:", {
+        method,
+        description: data.description,
+        error_code: data.error_code,
+      });
+
+      throw new Error(
+        data.description || "Telegram API error"
+      );
+    }
+
+    console.log("[BOT] Telegram API success:", method);
+
+    return data.result;
+  } catch (error) {
+    console.error("[BOT] Telegram API exception:", {
+      method,
+      message: error?.message,
+    });
+
+    throw error;
+  }
 }
+
+// =========================================================
+// メッセージ送信
+// =========================================================
 
 async function sendMessage(
   chatId,
   text,
   extra = {}
 ) {
+  if (!chatId) {
+    throw new Error("chatId is missing");
+  }
+
+  console.log("[BOT] sendMessage:", {
+    chatId: String(chatId),
+    textPreview: String(text || "").slice(0, 100),
+  });
+
   return telegramApi("sendMessage", {
     chat_id: chatId,
     text,
     ...extra,
   });
 }
+
+// =========================================================
+// Telegram情報
+// =========================================================
 
 function getTelegramUserId(message) {
   return String(
@@ -78,6 +123,10 @@ function getDisplayName(message) {
   return "配達員";
 }
 
+// =========================================================
+// コマンド取得
+// =========================================================
+
 function getCommandName(text) {
   if (!text) {
     return "";
@@ -91,6 +140,10 @@ function getCommandName(text) {
       .toLowerCase()
   );
 }
+
+// =========================================================
+// 表示用
+// =========================================================
 
 function formatNumber(value) {
   return Number(value || 0).toLocaleString(
@@ -162,14 +215,14 @@ async function writeAuditLog({
     `;
   } catch (error) {
     console.error(
-      "audit log error:",
-      error
+      "[BOT] audit log error:",
+      error?.message
     );
   }
 }
 
 // =========================================================
-// /add
+// /add 引数解析
 // =========================================================
 
 function parseAddArguments(text) {
@@ -224,14 +277,17 @@ function parseAddArguments(text) {
 // /start
 // =========================================================
 
-async function handleStart(
-  message
-) {
+async function handleStart(message) {
   const userId =
     getTelegramUserId(message);
 
   const chatId =
     getChatId(message);
+
+  console.log("[BOT] /start received:", {
+    userId,
+    chatId,
+  });
 
   await writeAuditLog({
     telegramUserId: userId,
@@ -285,9 +341,7 @@ async function handleStart(
 // /help
 // =========================================================
 
-async function handleHelp(
-  message
-) {
+async function handleHelp(message) {
   const chatId =
     getChatId(message);
 
@@ -320,9 +374,7 @@ async function handleHelp(
 // /add
 // =========================================================
 
-async function handleAdd(
-  message
-) {
+async function handleAdd(message) {
   const userId =
     getTelegramUserId(message);
 
@@ -333,6 +385,12 @@ async function handleAdd(
     parseAddArguments(
       message.text
     );
+
+  console.log("[BOT] /add received:", {
+    userId,
+    chatId,
+    text: message.text,
+  });
 
   if (!parsed) {
     return sendMessage(
@@ -427,9 +485,7 @@ async function handleAdd(
 // /cancel
 // =========================================================
 
-async function handleCancel(
-  message
-) {
+async function handleCancel(message) {
   const userId =
     getTelegramUserId(message);
 
@@ -506,9 +562,7 @@ async function handleCancel(
 // /reset
 // =========================================================
 
-async function handleReset(
-  message
-) {
+async function handleReset(message) {
   const userId =
     getTelegramUserId(message);
 
@@ -613,9 +667,7 @@ async function getAdminStatistics() {
   };
 }
 
-async function handleAdmin(
-  message
-) {
+async function handleAdmin(message) {
   const userId =
     getTelegramUserId(message);
 
@@ -698,13 +750,24 @@ async function handleAdmin(
 // コマンド処理
 // =========================================================
 
-async function handleCommand(
-  message
-) {
+async function handleCommand(message) {
   const command =
     getCommandName(
       message.text
     );
+
+  const userId =
+    getTelegramUserId(message);
+
+  const chatId =
+    getChatId(message);
+
+  console.log("[BOT] command:", {
+    command,
+    userId,
+    chatId,
+    text: message.text,
+  });
 
   switch (command) {
     case "/start":
@@ -726,6 +789,10 @@ async function handleCommand(
       return handleAdmin(message);
 
     default:
+      console.log(
+        "[BOT] unknown command:",
+        command
+      );
       return null;
   }
 }
@@ -738,7 +805,16 @@ module.exports = async function handler(
   req,
   res
 ) {
+  console.log("[BOT] webhook request:", {
+    method: req.method,
+    url: req.url,
+  });
+
   if (req.method !== "POST") {
+    console.log(
+      "[BOT] rejected non-POST request"
+    );
+
     return res.status(405).json({
       ok: false,
       error: "Method Not Allowed",
@@ -749,10 +825,21 @@ module.exports = async function handler(
     const update =
       req.body || {};
 
+    console.log("[BOT] update received:", {
+      updateId: update.update_id,
+      hasMessage: Boolean(
+        update.message
+      ),
+    });
+
     const message =
       update.message;
 
     if (!message) {
+      console.log(
+        "[BOT] ignored: message not found"
+      );
+
       return res.status(200).json({
         ok: true,
         ignored: true,
@@ -762,6 +849,10 @@ module.exports = async function handler(
     if (
       typeof message.text !== "string"
     ) {
+      console.log(
+        "[BOT] ignored: text not found"
+      );
+
       return res.status(200).json({
         ok: true,
         ignored: true,
@@ -769,16 +860,32 @@ module.exports = async function handler(
     }
 
     if (
-      !message.text.trim().startsWith("/")
+      !message.text
+        .trim()
+        .startsWith("/")
     ) {
+      console.log(
+        "[BOT] ignored: not a command"
+      );
+
       return res.status(200).json({
         ok: true,
         ignored: true,
       });
     }
 
+    console.log(
+      "[BOT] processing command:",
+      message.text
+    );
+
     await handleCommand(
       message
+    );
+
+    console.log(
+      "[BOT] command completed:",
+      message.text
     );
 
     return res.status(200).json({
@@ -786,10 +893,16 @@ module.exports = async function handler(
     });
   } catch (error) {
     console.error(
-      "bot webhook error:",
-      error
+      "[BOT] webhook error:",
+      {
+        name: error?.name,
+        message: error?.message,
+        stack: error?.stack,
+      }
     );
 
+    // TelegramへのWebhook自体は200で返す。
+    // 失敗内容はVercelログで確認できる。
     return res.status(200).json({
       ok: false,
       error:
