@@ -6,6 +6,8 @@ const sql = neon(process.env.DATABASE_URL);
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const JST = "Asia/Tokyo";
 
+const MAX_AUTH_AGE_SECONDS = 60 * 60;
+
 
 // =========================================================
 // Telegram initData 検証
@@ -13,60 +15,112 @@ const JST = "Asia/Tokyo";
 
 function verifyTelegramInitData(initData) {
   if (!initData) {
-    throw new Error("Telegram initData がありません");
-  }
-
-  const params = new URLSearchParams(initData);
-  const hash = params.get("hash");
-
-  if (!hash) {
-    throw new Error("Telegram hash がありません");
-  }
-
-  const dataCheckString = [...params.entries()]
-    .filter(([key]) => key !== "hash")
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${key}=${value}`)
-    .join("\n");
-
-  const secretKey = crypto
-    .createHmac("sha256", "WebAppData")
-    .update(BOT_TOKEN)
-    .digest();
-
-  const calculatedHash = crypto
-    .createHmac("sha256", secretKey)
-    .update(dataCheckString)
-    .digest("hex");
-
-  if (
-    hash.length !== calculatedHash.length ||
-    !crypto.timingSafeEqual(
-      Buffer.from(hash, "hex"),
-      Buffer.from(calculatedHash, "hex")
-    )
-  ) {
     throw new Error(
-      "Telegram initData の検証に失敗しました"
+      "Telegram initData がありません"
+    );
+  }
+
+  if (!BOT_TOKEN) {
+    throw new Error(
+      "BOT_TOKEN が設定されていません"
+    );
+  }
+
+  const params =
+    new URLSearchParams(initData);
+
+  const receivedHash =
+    params.get("hash");
+
+  if (!receivedHash) {
+    throw new Error(
+      "Telegram hash がありません"
     );
   }
 
   const authDate =
-    Number(params.get("auth_date"));
+    Number(
+      params.get("auth_date")
+    );
 
-  if (!authDate) {
+  if (
+    !Number.isInteger(authDate) ||
+    authDate <= 0
+  ) {
     throw new Error(
-      "auth_date がありません"
+      "auth_date が不正です"
     );
   }
 
-  const age =
-    Math.floor(Date.now() / 1000) -
-    authDate;
+  const now =
+    Math.floor(
+      Date.now() / 1000
+    );
 
-  if (age > 60 * 60) {
+  if (
+    Math.abs(
+      now - authDate
+    ) >
+    MAX_AUTH_AGE_SECONDS
+  ) {
     throw new Error(
       "Telegram initData の有効期限が切れています"
+    );
+  }
+
+  params.delete("hash");
+
+  const dataCheckString =
+    [...params.entries()]
+      .sort(([a], [b]) =>
+        a.localeCompare(b)
+      )
+      .map(
+        ([key, value]) =>
+          `${key}=${value}`
+      )
+      .join("\n");
+
+  const secretKey =
+    crypto
+      .createHmac(
+        "sha256",
+        "WebAppData"
+      )
+      .update(BOT_TOKEN)
+      .digest();
+
+  const calculatedHash =
+    crypto
+      .createHmac(
+        "sha256",
+        secretKey
+      )
+      .update(dataCheckString)
+      .digest("hex");
+
+  const receivedBuffer =
+    Buffer.from(
+      receivedHash,
+      "hex"
+    );
+
+  const calculatedBuffer =
+    Buffer.from(
+      calculatedHash,
+      "hex"
+    );
+
+  if (
+    receivedBuffer.length !==
+      calculatedBuffer.length ||
+    !crypto.timingSafeEqual(
+      receivedBuffer,
+      calculatedBuffer
+    )
+  ) {
+    throw new Error(
+      "Telegram initData の検証に失敗しました"
     );
   }
 
@@ -79,8 +133,16 @@ function verifyTelegramInitData(initData) {
     );
   }
 
-  const user =
-    JSON.parse(userRaw);
+  let user;
+
+  try {
+    user =
+      JSON.parse(userRaw);
+  } catch {
+    throw new Error(
+      "Telegramユーザー情報が不正です"
+    );
+  }
 
   if (!user?.id) {
     throw new Error(
@@ -90,12 +152,15 @@ function verifyTelegramInitData(initData) {
 
   return {
     id: String(user.id),
+
     username:
       user.username || "",
+
     firstName:
       user.first_name || "",
+
     lastName:
-      user.last_name || ""
+      user.last_name || "",
   };
 }
 
@@ -103,14 +168,6 @@ function verifyTelegramInitData(initData) {
 // =========================================================
 // レベル計算
 // =========================================================
-//
-// Lv1 = 0XP
-// Lv2 = 100XP
-// Lv3 = 300XP
-// Lv4 = 600XP
-// Lv5 = 1000XP
-// 以降は徐々に必要XP増加
-//
 
 function calculateLevel(xp) {
   let level = 1;
@@ -128,7 +185,6 @@ function calculateLevel(xp) {
       100 +
       (level - 2) * 50;
 
-    // 無限ループ防止
     if (level >= 1000) {
       break;
     }
@@ -140,68 +196,84 @@ function calculateLevel(xp) {
   const nextLevelXP =
     totalRequired + required;
 
-  return {
-    level,
-    currentLevelXP,
-    nextLevelXP,
-    progressXP:
+  const requiredXP =
+    Math.max(
+      1,
+      nextLevelXP -
+        currentLevelXP
+    );
+
+  const progressXP =
+    Math.max(
+      0,
+      xp - currentLevelXP
+    );
+
+  const progressRate =
+    Math.min(
+      100,
       Math.max(
         0,
-        xp - currentLevelXP
-      ),
-    requiredXP:
-      Math.max(
-        1,
-        nextLevelXP -
-          currentLevelXP
-      ),
-    progressRate:
-      Math.min(
-        100,
-        Math.max(
-          0,
-          (
-            (xp - currentLevelXP) /
-            Math.max(
-              1,
-              nextLevelXP -
-                currentLevelXP
-            )
-          ) * 100
-        )
+        (
+          progressXP /
+          requiredXP
+        ) *
+          100
       )
+    );
+
+  return {
+    level,
+
+    currentLevelXP,
+
+    nextLevelXP,
+
+    progressXP,
+
+    requiredXP,
+
+    progressRate,
   };
 }
 
 
 // =========================================================
-// プロフィール作成 / 更新
+// プロフィール作成・更新
 // =========================================================
 
-async function ensureProfile(
-  user
-) {
-  const rows = await sql`
-    INSERT INTO user_profiles (
-      telegram_user_id,
-      display_name,
-      updated_at
-    )
-    VALUES (
-      ${user.id},
-      ${user.firstName || user.username || `ユーザー${user.id}`},
-      NOW()
-    )
-    ON CONFLICT (
-      telegram_user_id
-    )
-    DO UPDATE SET
-      display_name =
-        EXCLUDED.display_name,
-      updated_at =
+async function ensureProfile(user) {
+  const displayName =
+    user.firstName ||
+    user.username ||
+    `ユーザー${user.id}`;
+
+  const rows =
+    await sql`
+      INSERT INTO user_profiles (
+        telegram_user_id,
+        display_name,
+        updated_at
+      )
+      VALUES (
+        ${user.id},
+        ${displayName},
         NOW()
-    RETURNING *
-  `;
+      )
+
+      ON CONFLICT (
+        telegram_user_id
+      )
+
+      DO UPDATE SET
+        display_name =
+          EXCLUDED.display_name,
+
+        updated_at =
+          NOW()
+
+      RETURNING *
+    `;
 
   return rows[0];
 }
@@ -211,111 +283,126 @@ async function ensureProfile(
 // 累計実績
 // =========================================================
 
-async function getLifetimeStats(
-  userId
-) {
-  const rows = await sql`
-    SELECT
-      COALESCE(
-        SUM(sale_amount),
-        0
-      ) AS sales,
+async function getLifetimeStats(userId) {
+  const rows =
+    await sql`
+      SELECT
+        COALESCE(
+          SUM(sale_amount),
+          0
+        ) AS sales,
 
-      COALESCE(
-        SUM(delivery_count),
-        0
-      ) AS count,
+        COALESCE(
+          SUM(delivery_count),
+          0
+        ) AS count,
 
-      COALESCE(
-        SUM(work_hours),
-        0
-      ) AS hours,
+        COALESCE(
+          SUM(work_hours),
+          0
+        ) AS hours,
 
-      COUNT(*) AS records
+        COUNT(*) AS records
 
-    FROM delivery_results
+      FROM delivery_results
 
-    WHERE telegram_user_id =
-      ${userId}
-  `;
+      WHERE telegram_user_id =
+        ${userId}
+    `;
 
-  const row = rows[0];
+  const row =
+    rows[0] || {};
 
   return {
     sales:
-      Number(row?.sales || 0),
+      Number(row.sales || 0),
 
     count:
-      Number(row?.count || 0),
+      Number(row.count || 0),
 
     hours:
-      Number(row?.hours || 0),
+      Number(row.hours || 0),
 
     records:
-      Number(row?.records || 0)
+      Number(row.records || 0),
   };
 }
 
 
 // =========================================================
-// 直近の活動日
+// 活動日取得
 // =========================================================
 
-async function getActivityDates(
-  userId
-) {
-  const rows = await sql`
-    SELECT DISTINCT
-      (
-        created_at
-        AT TIME ZONE ${JST}
-      )::date AS activity_date
+async function getActivityDates(userId) {
+  const rows =
+    await sql`
+      SELECT DISTINCT
+        (
+          created_at
+          AT TIME ZONE ${JST}
+        )::date AS activity_date
 
-    FROM delivery_results
+      FROM delivery_results
 
-    WHERE telegram_user_id =
-      ${userId}
+      WHERE telegram_user_id =
+        ${userId}
 
-    ORDER BY activity_date DESC
-  `;
+      ORDER BY activity_date DESC
+    `;
 
   return rows.map(
-    row =>
-      row.activity_date
+    (row) =>
+      String(
+        row.activity_date
+      )
   );
 }
 
 
 // =========================================================
-// 日付差
+// JST日付を連番化
 // =========================================================
 
-function dateToNumber(
-  date
-) {
+function dateToNumber(date) {
+  const value =
+    String(date);
+
   const d =
     new Date(
-      `${date}T00:00:00+09:00`
+      `${value}T00:00:00+09:00`
     );
 
   return Math.floor(
     d.getTime() /
-    86400000
+      86400000
   );
 }
 
 
 // =========================================================
-// 連続日数計算
+// 今日のJST日付
 // =========================================================
 
-function calculateStreak(
-  dates
-) {
+function getTodayJST() {
+  return new Date()
+    .toLocaleDateString(
+      "en-CA",
+      {
+        timeZone: JST,
+      }
+    );
+}
+
+
+// =========================================================
+// 連続日数
+// =========================================================
+
+function calculateStreak(dates) {
   if (!dates.length) {
     return {
       current: 0,
-      best: 0
+      best: 0,
     };
   }
 
@@ -330,7 +417,7 @@ function calculateStreak(
     [...new Set(numbers)];
 
   let best = 1;
-  let current = 1;
+  let currentSequence = 1;
 
   for (
     let i = 1;
@@ -342,30 +429,27 @@ function calculateStreak(
         unique[i] ===
       1
     ) {
-      current += 1;
+      currentSequence += 1;
+
       best =
         Math.max(
           best,
-          current
+          currentSequence
         );
     } else {
-      current = 1;
+      currentSequence = 1;
     }
   }
 
   const today =
     dateToNumber(
-      new Date()
-        .toLocaleDateString(
-          "en-CA",
-          {
-            timeZone: JST
-          }
-        )
+      getTodayJST()
     );
 
   const yesterday =
     today - 1;
+
+  let current = 0;
 
   if (
     unique[0] === today ||
@@ -388,17 +472,16 @@ function calculateStreak(
         break;
       }
     }
-  } else {
-    current = 0;
   }
 
   return {
     current,
+
     best:
       Math.max(
         best,
         current
-      )
+      ),
   };
 }
 
@@ -411,17 +494,18 @@ async function addXP({
   userId,
   xp,
   reason,
-  referenceId
+  referenceId,
 }) {
-  if (!xp || xp <= 0) {
+  if (
+    !Number.isFinite(xp) ||
+    xp <= 0
+  ) {
     return {
       added: 0,
-      duplicate: false
+      duplicate: false,
     };
   }
 
-  // referenceIdがある場合、
-  // 同じイベントへのXP二重付与を防止
   if (referenceId) {
     const existing =
       await sql`
@@ -440,7 +524,7 @@ async function addXP({
     if (existing.length) {
       return {
         added: 0,
-        duplicate: true
+        duplicate: true,
       };
     }
   }
@@ -464,8 +548,12 @@ async function addXP({
     UPDATE user_profiles
 
     SET
-      xp = xp + ${xp},
-      updated_at = NOW()
+      xp =
+        COALESCE(xp, 0) +
+        ${xp},
+
+      updated_at =
+        NOW()
 
     WHERE telegram_user_id =
       ${userId}
@@ -473,7 +561,7 @@ async function addXP({
 
   return {
     added: xp,
-    duplicate: false
+    duplicate: false,
   };
 }
 
@@ -506,7 +594,7 @@ async function awardBadge(
 
   if (!badges.length) {
     return {
-      awarded: false
+      awarded: false,
     };
   }
 
@@ -515,8 +603,7 @@ async function awardBadge(
 
   const existing =
     await sql`
-      SELECT
-        badge_id
+      SELECT badge_id
 
       FROM user_badges
 
@@ -532,8 +619,10 @@ async function awardBadge(
   if (existing.length) {
     return {
       awarded: false,
+
       alreadyOwned: true,
-      badge
+
+      badge,
     };
   }
 
@@ -548,27 +637,28 @@ async function awardBadge(
     )
   `;
 
-  if (
+  const badgeXP =
     Number(
-      badge.xp_reward
-    ) > 0
-  ) {
+      badge.xp_reward || 0
+    );
+
+  if (badgeXP > 0) {
     await addXP({
       userId,
-      xp:
-        Number(
-          badge.xp_reward
-        ),
+
+      xp: badgeXP,
+
       reason:
         `badge:${badge.code}`,
+
       referenceId:
-        `badge:${badge.code}`
+        `badge:${badge.code}`,
     });
   }
 
   return {
     awarded: true,
-    badge
+    badge,
   };
 }
 
@@ -584,117 +674,60 @@ async function checkBadges(
 ) {
   const earned = [];
 
-  // 初回
-  if (stats.records >= 1) {
-    const result =
-      await awardBadge(
-        userId,
-        "FIRST_RESULT"
-      );
+  const rules = [
+    [
+      stats.records >= 1,
+      "FIRST_RESULT",
+    ],
 
-    if (result.awarded) {
-      earned.push(
-        result.badge
-      );
+    [
+      stats.count >= 10,
+      "TEN_DELIVERIES",
+    ],
+
+    [
+      stats.count >= 50,
+      "FIFTY_DELIVERIES",
+    ],
+
+    [
+      stats.count >= 100,
+      "HUNDRED_DELIVERIES",
+    ],
+
+    [
+      stats.count >= 500,
+      "FIVE_HUNDRED_DELIVERIES",
+    ],
+
+    [
+      streak.current >= 3,
+      "STREAK_3",
+    ],
+
+    [
+      streak.current >= 7,
+      "STREAK_7",
+    ],
+
+    [
+      streak.current >= 30,
+      "STREAK_30",
+    ],
+  ];
+
+  for (const [
+    condition,
+    badgeCode,
+  ] of rules) {
+    if (!condition) {
+      continue;
     }
-  }
 
-  // 累計10件
-  if (stats.count >= 10) {
     const result =
       await awardBadge(
         userId,
-        "TEN_DELIVERIES"
-      );
-
-    if (result.awarded) {
-      earned.push(
-        result.badge
-      );
-    }
-  }
-
-  // 累計50件
-  if (stats.count >= 50) {
-    const result =
-      await awardBadge(
-        userId,
-        "FIFTY_DELIVERIES"
-      );
-
-    if (result.awarded) {
-      earned.push(
-        result.badge
-      );
-    }
-  }
-
-  // 累計100件
-  if (stats.count >= 100) {
-    const result =
-      await awardBadge(
-        userId,
-        "HUNDRED_DELIVERIES"
-      );
-
-    if (result.awarded) {
-      earned.push(
-        result.badge
-      );
-    }
-  }
-
-  // 累計500件
-  if (stats.count >= 500) {
-    const result =
-      await awardBadge(
-        userId,
-        "FIVE_HUNDRED_DELIVERIES"
-      );
-
-    if (result.awarded) {
-      earned.push(
-        result.badge
-      );
-    }
-  }
-
-  // 3日連続
-  if (streak.current >= 3) {
-    const result =
-      await awardBadge(
-        userId,
-        "STREAK_3"
-      );
-
-    if (result.awarded) {
-      earned.push(
-        result.badge
-      );
-    }
-  }
-
-  // 7日連続
-  if (streak.current >= 7) {
-    const result =
-      await awardBadge(
-        userId,
-        "STREAK_7"
-      );
-
-    if (result.awarded) {
-      earned.push(
-        result.badge
-      );
-    }
-  }
-
-  // 30日連続
-  if (streak.current >= 30) {
-    const result =
-      await awardBadge(
-        userId,
-        "STREAK_30"
+        badgeCode
       );
 
     if (result.awarded) {
@@ -709,12 +742,10 @@ async function checkBadges(
 
 
 // =========================================================
-// ユーザー情報取得
+// 獲得済みバッジ
 // =========================================================
 
-async function getUserBadges(
-  userId
-) {
+async function getUserBadges(userId) {
   const rows =
     await sql`
       SELECT
@@ -743,12 +774,10 @@ async function getUserBadges(
 
 
 // =========================================================
-// GET用データ
+// 個人ゲーミフィケーション情報
 // =========================================================
 
-async function getGamificationData(
-  user
-) {
+async function getGamificationData(user) {
   const profile =
     await ensureProfile(
       user
@@ -832,16 +861,16 @@ async function getGamificationData(
         stats.hours,
 
       lifetimeRecords:
-        stats.records
+        stats.records,
     },
 
-    badges
+    badges,
   };
 }
 
 
 // =========================================================
-// POST処理
+// 実績をゲーミフィケーションへ反映
 // =========================================================
 
 async function processResult(
@@ -852,9 +881,7 @@ async function processResult(
     await sql`
       SELECT
         id,
-        sale_amount,
         delivery_count,
-        work_hours,
         created_at
 
       FROM delivery_results
@@ -878,34 +905,43 @@ async function processResult(
     rows[0];
 
   // -----------------------------------------
-  // 基本XP
+  // XP
   // -----------------------------------------
+
+  const deliveryCount =
+    Number(
+      result.delivery_count || 0
+    );
 
   const baseXP =
     Math.max(
       10,
-      Number(
-        result.delivery_count
-      ) * 10
+      deliveryCount * 10
     );
 
   const xpResult =
     await addXP({
       userId,
+
       xp: baseXP,
+
       reason:
         "delivery_result",
+
       referenceId:
-        `result:${result.id}`
+        `result:${result.id}`,
     });
 
   // -----------------------------------------
-  // プロフィール再取得
+  // プロフィール取得
   // -----------------------------------------
 
   const profileRows =
     await sql`
-      SELECT *
+      SELECT
+        xp,
+        best_streak_days
+
       FROM user_profiles
 
       WHERE telegram_user_id =
@@ -915,10 +951,15 @@ async function processResult(
     `;
 
   const profile =
-    profileRows[0];
+    profileRows[0] || {};
+
+  const previousBest =
+    Number(
+      profile.best_streak_days || 0
+    );
 
   // -----------------------------------------
-  // 連続記録
+  // 継続日数
   // -----------------------------------------
 
   const dates =
@@ -931,9 +972,10 @@ async function processResult(
       dates
     );
 
-  const previousBest =
-    Number(
-      profile.best_streak_days || 0
+  const bestStreak =
+    Math.max(
+      previousBest,
+      streak.best
     );
 
   await sql`
@@ -944,10 +986,7 @@ async function processResult(
         ${streak.current},
 
       best_streak_days =
-        ${Math.max(
-          previousBest,
-          streak.best
-        )},
+        ${bestStreak},
 
       last_activity_date =
         (
@@ -979,16 +1018,19 @@ async function processResult(
     );
 
   // -----------------------------------------
-  // レベル更新
+  // レベル
   // -----------------------------------------
 
   const updatedProfileRows =
     await sql`
       SELECT xp
+
       FROM user_profiles
 
       WHERE telegram_user_id =
         ${userId}
+
+      LIMIT 1
     `;
 
   const updatedXP =
@@ -1043,13 +1085,10 @@ async function processResult(
       streak.current,
 
     bestStreakDays:
-      Math.max(
-        previousBest,
-        streak.best
-      ),
+      bestStreak,
 
     badges:
-      earnedBadges
+      earnedBadges,
   };
 }
 
@@ -1063,18 +1102,20 @@ module.exports =
     req,
     res
   ) {
+    res.setHeader(
+      "Cache-Control",
+      "no-store"
+    );
 
     try {
-
-      // ---------------------------------------
+      // ===============================================
       // GET
-      // ---------------------------------------
+      // ===============================================
 
       if (
         req.method ===
         "GET"
       ) {
-
         const initData =
           req.headers[
             "x-telegram-init-data"
@@ -1092,20 +1133,18 @@ module.exports =
 
         return res.status(200).json({
           ok: true,
-          ...data
+          ...data,
         });
       }
 
-
-      // ---------------------------------------
+      // ===============================================
       // POST
-      // ---------------------------------------
+      // ===============================================
 
       if (
         req.method ===
         "POST"
       ) {
-
         const initData =
           req.headers[
             "x-telegram-init-data"
@@ -1119,7 +1158,9 @@ module.exports =
         const body =
           typeof req.body ===
           "string"
-            ? JSON.parse(req.body)
+            ? JSON.parse(
+                req.body
+              )
             : (
                 req.body || {}
               );
@@ -1128,15 +1169,14 @@ module.exports =
           body.action ||
           "process";
 
-        // -------------------------------------
+        // =============================================
         // 実績処理
-        // -------------------------------------
+        // =============================================
 
         if (
           action ===
           "process"
         ) {
-
           const resultId =
             Number(
               body.resultId
@@ -1151,7 +1191,7 @@ module.exports =
             return res.status(400).json({
               ok: false,
               error:
-                "resultId が不正です"
+                "resultId が不正です",
             });
           }
 
@@ -1163,20 +1203,18 @@ module.exports =
 
           return res.status(200).json({
             ok: true,
-            ...result
+            ...result,
           });
         }
 
-
-        // -------------------------------------
-        // プロフィール再計算
-        // -------------------------------------
+        // =============================================
+        // 再同期
+        // =============================================
 
         if (
           action ===
           "sync"
         ) {
-
           const data =
             await getGamificationData(
               user
@@ -1184,27 +1222,23 @@ module.exports =
 
           return res.status(200).json({
             ok: true,
-            ...data
+            ...data,
           });
         }
-
 
         return res.status(400).json({
           ok: false,
           error:
-            "action が不正です"
+            "action が不正です",
         });
       }
-
 
       return res.status(405).json({
         ok: false,
         error:
-          "Method Not Allowed"
+          "Method Not Allowed",
       });
-
     } catch (error) {
-
       console.error(
         "gamification API error:",
         error
@@ -1213,8 +1247,8 @@ module.exports =
       return res.status(500).json({
         ok: false,
         error:
-          error.message ||
-          "ゲーミフィケーション処理に失敗しました"
+          error?.message ||
+          "ゲーミフィケーション処理に失敗しました",
       });
     }
   };
