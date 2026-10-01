@@ -2,7 +2,6 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
@@ -39,10 +38,6 @@
     button,
     input {
       font: inherit;
-    }
-
-    button {
-      -webkit-tap-highlight-color: transparent;
     }
 
     .container {
@@ -150,9 +145,27 @@
       font-weight: 800;
     }
 
+    .loading {
+      padding: 24px 0;
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .muted {
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .empty {
+      padding: 20px 0;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
     .goal-row {
       display: flex;
-      align-items: center;
       gap: 8px;
     }
 
@@ -161,9 +174,8 @@
       min-width: 0;
       border: 1px solid #d1d5db;
       border-radius: 10px;
-      padding: 12px;
+      padding: 10px 12px;
       outline: none;
-      background: white;
     }
 
     .goal-input:focus {
@@ -173,44 +185,21 @@
     .primary-button {
       border: 0;
       border-radius: 10px;
-      padding: 12px 16px;
+      padding: 10px 16px;
       background: #111827;
       color: white;
-      font-weight: 800;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .secondary-button {
-      width: 100%;
-      border: 0;
-      border-radius: 10px;
-      padding: 12px;
-      background: #e5e7eb;
-      color: #111827;
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    .danger-button {
-      width: 100%;
-      border: 0;
-      border-radius: 10px;
-      padding: 12px;
-      background: #fee2e2;
-      color: #b91c1c;
-      font-weight: 800;
+      font-weight: 700;
       cursor: pointer;
     }
 
     .goal-info {
-      margin-top: 12px;
-      color: #4b5563;
+      margin-top: 10px;
       font-size: 13px;
+      color: #6b7280;
     }
 
     .progress-wrap {
-      margin-top: 12px;
+      margin-top: 10px;
     }
 
     .progress-bg {
@@ -229,7 +218,7 @@
     }
 
     .progress-text {
-      margin-top: 6px;
+      margin-top: 5px;
       text-align: right;
       font-size: 12px;
       color: #6b7280;
@@ -237,11 +226,11 @@
 
     .record {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
+      gap: 12px;
       padding: 12px 0;
-      border-bottom: 1px solid #f0f1f3;
+      border-bottom: 1px solid #eef0f2;
     }
 
     .record:last-child {
@@ -259,37 +248,25 @@
 
     .record-meta {
       margin-top: 3px;
-      font-size: 12px;
       color: #6b7280;
+      font-size: 12px;
     }
 
     .record-sales {
+      flex-shrink: 0;
       font-size: 16px;
       font-weight: 800;
-      white-space: nowrap;
-    }
-
-    .empty {
-      padding: 20px 0;
-      text-align: center;
-      color: #9ca3af;
-      font-size: 14px;
     }
 
     .group-summary {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
-      margin-bottom: 14px;
     }
 
     .member {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 0;
-      border-bottom: 1px solid #f0f1f3;
+      padding: 12px 0;
+      border-bottom: 1px solid #eef0f2;
     }
 
     .member:last-child {
@@ -297,30 +274,24 @@
     }
 
     .member-name {
+      font-size: 14px;
       font-weight: 700;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
 
     .member-detail {
-      text-align: right;
-      white-space: nowrap;
-      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
       color: #6b7280;
+      font-size: 12px;
     }
 
     .member-sales {
+      color: #111827;
       font-size: 14px;
       font-weight: 800;
-      color: #111827;
-    }
-
-    .loading {
-      padding: 30px 0;
-      text-align: center;
-      color: #6b7280;
     }
 
     .error {
@@ -347,10 +318,6 @@
       color: #9ca3af;
       font-size: 11px;
     }
-
-    /* =========================================
-       分析ダッシュボード
-    ========================================= */
 
     .analytics-grid {
       display: grid;
@@ -382,6 +349,65 @@
       line-height: 1.6;
     }
 
+    .analytics-section-title {
+      margin-top: 18px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .analytics-best {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .analytics-best-box {
+      background: #fff7ed;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .analytics-best-label {
+      color: #6b7280;
+      font-size: 11px;
+    }
+
+    .analytics-best-value {
+      margin-top: 4px;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .analytics-table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+
+    .analytics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .analytics-table th,
+    .analytics-table td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .analytics-table th:first-child,
+    .analytics-table td:first-child {
+      text-align: left;
+    }
+
+    .analytics-table tr:last-child td {
+      border-bottom: 0;
+    }
+
     @media (max-width: 420px) {
       .stats-grid,
       .group-summary {
@@ -405,12 +431,7 @@
 </head>
 
 <body>
-
   <div class="container">
-
-    <!-- =========================
-         ヘッダー
-    ========================== -->
 
     <div class="header">
       <div class="header-title">🚴 配達リザルト</div>
@@ -419,11 +440,7 @@
       </div>
     </div>
 
-
-    <!-- =========================
-         メインタブ
-    ========================== -->
-
+    <!-- 個人 / グループ 切替 -->
     <div class="tabs">
 
       <button
@@ -459,22 +476,16 @@
 
     </div>
 
-
-    <!-- エラー表示 -->
-
     <div
       id="errorBox"
       class="error hidden"
     ></div>
-
 
     <!-- =========================
          個人
     ========================== -->
 
     <section id="personalSection">
-
-      <!-- 期間タブ -->
 
       <div class="tabs">
 
@@ -512,9 +523,6 @@
 
       </div>
 
-
-      <!-- 個人ロード -->
-
       <div
         id="personalLoading"
         class="loading"
@@ -522,15 +530,12 @@
         読み込み中...
       </div>
 
-
       <div
         id="personalContent"
         class="hidden"
       >
 
-        <!-- =========================
-             売上
-        ========================== -->
+        <!-- 売上 -->
 
         <div class="card">
 
@@ -554,7 +559,6 @@
 
           </div>
 
-
           <div class="stats-grid">
 
             <div class="stat-box">
@@ -577,7 +581,6 @@
 
             </div>
 
-
             <div class="stat-box">
 
               <div class="stat-label">
@@ -597,7 +600,6 @@
               </div>
 
             </div>
-
 
             <div class="stat-box">
 
@@ -623,10 +625,7 @@
 
         </div>
 
-
-        <!-- =========================
-             月間目標
-        ========================== -->
+        <!-- 月間目標 -->
 
         <div class="card">
 
@@ -655,14 +654,12 @@
 
           </div>
 
-
           <div
             id="goalInfo"
             class="goal-info"
           >
             月間目標：未設定
           </div>
-
 
           <div
             id="goalProgressWrap"
@@ -690,10 +687,7 @@
 
         </div>
 
-
-        <!-- =========================
-             分析ダッシュボード
-        ========================== -->
+        <!-- 分析ダッシュボード -->
 
         <div class="card">
 
@@ -707,7 +701,6 @@
           >
             分析中...
           </div>
-
 
           <div
             id="analyticsContent"
@@ -723,14 +716,14 @@
                 </div>
 
                 <div class="analytics-value">
+
                   <span id="analyticsAverageDailyCount">
                     0
-                  </span>
-                  件
+                  </span>件
+
                 </div>
 
               </div>
-
 
               <div class="analytics-box">
 
@@ -739,14 +732,14 @@
                 </div>
 
                 <div class="analytics-value">
+
                   <span id="analyticsAverageDailySales">
                     0
-                  </span>
-                  円
+                  </span>円
+
                 </div>
 
               </div>
-
 
               <div class="analytics-box">
 
@@ -755,14 +748,14 @@
                 </div>
 
                 <div class="analytics-value">
+
                   <span id="analyticsCurrentDailyPace">
                     0
-                  </span>
-                  件/日
+                  </span>件/日
+
                 </div>
 
               </div>
-
 
               <div class="analytics-box">
 
@@ -771,14 +764,14 @@
                 </div>
 
                 <div class="analytics-value">
+
                   <span id="analyticsProjectedMonthCount">
                     0
-                  </span>
-                  件
+                  </span>件
+
                 </div>
 
               </div>
-
 
               <div class="analytics-box">
 
@@ -787,14 +780,14 @@
                 </div>
 
                 <div class="analytics-value">
+
                   <span id="analyticsProjectedMonthSales">
                     0
-                  </span>
-                  円
+                  </span>円
+
                 </div>
 
               </div>
-
 
               <div class="analytics-box">
 
@@ -803,14 +796,14 @@
                 </div>
 
                 <div class="analytics-value">
+
                   <span id="analyticsRemainingDays">
                     0
-                  </span>
-                  日
+                  </span>日
+
                 </div>
 
               </div>
-
 
               <div class="analytics-box">
 
@@ -819,14 +812,14 @@
                 </div>
 
                 <div class="analytics-value">
+
                   <span id="analyticsRemainingGoalCount">
                     0
-                  </span>
-                  件
+                  </span>件
+
                 </div>
 
               </div>
-
 
               <div class="analytics-box">
 
@@ -835,48 +828,136 @@
                 </div>
 
                 <div class="analytics-value">
+
                   <span id="analyticsRequiredDailyCount">
                     0
-                  </span>
-                  件/日
+                  </span>件/日
+
                 </div>
 
               </div>
 
             </div>
 
-
             <div
-              id="analyticsGoalRate"
               class="analytics-note"
+              id="analyticsGoalRate"
             >
               目標達成率：0%
             </div>
 
-
             <div
-              id="analyticsYesterdayCompare"
               class="analytics-note"
+              id="analyticsYesterdayCompare"
             >
               昨日比：-
             </div>
 
-
             <div
-              id="analyticsUnitPrice"
               class="analytics-note"
+              id="analyticsUnitPrice"
             >
               平均単価：0円/件
+            </div>
+
+            <div class="analytics-section-title">
+              🏆 自己ベスト
+            </div>
+
+            <div class="analytics-best">
+
+              <div class="analytics-best-box">
+
+                <div class="analytics-best-label">
+                  最高配達
+                </div>
+
+                <div
+                  id="analyticsBestCount"
+                  class="analytics-best-value"
+                >
+                  0件
+                </div>
+
+              </div>
+
+              <div class="analytics-best-box">
+
+                <div class="analytics-best-label">
+                  最高売上
+                </div>
+
+                <div
+                  id="analyticsBestSales"
+                  class="analytics-best-value"
+                >
+                  0円
+                </div>
+
+              </div>
+
+              <div class="analytics-best-box">
+
+                <div class="analytics-best-label">
+                  最高配達効率
+                </div>
+
+                <div
+                  id="analyticsBestCountPerHour"
+                  class="analytics-best-value"
+                >
+                  0件/h
+                </div>
+
+              </div>
+
+              <div class="analytics-best-box">
+
+                <div class="analytics-best-label">
+                  最高売上効率
+                </div>
+
+                <div
+                  id="analyticsBestSalesPerHour"
+                  class="analytics-best-value"
+                >
+                  0円/h
+                </div>
+
+              </div>
+
+            </div>
+
+            <div
+              id="analyticsBestDay"
+              class="analytics-note"
+            >
+              自己ベスト日：まだありません
+            </div>
+
+            <div class="analytics-section-title">
+              📅 今月の日別推移
+            </div>
+
+            <div
+              id="analyticsDaily"
+              class="analytics-table-wrap"
+            >
+
+              <div
+                class="analytics-note"
+                style="padding:12px;"
+              >
+                データなし
+              </div>
+
             </div>
 
           </div>
 
         </div>
 
-
-        <!-- =========================
-             実績履歴
-        ========================== -->
+        <!-- 実績履歴 -->
 
         <div class="card">
 
@@ -891,7 +972,8 @@
       </div>
 
     </section>
-        <!-- =========================
+
+    <!-- =========================
          グループ
     ========================== -->
 
@@ -927,14 +1009,18 @@
               </div>
 
               <div class="stat-value">
+
                 <span id="groupSales">
                   0
                 </span>
-                円
+
+                <span class="stat-label">
+                  円
+                </span>
+
               </div>
 
             </div>
-
 
             <div class="stat-box">
 
@@ -943,14 +1029,18 @@
               </div>
 
               <div class="stat-value">
+
                 <span id="groupCount">
                   0
                 </span>
-                件
+
+                <span class="stat-label">
+                  件
+                </span>
+
               </div>
 
             </div>
-
 
             <div class="stat-box">
 
@@ -959,57 +1049,22 @@
               </div>
 
               <div class="stat-value">
+
                 <span id="groupHours">
                   0
                 </span>
-                h
+
+                <span class="stat-label">
+                  h
+                </span>
+
               </div>
 
             </div>
 
           </div>
 
-
-          <div
-            id="groupTitle"
-            class="small-note"
-          ></div>
-
-
-          <div
-            id="groupMembers"
-          ></div>
-
-        </div>
-
-      </div>
-
-
-      <!-- グループ期間 -->
-
-      <div class="card">
-
-        <div class="card-title">
-          📅 期間
-        </div>
-
-        <div class="tabs">
-
-          <button
-            id="groupCurrentMonthTab"
-            class="tab active"
-            onclick="loadGroup('month')"
-          >
-            今月
-          </button>
-
-          <button
-            id="groupLastMonthTab"
-            class="tab"
-            onclick="loadGroup('lastmonth')"
-          >
-            先月
-          </button>
+          <div id="groupList"></div>
 
         </div>
 
@@ -1017,9 +1072,8 @@
 
     </section>
 
-
     <!-- =========================
-         管理画面
+         管理
     ========================== -->
 
     <section
@@ -1040,17 +1094,10 @@
           読み込み中...
         </div>
 
-
         <div
           id="adminContent"
           class="hidden"
         >
-
-          <!-- 全体 -->
-
-          <div class="card-title">
-            📊 全体
-          </div>
 
           <div class="admin-stat">
 
@@ -1061,14 +1108,13 @@
               </div>
 
               <div
-                id="adminTotalRecords"
                 class="stat-value"
+                id="adminRecords"
               >
                 0
               </div>
 
             </div>
-
 
             <div class="stat-box">
 
@@ -1077,14 +1123,13 @@
               </div>
 
               <div
-                id="adminTotalUsers"
                 class="stat-value"
+                id="adminUsers"
               >
                 0
               </div>
 
             </div>
-
 
             <div class="stat-box">
 
@@ -1092,15 +1137,14 @@
                 売上
               </div>
 
-              <div class="stat-value">
-                <span id="adminTotalSales">
-                  0
-                </span>
-                円
+              <div
+                class="stat-value"
+                id="adminSales"
+              >
+                0円
               </div>
 
             </div>
-
 
             <div class="stat-box">
 
@@ -1108,15 +1152,14 @@
                 配達
               </div>
 
-              <div class="stat-value">
-                <span id="adminTotalCount">
-                  0
-                </span>
-                件
+              <div
+                class="stat-value"
+                id="adminCount"
+              >
+                0件
               </div>
 
             </div>
-
 
             <div class="stat-box">
 
@@ -1124,433 +1167,403 @@
                 稼働
               </div>
 
-              <div class="stat-value">
-                <span id="adminTotalHours">
-                  0
-                </span>
-                h
+              <div
+                class="stat-value"
+                id="adminHours"
+              >
+                0h
+              </div>
+
+            </div>
+
+            <div class="stat-box">
+
+              <div class="stat-label">
+                グループ
+              </div>
+
+              <div
+                class="stat-value"
+                id="adminGroups"
+              >
+                0
               </div>
 
             </div>
 
           </div>
 
+          <div
+            id="adminDetails"
+            style="margin-top:14px;"
+          ></div>
+
         </div>
-
-      </div>
-
-
-      <!-- =========================
-           今月
-      ========================== -->
-
-      <div class="card">
-
-        <div class="card-title">
-          📅 今月（JST）
-        </div>
-
-        <div
-          id="adminMonthStats"
-        ></div>
-
-      </div>
-
-
-      <!-- =========================
-           グループ
-      ========================== -->
-
-      <div class="card">
-
-        <div class="card-title">
-          👥 グループ
-        </div>
-
-        <div
-          id="adminGroupStats"
-        ></div>
-
-      </div>
-
-
-      <!-- =========================
-           最新ログ
-      ========================== -->
-
-      <div class="card">
-
-        <div class="card-title">
-          📝 最新ログ
-        </div>
-
-        <div
-          id="adminLogs"
-        ></div>
 
       </div>
 
     </section>
 
-
-    <!-- =========================
-         リセット確認
-    ========================== -->
-
-    <div
-      id="resetModal"
-      class="hidden"
-    >
-
-      <div class="card">
-
-        <div class="card-title">
-          ⚠️ 実績を削除
-        </div>
-
-        <div class="small-note">
-          自分の登録した実績をすべて削除します。
-          月間目標は削除されません。
-        </div>
-
-        <div style="height:12px;"></div>
-
-        <button
-          class="danger-button"
-          onclick="confirmReset()"
-        >
-          実績をすべて削除
-        </button>
-
-        <div style="height:8px;"></div>
-
-        <button
-          class="secondary-button"
-          onclick="closeResetModal()"
-        >
-          キャンセル
-        </button>
-
-      </div>
-
-    </div>
-
   </div>
 
-
-  <!-- =========================
-       JavaScript
-  ========================== -->
-
   <script>
+    const tg =
+      window.Telegram?.WebApp || null;
 
-    const tg = window.Telegram?.WebApp;
+    const JST =
+      "Asia/Tokyo";
+
+    let activeSection =
+      "personal";
+
+    let activePeriod =
+      "today";
 
     if (tg) {
       tg.ready();
       tg.expand();
     }
 
+    // =========================================================
+    // 共通
+    // =========================================================
 
-    /* ========================================
-       共通
-    ======================================== */
-
-    function getInitData() {
-
-      if (tg?.initData) {
-        return tg.initData;
-      }
-
-      return "";
-
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
+    function formatNumber(value) {
+      const number =
+        Number(value || 0);
 
-    async function apiFetch(url, options = {}) {
+      return number.toLocaleString(
+        "ja-JP",
+        {
+          maximumFractionDigits: 2
+        }
+      );
+    }
+
+    function formatHours(value) {
+      const number =
+        Number(value || 0);
+
+      return number.toLocaleString(
+        "ja-JP",
+        {
+          maximumFractionDigits: 2
+        }
+      );
+    }
+
+    function getInitData() {
+      return tg?.initData || "";
+    }
+
+    async function apiFetch(
+      url,
+      options = {}
+    ) {
+      const initData =
+        getInitData();
 
       const headers = {
         ...(options.headers || {})
       };
 
-      const initData = getInitData();
-
       if (initData) {
-        headers["X-Telegram-Init-Data"] = initData;
+        headers[
+          "X-Telegram-Init-Data"
+        ] = initData;
       }
 
-      const response = await fetch(
-        url,
-        {
-          ...options,
-          headers
-        }
-      );
-
+      const response =
+        await fetch(
+          url,
+          {
+            ...options,
+            headers
+          }
+        );
 
       let data = null;
 
       try {
-        data = await response.json();
-      } catch (error) {
+        data =
+          await response.json();
+      } catch {
         throw new Error(
-          `APIレスポンスを解析できませんでした (${response.status})`
+          "APIレスポンスを読み込めませんでした"
         );
       }
-
 
       if (!response.ok) {
-
         throw new Error(
           data?.error ||
-          data?.message ||
-          `APIエラー (${response.status})`
+          `APIエラー: ${response.status}`
         );
-
       }
-
 
       return data;
-
     }
 
+    function showError(message) {
+      const box =
+        document.getElementById(
+          "errorBox"
+        );
 
-    function formatNumber(value) {
+      box.textContent =
+        message || "";
 
-      const number = Number(value || 0);
-
-      return number.toLocaleString("ja-JP");
-
+      box.classList.toggle(
+        "hidden",
+        !message
+      );
     }
 
-
-    function formatHours(value) {
-
-      const number = Number(value || 0);
-
-      if (Number.isInteger(number)) {
-        return String(number);
-      }
-
-      return number.toFixed(1);
-
+    function hideError() {
+      showError("");
     }
 
-
-    function formatDateTime(value) {
-
+    function formatDateJST(value) {
       if (!value) {
         return "-";
       }
 
-      const date = new Date(value);
+      const date =
+        new Date(value);
 
-      if (Number.isNaN(date.getTime())) {
+      if (
+        Number.isNaN(
+          date.getTime()
+        )
+      ) {
         return "-";
       }
 
-      return date.toLocaleString(
+      return new Intl.DateTimeFormat(
         "ja-JP",
         {
-          timeZone: "Asia/Tokyo",
+          timeZone: JST,
           year: "numeric",
           month: "2-digit",
           day: "2-digit",
           hour: "2-digit",
           minute: "2-digit"
         }
-      );
-
+      ).format(date);
     }
 
-
-    function showError(message) {
-
-      const box = document.getElementById("errorBox");
-
-      if (!box) {
-        return;
-      }
-
-      box.textContent = message || "エラーが発生しました。";
-
-      box.classList.remove("hidden");
-
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
-
-    }
-
-
-    function clearError() {
-
-      const box = document.getElementById("errorBox");
-
-      if (!box) {
-        return;
-      }
-
-      box.textContent = "";
-
-      box.classList.add("hidden");
-
-    }
-
-
-    /* ========================================
-       ユーザー名
-    ======================================== */
+    // =========================================================
+    // ユーザー名
+    // =========================================================
 
     function renderUserName() {
-
       const element =
-        document.getElementById("userName");
-
-      if (!element) {
-        return;
-      }
-
+        document.getElementById(
+          "userName"
+        );
 
       const user =
         tg?.initDataUnsafe?.user;
 
-
       if (!user) {
-
         element.textContent =
           "Telegramユーザー";
 
         return;
-
       }
-
 
       let name = "";
 
       if (user.first_name) {
-        name += user.first_name;
+        name +=
+          user.first_name;
       }
 
       if (user.last_name) {
-        name += ` ${user.last_name}`;
+        name +=
+          ` ${user.last_name}`;
       }
 
-
-      if (!name && user.username) {
-        name = `@${user.username}`;
+      if (
+        !name &&
+        user.username
+      ) {
+        name =
+          `@${user.username}`;
       }
-
-
-      if (!name) {
-        name = "Telegramユーザー";
-      }
-
 
       element.textContent =
-        `${name} さん`;
-
+        name
+          ? `${name} さん`
+          : "Telegramユーザー";
     }
 
-
-    /* ========================================
-       セクション切替
-    ======================================== */
+    // =========================================================
+    // セクション切替
+    // =========================================================
 
     function showSection(section) {
+      activeSection =
+        section;
 
-      clearError();
-
-
-      const sections = [
-        "personal",
-        "group",
-        "admin"
-      ];
-
-
-      sections.forEach(name => {
-
-        const element =
-          document.getElementById(
-            `${name}Section`
-          );
-
-        if (!element) {
-          return;
-        }
-
-        element.classList.toggle(
+      document
+        .getElementById(
+          "personalSection"
+        )
+        .classList.toggle(
           "hidden",
-          name !== section
+          section !== "personal"
         );
 
-      });
+      document
+        .getElementById(
+          "groupSection"
+        )
+        .classList.toggle(
+          "hidden",
+          section !== "group"
+        );
 
+      document
+        .getElementById(
+          "adminSection"
+        )
+        .classList.toggle(
+          "hidden",
+          section !== "admin"
+        );
 
-      const tabs = [
-        "personalTab",
-        "groupTab",
-        "adminTab"
-      ];
+      document
+        .getElementById(
+          "personalTab"
+        )
+        .classList.toggle(
+          "active",
+          section === "personal"
+        );
 
+      document
+        .getElementById(
+          "groupTab"
+        )
+        .classList.toggle(
+          "active",
+          section === "group"
+        );
 
-      tabs.forEach(id => {
+      document
+        .getElementById(
+          "adminTab"
+        )
+        .classList.toggle(
+          "active",
+          section === "admin"
+        );
 
-        const tab =
-          document.getElementById(id);
+      hideError();
 
-        if (!tab) {
-          return;
-        }
-
-        tab.classList.remove("active");
-
-      });
-
-
-      if (section === "personal") {
-
-        document
-          .getElementById("personalTab")
-          ?.classList.add("active");
-
+      if (
+        section === "personal"
+      ) {
+        loadPersonal(
+          activePeriod
+        );
       }
 
-
-      if (section === "group") {
-
-        document
-          .getElementById("groupTab")
-          ?.classList.add("active");
-
-        loadGroup("month");
-
+      if (
+        section === "group"
+      ) {
+        loadGroup();
       }
 
-
-      if (section === "admin") {
-
-        document
-          .getElementById("adminTab")
-          ?.classList.add("active");
-
+      if (
+        section === "admin"
+      ) {
         loadAdmin();
-
       }
-
     }
 
+    // =========================================================
+    // 期間
+    // =========================================================
 
-    /* ========================================
-       個人データ
-    ======================================== */
+    function getBackendPeriod(
+      period
+    ) {
+      if (
+        period === "today"
+      ) {
+        return "day";
+      }
 
-    async function loadPersonal(period = "today") {
+      return period;
+    }
 
-      clearError();
+    function updatePeriodTabs(
+      period
+    ) {
+      document
+        .getElementById(
+          "periodToday"
+        )
+        .classList.toggle(
+          "active",
+          period === "today"
+        );
 
+      document
+        .getElementById(
+          "periodWeek"
+        )
+        .classList.toggle(
+          "active",
+          period === "week"
+        );
+
+      document
+        .getElementById(
+          "periodMonth"
+        )
+        .classList.toggle(
+          "active",
+          period === "month"
+        );
+
+      document
+        .getElementById(
+          "periodYear"
+        )
+        .classList.toggle(
+          "active",
+          period === "year"
+        );
+    }
+
+    function getActivePeriod() {
+      return activePeriod;
+    }
+
+    // =========================================================
+    // 個人実績
+    // =========================================================
+
+    async function loadPersonal(
+      period = "today"
+    ) {
+      activePeriod =
+        period;
+
+      updatePeriodTabs(
+        period
+      );
 
       const loading =
         document.getElementById(
@@ -1562,49 +1575,21 @@
           "personalContent"
         );
 
+      loading.classList.remove(
+        "hidden"
+      );
 
-      if (loading) {
-        loading.classList.remove("hidden");
-      }
+      content.classList.add(
+        "hidden"
+      );
 
-      if (content) {
-        content.classList.add("hidden");
-      }
-
-
-      const periodButtons = {
-        today: "periodToday",
-        week: "periodWeek",
-        month: "periodMonth",
-        year: "periodYear"
-      };
-
-
-      Object.values(periodButtons)
-        .forEach(id => {
-
-          document
-            .getElementById(id)
-            ?.classList.remove("active");
-
-        });
-
-
-      document
-        .getElementById(
-          periodButtons[period] ||
-          "periodToday"
-        )
-        ?.classList.add("active");
-
-
-      const backendPeriod =
-        period === "today"
-          ? "day"
-          : period;
-
+      hideError();
 
       try {
+        const backendPeriod =
+          getBackendPeriod(
+            period
+          );
 
         const data =
           await apiFetch(
@@ -1613,576 +1598,423 @@
             )}`
           );
 
+        renderPersonal(
+          data
+        );
 
-        renderPersonal(data);
+        loading.classList.add(
+          "hidden"
+        );
 
-
-        if (loading) {
-          loading.classList.add("hidden");
-        }
-
-        if (content) {
-          content.classList.remove("hidden");
-        }
-
+        content.classList.remove(
+          "hidden"
+        );
 
         await loadAnalytics();
 
       } catch (error) {
-
         console.error(
-          "personal error:",
           error
         );
 
-        if (loading) {
-          loading.classList.add("hidden");
-        }
+        loading.classList.add(
+          "hidden"
+        );
+
+        content.classList.remove(
+          "hidden"
+        );
 
         showError(
           error.message ||
-          "個人データの取得に失敗しました。"
+          "個人実績の取得に失敗しました。"
         );
-
       }
-
     }
 
-
-    function renderPersonal(data) {
-
+    function renderPersonal(
+      data
+    ) {
       const sales =
-        Number(data?.sales || 0);
+        Number(
+          data?.sales || 0
+        );
 
       const count =
-        Number(data?.count || 0);
+        Number(
+          data?.count || 0
+        );
 
       const hours =
-        Number(data?.hours || 0);
+        Number(
+          data?.hours || 0
+        );
 
       const workDays =
-        Number(data?.workDays || 0);
+        Number(
+          data?.workDays || 0
+        );
 
       const goal =
-        Number(data?.goal || 0);
-
-      const rate =
-        Number(data?.rate || 0);
-
+        Number(
+          data?.goal || 0
+        );
 
       document
-        .getElementById("salesValue")
+        .getElementById(
+          "salesValue"
+        )
         .textContent =
-        formatNumber(sales);
-
+        formatNumber(
+          sales
+        );
 
       document
-        .getElementById("countValue")
+        .getElementById(
+          "countValue"
+        )
         .textContent =
-        formatNumber(count);
-
+        formatNumber(
+          count
+        );
 
       document
-        .getElementById("hoursValue")
+        .getElementById(
+          "hoursValue"
+        )
         .textContent =
-        formatHours(hours);
-
+        formatHours(
+          hours
+        );
 
       document
-        .getElementById("workDaysValue")
+        .getElementById(
+          "workDaysValue"
+        )
         .textContent =
-        formatNumber(workDays);
+        formatNumber(
+          workDays
+        );
 
+      renderGoal(
+        goal,
+        count
+      );
 
-      const goalInfo =
+      renderRecords(
+        data?.records || []
+      );
+    }
+
+    // =========================================================
+    // 月間目標
+    // =========================================================
+
+    function renderGoal(
+      goal,
+      count
+    ) {
+      const info =
         document.getElementById(
           "goalInfo"
         );
 
-
-      if (goalInfo) {
-
-        if (goal > 0) {
-
-          goalInfo.textContent =
-            `月間目標：${formatNumber(goal)}件`;
-
-        } else {
-
-          goalInfo.textContent =
-            "月間目標：未設定";
-
-        }
-
-      }
-
-
-      const progressWrap =
+      const wrap =
         document.getElementById(
           "goalProgressWrap"
         );
 
-      const progressBar =
+      if (
+        !goal ||
+        goal <= 0
+      ) {
+        info.textContent =
+          "月間目標：未設定";
+
+        wrap.classList.add(
+          "hidden"
+        );
+
+        return;
+      }
+
+      info.textContent =
+        `月間目標：${formatNumber(
+          goal
+        )}件`;
+
+      if (
+        activePeriod ===
+        "month"
+      ) {
+        updateGoalProgress(
+          count,
+          goal
+        );
+      } else {
+        loadMonthlyGoalProgress(
+          goal
+        );
+      }
+    }
+
+    async function loadMonthlyGoalProgress(
+      goal
+    ) {
+      try {
+        const data =
+          await apiFetch(
+            "/api/result?period=month"
+          );
+
+        const monthlyCount =
+          Number(
+            data?.count || 0
+          );
+
+        updateGoalProgress(
+          monthlyCount,
+          goal
+        );
+
+      } catch (error) {
+        console.error(
+          "monthly goal progress error:",
+          error
+        );
+
+        const wrap =
+          document.getElementById(
+            "goalProgressWrap"
+          );
+
+        wrap.classList.add(
+          "hidden"
+        );
+      }
+    }
+
+    function updateGoalProgress(
+      count,
+      goal
+    ) {
+      const wrap =
+        document.getElementById(
+          "goalProgressWrap"
+        );
+
+      const bar =
         document.getElementById(
           "goalProgressBar"
         );
 
-      const progressText =
+      const text =
         document.getElementById(
           "goalProgressText"
         );
 
-
-      if (goal > 0) {
-
-        progressWrap
-          ?.classList.remove("hidden");
-
-
-        const safeRate =
-          Math.max(
-            0,
-            Math.min(100, rate)
-          );
-
-
-        if (progressBar) {
-
-          progressBar.style.width =
-            `${safeRate}%`;
-
-        }
-
-
-        if (progressText) {
-
-          progressText.textContent =
-            `${formatNumber(count)}/${formatNumber(goal)}件（${formatNumber(rate)}%）`;
-
-        }
-
-      } else {
-
-        progressWrap
-          ?.classList.add("hidden");
-
-      }
-
-
-      const records =
-        Array.isArray(data?.records)
-          ? data.records
-          : [];
-
-
-      renderRecords(records);
-
-    }
-
-
-    function renderRecords(records) {
-
-      const container =
-        document.getElementById(
-          "records"
+      if (
+        !goal ||
+        goal <= 0
+      ) {
+        wrap.classList.add(
+          "hidden"
         );
 
-
-      if (!container) {
         return;
       }
 
+      const percentage =
+        Math.min(
+          100,
+          Math.round(
+            (count / goal) *
+            100
+          )
+        );
 
-      if (!records.length) {
+      bar.style.width =
+        `${percentage}%`;
 
-        container.innerHTML =
-          `<div class="empty">
-             実績はまだありません。
-           </div>`;
+      text.textContent =
+        `${formatNumber(
+          count
+        )}/${formatNumber(
+          goal
+        )}件（${percentage}%）`;
 
-        return;
-
-      }
-
-
-      container.innerHTML =
-        records
-          .map(record => {
-
-            return `
-              <div class="record">
-
-                <div class="record-left">
-
-                  <div class="record-date">
-                    ${formatDateTime(record.createdAt)}
-                  </div>
-
-                  <div class="record-meta">
-                    ${formatNumber(record.count)}件
-                    /
-                    ${formatHours(record.hours)}時間
-                  </div>
-
-                </div>
-
-                <div class="record-sales">
-                  ${formatNumber(record.sale)}円
-                </div>
-
-              </div>
-            `;
-
-          })
-          .join("");
-
+      wrap.classList.remove(
+        "hidden"
+      );
     }
 
-
-    /* ========================================
-       月間目標
-    ======================================== */
-
     async function saveGoal() {
-
-      clearError();
-
-
       const input =
         document.getElementById(
           "goalInput"
         );
 
-
       const monthlyGoal =
-        Number(input?.value || 0);
-
+        Number(
+          input.value
+        );
 
       if (
-        !Number.isInteger(monthlyGoal) ||
+        !Number.isInteger(
+          monthlyGoal
+        ) ||
         monthlyGoal <= 0
       ) {
-
-        showError(
-          "月間目標は1件以上の整数で入力してください。"
+        alert(
+          "1以上の整数で目標件数を入力してください。"
         );
 
         return;
-
       }
 
-
-      if (monthlyGoal > 1000000) {
-
-        showError(
-          "月間目標は100万件以下で設定してください。"
+      if (
+        monthlyGoal >
+        1000000
+      ) {
+        alert(
+          "目標件数は1,000,000件以下で設定してください。"
         );
 
         return;
-
       }
-
 
       try {
+        const data =
+          await apiFetch(
+            "/api/goal",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+              body:
+                JSON.stringify({
+                  monthlyGoal
+                })
+            }
+          );
 
-        await apiFetch(
-          "/api/goal",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-            body: JSON.stringify({
-              monthlyGoal
-            })
-          }
-        );
-
-
-        input.value = "";
-
-
-        await loadPersonal("today");
-
-
-        if (tg) {
-
-          tg.showPopup?.({
-            title: "保存完了",
-            message:
-              `月間目標を${formatNumber(monthlyGoal)}件に設定しました。`,
-            buttons: [
-              {
-                type: "ok"
-              }
-            ]
-          });
-
+        if (!data?.ok) {
+          throw new Error(
+            data?.error ||
+            "目標の保存に失敗しました"
+          );
         }
 
-      } catch (error) {
+        input.value =
+          monthlyGoal;
 
+        await loadPersonal(
+          activePeriod
+        );
+
+        alert(
+          "月間目標を保存しました。"
+        );
+
+      } catch (error) {
         console.error(
-          "save goal error:",
           error
         );
 
-        showError(
+        alert(
           error.message ||
           "目標の保存に失敗しました。"
         );
-
       }
-
-    }
-        /* ========================================
-       グループ
-    ======================================== */
-
-    async function loadGroup(period = "month") {
-
-      clearError();
-
-      const loading =
-        document.getElementById("groupLoading");
-
-      const content =
-        document.getElementById("groupContent");
-
-
-      if (loading) {
-        loading.classList.remove("hidden");
-      }
-
-      if (content) {
-        content.classList.add("hidden");
-      }
-
-
-      try {
-
-        const endpoint =
-          period === "lastmonth"
-            ? "/api/group?period=lastmonth"
-            : "/api/group?period=month";
-
-
-        const data =
-          await apiFetch(endpoint);
-
-
-        renderGroup(data);
-
-
-        if (loading) {
-          loading.classList.add("hidden");
-        }
-
-        if (content) {
-          content.classList.remove("hidden");
-        }
-
-
-      } catch (error) {
-
-        console.error(
-          "group error:",
-          error
-        );
-
-
-        if (loading) {
-          loading.classList.add("hidden");
-        }
-
-
-        showError(
-          error.message ||
-          "グループデータの取得に失敗しました。"
-        );
-
-      }
-
     }
 
+    // =========================================================
+    // 実績履歴
+    // =========================================================
 
-    function renderGroup(data) {
-
-      const sales =
-        Number(
-          data?.sales ??
-          data?.summary?.sales ??
-          0
-        );
-
-      const count =
-        Number(
-          data?.count ??
-          data?.summary?.count ??
-          0
-        );
-
-      const hours =
-        Number(
-          data?.hours ??
-          data?.summary?.hours ??
-          0
-        );
-
-
-      document
-        .getElementById("groupSales")
-        .textContent =
-        formatNumber(sales);
-
-
-      document
-        .getElementById("groupCount")
-        .textContent =
-        formatNumber(count);
-
-
-      document
-        .getElementById("groupHours")
-        .textContent =
-        formatHours(hours);
-
-
-      const title =
-        document.getElementById(
-          "groupTitle"
-        );
-
-
-      if (title) {
-
-        title.textContent =
-          data?.groupTitle
-          ? `グループ：${data.groupTitle}`
-          : "";
-
-      }
-
-
-      const members =
-        Array.isArray(data?.members)
-          ? data.members
-          : Array.isArray(data?.users)
-            ? data.users
-            : [];
-
-
+    function renderRecords(
+      records
+    ) {
       const container =
         document.getElementById(
-          "groupMembers"
+          "records"
         );
 
-
-      if (!container) {
-        return;
-      }
-
-
-      if (!members.length) {
-
+      if (
+        !Array.isArray(
+          records
+        ) ||
+        records.length === 0
+      ) {
         container.innerHTML =
-          `<div class="empty">
-             今月のグループ実績はありません。
-           </div>`;
+          `<div class="empty">実績がありません</div>`;
 
         return;
-
       }
-
 
       container.innerHTML =
-        members
-          .map((member, index) => {
+        records
+          .map(
+            (record) => {
+              const sale =
+                Number(
+                  record?.sale || 0
+                );
 
-            const name =
-              member.name ||
-              member.displayName ||
-              member.username ||
-              `ユーザー${index + 1}`;
+              const count =
+                Number(
+                  record?.count || 0
+                );
 
+              const hours =
+                Number(
+                  record?.hours || 0
+                );
 
-            const memberSales =
-              Number(
-                member.sales ??
-                member.sale ??
-                0
-              );
+              return `
+                <div class="record">
 
+                  <div class="record-left">
 
-            const memberCount =
-              Number(
-                member.count ??
-                member.delivery_count ??
-                0
-              );
+                    <div class="record-date">
+                      ${escapeHtml(
+                        formatDateJST(
+                          record?.createdAt
+                        )
+                      )}
+                    </div>
 
+                    <div class="record-meta">
+                      ${formatNumber(
+                        count
+                      )}件
+                      /
+                      ${formatHours(
+                        hours
+                      )}時間
+                    </div>
 
-            const memberHours =
-              Number(
-                member.hours ??
-                member.work_hours ??
-                0
-              );
-
-
-            return `
-              <div class="member">
-
-                <div class="member-name">
-                  ${escapeHtml(name)}
-                </div>
-
-                <div class="member-detail">
-
-                  <div class="member-sales">
-                    ${formatNumber(memberSales)}円
                   </div>
 
-                  <div>
-                    ${formatNumber(memberCount)}件
-                    /
-                    ${formatHours(memberHours)}時間
+                  <div class="record-sales">
+                    ${formatNumber(
+                      sale
+                    )}円
                   </div>
 
                 </div>
-
-              </div>
-            `;
-
-          })
+              `;
+            }
+          )
           .join("");
-
     }
-
-
-    /* ========================================
-       HTMLエスケープ
-    ======================================== */
-
-    function escapeHtml(value) {
-
-      return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-
-    }
-
-
-    /* ========================================
-       分析ダッシュボード
-    ======================================== */
+        // =========================================================
+    // 自己分析
+    // =========================================================
 
     async function loadAnalytics() {
-
       const loading =
         document.getElementById(
           "analyticsLoading"
@@ -2193,66 +2025,65 @@
           "analyticsContent"
         );
 
-
       if (!loading || !content) {
         return;
       }
 
+      loading.classList.remove(
+        "hidden"
+      );
 
-      loading.classList.remove("hidden");
-
-      content.classList.add("hidden");
-
+      content.classList.add(
+        "hidden"
+      );
 
       try {
-
         const data =
           await apiFetch(
             "/api/analytics"
           );
 
+        renderAnalytics(
+          data
+        );
 
-        renderAnalytics(data);
+        loading.classList.add(
+          "hidden"
+        );
 
-
-        loading.classList.add("hidden");
-
-        content.classList.remove("hidden");
-
+        content.classList.remove(
+          "hidden"
+        );
 
       } catch (error) {
-
         console.error(
           "analytics error:",
           error
         );
 
+        loading.classList.add(
+          "hidden"
+        );
 
-        loading.classList.add("hidden");
+        content.classList.remove(
+          "hidden"
+        );
 
-        content.classList.remove("hidden");
-
-
-        const note =
+        const goalRate =
           document.getElementById(
             "analyticsGoalRate"
           );
 
-
-        if (note) {
-
-          note.textContent =
+        if (goalRate) {
+          goalRate.textContent =
             "分析データを取得できませんでした。";
-
         }
-
       }
-
     }
 
-
-    function renderAnalytics(data) {
-
+    function renderAnalytics(
+      data
+    ) {
       const analysis =
         data?.analysis || {};
 
@@ -2265,154 +2096,309 @@
       const month =
         data?.month || {};
 
-
-      document
-        .getElementById(
-          "analyticsAverageDailyCount"
-        )
-        .textContent =
-        formatNumber(
-          analysis.averageDailyCount
+      const averageDailyCount =
+        Number(
+          analysis.averageDailyCount ||
+          0
         );
 
-
-      document
-        .getElementById(
-          "analyticsAverageDailySales"
-        )
-        .textContent =
-        formatNumber(
-          analysis.averageDailySales
+      const averageDailySales =
+        Number(
+          analysis.averageDailySales ||
+          0
         );
 
-
-      document
-        .getElementById(
-          "analyticsCurrentDailyPace"
-        )
-        .textContent =
-        formatNumber(
-          analysis.currentDailyPace
+      const currentDailyPace =
+        Number(
+          analysis.currentDailyPace ||
+          0
         );
 
-
-      document
-        .getElementById(
-          "analyticsProjectedMonthCount"
-        )
-        .textContent =
-        formatNumber(
-          analysis.projectedMonthCount
+      const projectedMonthCount =
+        Number(
+          analysis.projectedMonthCount ||
+          0
         );
 
-
-      document
-        .getElementById(
-          "analyticsProjectedMonthSales"
-        )
-        .textContent =
-        formatNumber(
-          analysis.projectedMonthSales
+      const projectedMonthSales =
+        Number(
+          analysis.projectedMonthSales ||
+          0
         );
 
-
-      document
-        .getElementById(
-          "analyticsRemainingDays"
-        )
-        .textContent =
-        formatNumber(
-          analysis.remainingDays
+      const remainingDays =
+        Number(
+          analysis.remainingDays ||
+          0
         );
 
-
-      document
-        .getElementById(
-          "analyticsRemainingGoalCount"
-        )
-        .textContent =
-        formatNumber(
-          analysis.remainingGoalCount
+      const remainingGoalCount =
+        Number(
+          analysis.remainingGoalCount ||
+          0
         );
 
-
-      document
-        .getElementById(
-          "analyticsRequiredDailyCount"
-        )
-        .textContent =
-        formatNumber(
-          analysis.requiredDailyCount
+      const requiredDailyCount =
+        Number(
+          analysis.requiredDailyCount ||
+          0
         );
 
+      const goalRate =
+        Number(
+          analysis.goalRate ||
+          0
+        );
 
-      document
-        .getElementById(
-          "analyticsGoalRate"
-        )
-        .textContent =
+      const averageUnitPrice =
+        Number(
+          analysis.averageUnitPrice ||
+          0
+        );
+
+      const bestCount =
+        Number(
+          analysis.bestCount ||
+          0
+        );
+
+      const bestSales =
+        Number(
+          analysis.bestSales ||
+          0
+        );
+
+      const bestCountPerHour =
+        Number(
+          analysis.bestCountPerHour ||
+          0
+        );
+
+      const bestSalesPerHour =
+        Number(
+          analysis.bestSalesPerHour ||
+          0
+        );
+
+      const bestDayCount =
+        Number(
+          analysis.bestDayCount ||
+          0
+        );
+
+      const bestDayCountDate =
+        analysis.bestDayCountDate;
+
+      const bestDaySales =
+        Number(
+          analysis.bestDaySales ||
+          0
+        );
+
+      const bestDaySalesDate =
+        analysis.bestDaySalesDate;
+
+      setText(
+        "analyticsAverageDailyCount",
+        `${formatNumber(
+          averageDailyCount
+        )}件`
+      );
+
+      setText(
+        "analyticsAverageDailySales",
+        `${formatNumber(
+          averageDailySales
+        )}円`
+      );
+
+      setText(
+        "analyticsCurrentDailyPace",
+        `${formatNumber(
+          currentDailyPace
+        )}件/日`
+      );
+
+      setText(
+        "analyticsProjectedMonthCount",
+        `${formatNumber(
+          projectedMonthCount
+        )}件`
+      );
+
+      setText(
+        "analyticsProjectedMonthSales",
+        `${formatNumber(
+          projectedMonthSales
+        )}円`
+      );
+
+      setText(
+        "analyticsRemainingDays",
+        `${formatNumber(
+          remainingDays
+        )}日`
+      );
+
+      setText(
+        "analyticsRemainingGoalCount",
+        `${formatNumber(
+          remainingGoalCount
+        )}件`
+      );
+
+      setText(
+        "analyticsRequiredDailyCount",
+        `${formatNumber(
+          requiredDailyCount
+        )}件/日`
+      );
+
+      setText(
+        "analyticsGoalRate",
         `目標達成率：${formatNumber(
-          analysis.goalRate
-        )}%`;
+          goalRate
+        )}%`
+      );
 
+      setText(
+        "analyticsUnitPrice",
+        `平均単価：${formatNumber(
+          averageUnitPrice
+        )}円/件`
+      );
+
+      setText(
+        "analyticsBestCount",
+        `${formatNumber(
+          bestCount
+        )}件`
+      );
+
+      setText(
+        "analyticsBestSales",
+        `${formatNumber(
+          bestSales
+        )}円`
+      );
+
+      setText(
+        "analyticsBestCountPerHour",
+        `${formatNumber(
+          bestCountPerHour
+        )}件/h`
+      );
+
+      setText(
+        "analyticsBestSalesPerHour",
+        `${formatNumber(
+          bestSalesPerHour
+        )}円/h`
+      );
+
+      // -----------------------------------------
+      // 昨日比較
+      // -----------------------------------------
 
       const salesChange =
         Number(
-          analysis.salesChangeFromYesterday || 0
+          analysis.salesChangeFromYesterday ||
+          0
         );
-
 
       const countChange =
         Number(
-          analysis.countChangeFromYesterday || 0
+          analysis.countChangeFromYesterday ||
+          0
         );
-
 
       const salesSign =
         salesChange > 0
           ? "+"
           : "";
 
-
       const countSign =
         countChange > 0
           ? "+"
           : "";
 
-
-      document
-        .getElementById(
-          "analyticsYesterdayCompare"
-        )
-        .textContent =
-        `昨日比：売上 ${salesSign}${formatNumber(
+      let yesterdayText =
+        `昨日比：売上 ${
+          salesSign
+        }${formatNumber(
           salesChange
-        )}円 / 配達 ${countSign}${formatNumber(
+        )}円 / 配達 ${
+          countSign
+        }${formatNumber(
           countChange
         )}件`;
 
+      if (
+        Number(today.count || 0) === 0 &&
+        Number(yesterday.count || 0) === 0
+      ) {
+        yesterdayText =
+          "昨日比：まだ比較できる実績がありません";
+      }
 
-      document
-        .getElementById(
-          "analyticsUnitPrice"
-        )
-        .textContent =
-        `平均単価：${formatNumber(
-          analysis.averageUnitPrice
-        )}円/件`;
+      setText(
+        "analyticsYesterdayCompare",
+        yesterdayText
+      );
 
+      // -----------------------------------------
+      // 自己ベスト日
+      // -----------------------------------------
 
-      /*
-       * 月初などで平均値が0になるケースの
-       * フォールバック
-       */
+      let bestDayText =
+        "自己ベスト日：まだありません";
+
+      if (
+        bestDayCount > 0 &&
+        bestDayCountDate
+      ) {
+        bestDayText =
+          `最高配達日：${formatAnalyticsDate(
+            bestDayCountDate
+          )}（${formatNumber(
+            bestDayCount
+          )}件）`;
+      }
+
+      if (
+        bestDaySales > 0 &&
+        bestDaySalesDate
+      ) {
+        bestDayText +=
+          ` / 最高売上日：${formatAnalyticsDate(
+            bestDaySalesDate
+          )}（${formatNumber(
+            bestDaySales
+          )}円）`;
+      }
+
+      setText(
+        "analyticsBestDay",
+        bestDayText
+      );
+
+      // -----------------------------------------
+      // 日別データ
+      // -----------------------------------------
+
+      renderAnalyticsDaily(
+        data?.daily || []
+      );
+
+      // -----------------------------------------
+      // 月平均の補正
+      // -----------------------------------------
 
       if (
         !analysis.averageDailyCount &&
-        month.count
+        Number(month.count || 0)
       ) {
-
-        const fallbackDays =
+        const elapsedDays =
           Math.max(
             1,
             Number(
@@ -2420,105 +2406,368 @@
             )
           );
 
-
-        document
-          .getElementById(
-            "analyticsAverageDailyCount"
-          )
-          .textContent =
-          formatNumber(
+        setText(
+          "analyticsAverageDailyCount",
+          `${formatNumber(
             Number(month.count) /
-            fallbackDays
-          );
-
+              elapsedDays
+          )}件`
+        );
       }
-
-
-      if (
-        Number(today.count || 0) === 0 &&
-        Number(yesterday.count || 0) === 0
-      ) {
-
-        document
-          .getElementById(
-            "analyticsYesterdayCompare"
-          )
-          .textContent =
-          "昨日比：まだ比較できる実績がありません";
-
-      }
-
     }
 
+    function setText(
+      id,
+      value
+    ) {
+      const element =
+        document.getElementById(
+          id
+        );
 
-    /* ========================================
-       管理者アクセス
-    ======================================== */
+      if (element) {
+        element.textContent =
+          value;
+      }
+    }
+
+    function formatAnalyticsDate(
+      value
+    ) {
+      if (!value) {
+        return "-";
+      }
+
+      const text =
+        String(value);
+
+      const match =
+        text.match(
+          /^(\d{4})-(\d{2})-(\d{2})/
+        );
+
+      if (!match) {
+        return text;
+      }
+
+      return `${Number(
+        match[2]
+      )}/${Number(
+        match[3]
+      )}`;
+    }
+
+    function renderAnalyticsDaily(
+      daily
+    ) {
+      const container =
+        document.getElementById(
+          "analyticsDaily"
+        );
+
+      if (!container) {
+        return;
+      }
+
+      if (
+        !Array.isArray(daily) ||
+        daily.length === 0
+      ) {
+        container.innerHTML = `
+          <div
+            class="analytics-note"
+            style="padding:12px;"
+          >
+            今月の実績データがありません
+          </div>
+        `;
+
+        return;
+      }
+
+      const rows =
+        daily
+          .slice()
+          .reverse()
+          .map(
+            (day) => `
+              <tr>
+                <td>
+                  ${escapeHtml(
+                    formatAnalyticsDate(
+                      day.date
+                    )
+                  )}
+                </td>
+
+                <td>
+                  ${formatNumber(
+                    day.count
+                  )}件
+                </td>
+
+                <td>
+                  ${formatNumber(
+                    day.sales
+                  )}円
+                </td>
+
+                <td>
+                  ${formatNumber(
+                    day.hours
+                  )}h
+                </td>
+
+                <td>
+                  ${formatNumber(
+                    day.countPerHour
+                  )}件/h
+                </td>
+              </tr>
+            `
+          )
+          .join("");
+
+      container.innerHTML = `
+        <table class="analytics-table">
+
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>配達</th>
+              <th>売上</th>
+              <th>稼働</th>
+              <th>効率</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${rows}
+          </tbody>
+
+        </table>
+      `;
+    }
+
+    // =========================================================
+    // グループ
+    // =========================================================
+
+    async function loadGroup() {
+      const loading =
+        document.getElementById(
+          "groupLoading"
+        );
+
+      const content =
+        document.getElementById(
+          "groupContent"
+        );
+
+      loading.classList.remove(
+        "hidden"
+      );
+
+      content.classList.add(
+        "hidden"
+      );
+
+      hideError();
+
+      try {
+        const data =
+          await apiFetch(
+            "/api/group"
+          );
+
+        renderGroup(
+          data
+        );
+
+        loading.classList.add(
+          "hidden"
+        );
+
+        content.classList.remove(
+          "hidden"
+        );
+
+      } catch (error) {
+        console.error(
+          "group error:",
+          error
+        );
+
+        loading.classList.add(
+          "hidden"
+        );
+
+        content.classList.remove(
+          "hidden"
+        );
+
+        showError(
+          error.message ||
+          "グループ実績の取得に失敗しました。"
+        );
+      }
+    }
+
+    function renderGroup(
+      data
+    ) {
+      const summary =
+        data?.summary || {};
+
+      const members =
+        Array.isArray(
+          data?.members
+        )
+          ? data.members
+          : [];
+
+      setText(
+        "groupSales",
+        formatNumber(
+          summary.sales || 0
+        )
+      );
+
+      setText(
+        "groupCount",
+        formatNumber(
+          summary.count || 0
+        )
+      );
+
+      setText(
+        "groupHours",
+        formatHours(
+          summary.hours || 0
+        )
+      );
+
+      const list =
+        document.getElementById(
+          "groupList"
+        );
+
+      if (
+        members.length === 0
+      ) {
+        list.innerHTML = `
+          <div class="empty">
+            グループ実績がありません
+          </div>
+        `;
+
+        return;
+      }
+
+      list.innerHTML =
+        members
+          .map(
+            (member) => {
+              const name =
+                member?.displayName ||
+                member?.username ||
+                member?.firstName ||
+                "不明";
+
+              const count =
+                Number(
+                  member?.count || 0
+                );
+
+              const sales =
+                Number(
+                  member?.sales || 0
+                );
+
+              const hours =
+                Number(
+                  member?.hours || 0
+                );
+
+              return `
+                <div class="member">
+
+                  <div class="member-name">
+                    ${escapeHtml(
+                      name
+                    )}
+                  </div>
+
+                  <div class="member-detail">
+
+                    <span>
+                      ${formatNumber(
+                        count
+                      )}件 /
+                      ${formatHours(
+                        hours
+                      )}h
+                    </span>
+
+                    <span class="member-sales">
+                      ${formatNumber(
+                        sales
+                      )}円
+                    </span>
+
+                  </div>
+
+                </div>
+              `;
+            }
+          )
+          .join("");
+    }
+
+    // =========================================================
+    // 管理者
+    // =========================================================
 
     async function checkAdminAccess() {
-
       const adminTab =
         document.getElementById(
           "adminTab"
         );
 
-
       if (!adminTab) {
         return false;
       }
 
-
       try {
-
         const data =
           await apiFetch(
             "/api/admin"
           );
 
-
-        /*
-         * /api/admin側で認証されていることが前提。
-         */
-
-        if (data?.ok !== false) {
-
+        if (
+          data?.ok !== false
+        ) {
           adminTab.classList.remove(
             "hidden"
           );
 
           return true;
-
         }
 
-
       } catch (error) {
-
         console.log(
           "Admin access: no"
         );
-
       }
-
 
       adminTab.classList.add(
         "hidden"
       );
 
-
       return false;
-
     }
 
-
-    /* ========================================
-       管理画面
-    ======================================== */
-
     async function loadAdmin() {
-
-      clearError();
-
-
       const loading =
         document.getElementById(
           "adminLoading"
@@ -2529,204 +2778,127 @@
           "adminContent"
         );
 
+      loading.classList.remove(
+        "hidden"
+      );
 
-      if (loading) {
-        loading.classList.remove("hidden");
-      }
+      content.classList.add(
+        "hidden"
+      );
 
-      if (content) {
-        content.classList.add("hidden");
-      }
-
+      hideError();
 
       try {
-
         const data =
           await apiFetch(
             "/api/admin"
           );
 
-
-        renderAdmin(data);
-
-
-        if (loading) {
-          loading.classList.add("hidden");
+        if (
+          data?.ok === false
+        ) {
+          throw new Error(
+            data?.error ||
+            "管理者権限がありません"
+          );
         }
 
-        if (content) {
-          content.classList.remove("hidden");
-        }
+        renderAdmin(
+          data
+        );
 
+        loading.classList.add(
+          "hidden"
+        );
+
+        content.classList.remove(
+          "hidden"
+        );
 
       } catch (error) {
-
         console.error(
           "admin error:",
           error
         );
 
+        loading.classList.add(
+          "hidden"
+        );
 
-        if (loading) {
-          loading.classList.add("hidden");
-        }
-
+        content.classList.remove(
+          "hidden"
+        );
 
         showError(
           error.message ||
           "管理者データの取得に失敗しました。"
         );
-
       }
-
     }
 
-
-    function renderAdmin(data) {
-
+    function renderAdmin(
+      data
+    ) {
       const total =
-        data?.total ||
-        data?.overall ||
-        {};
+        data?.total || {};
 
+      const month =
+        data?.month || {};
 
-      document
-        .getElementById(
-          "adminTotalRecords"
-        )
-        .textContent =
+      const groups =
+        data?.groups || {};
+
+      setText(
+        "adminRecords",
         formatNumber(
-          total.records ??
-          total.totalRecords ??
-          0
-        );
-
-
-      document
-        .getElementById(
-          "adminTotalUsers"
+          total.records || 0
         )
-        .textContent =
-        formatNumber(
-          total.users ??
-          total.totalUsers ??
-          0
-        );
-
-
-      document
-        .getElementById(
-          "adminTotalSales"
-        )
-        .textContent =
-        formatNumber(
-          total.sales ??
-          0
-        );
-
-
-      document
-        .getElementById(
-          "adminTotalCount"
-        )
-        .textContent =
-        formatNumber(
-          total.count ??
-          0
-        );
-
-
-      document
-        .getElementById(
-          "adminTotalHours"
-        )
-        .textContent =
-        formatHours(
-          total.hours ??
-          0
-        );
-
-
-      renderAdminMonth(
-        data?.month ||
-        data?.currentMonth ||
-        {}
       );
 
-
-      renderAdminGroups(
-        data?.groups ||
-        data?.group ||
-        {}
+      setText(
+        "adminUsers",
+        formatNumber(
+          total.users || 0
+        )
       );
 
-
-      renderAdminLogs(
-        data?.logs ||
-        data?.auditLogs ||
-        []
+      setText(
+        "adminSales",
+        `${formatNumber(
+          total.sales || 0
+        )}円`
       );
 
-    }
+      setText(
+        "adminCount",
+        `${formatNumber(
+          total.count || 0
+        )}件`
+      );
 
+      setText(
+        "adminHours",
+        `${formatHours(
+          total.hours || 0
+        )}h`
+      );
 
-    function renderAdminMonth(data) {
+      setText(
+        "adminGroups",
+        formatNumber(
+          groups.count || 0
+        )
+      );
 
-      const container =
+      const details =
         document.getElementById(
-          "adminMonthStats"
+          "adminDetails"
         );
 
-
-      if (!container) {
-        return;
-      }
-
-
-      const records =
-        Number(
-          data.records ??
-          data.registrationCount ??
-          0
-        );
-
-
-      const users =
-        Number(
-          data.users ??
-          data.activeUsers ??
-          0
-        );
-
-
-      const sales =
-        Number(
-          data.sales ??
-          0
-        );
-
-
-      const count =
-        Number(
-          data.count ??
-          0
-        );
-
-
-      const hours =
-        Number(
-          data.hours ??
-          0
-        );
-
-
-      const averageUnitPrice =
-        count > 0
-          ? sales / count
-          : 0;
-
-
-      container.innerHTML = `
+      details.innerHTML = `
+        <div class="analytics-section-title">
+          📅 今月
+        </div>
 
         <div class="admin-stat">
 
@@ -2735,252 +2907,125 @@
               実績登録
             </div>
             <div class="stat-value">
-              ${formatNumber(records)}
+              ${formatNumber(
+                month.records || 0
+              )}
             </div>
           </div>
-
 
           <div class="stat-box">
             <div class="stat-label">
               アクティブ
             </div>
             <div class="stat-value">
-              ${formatNumber(users)}
+              ${formatNumber(
+                month.users || 0
+              )}
             </div>
           </div>
-
 
           <div class="stat-box">
             <div class="stat-label">
               売上
             </div>
             <div class="stat-value">
-              ${formatNumber(sales)}円
+              ${formatNumber(
+                month.sales || 0
+              )}円
             </div>
           </div>
-
 
           <div class="stat-box">
             <div class="stat-label">
               配達
             </div>
             <div class="stat-value">
-              ${formatNumber(count)}件
-            </div>
-          </div>
-
-
-          <div class="stat-box">
-            <div class="stat-label">
-              稼働
-            </div>
-            <div class="stat-value">
-              ${formatHours(hours)}h
-            </div>
-          </div>
-
-
-          <div class="stat-box">
-            <div class="stat-label">
-              平均単価
-            </div>
-            <div class="stat-value">
-              ${formatNumber(averageUnitPrice)}円
+              ${formatNumber(
+                month.count || 0
+              )}件
             </div>
           </div>
 
         </div>
 
-      `;
-
-    }
-
-
-    function renderAdminGroups(data) {
-
-      const container =
-        document.getElementById(
-          "adminGroupStats"
-        );
-
-
-      if (!container) {
-        return;
-      }
-
-
-      let groupCount = 0;
-
-
-      if (typeof data === "number") {
-
-        groupCount = data;
-
-      } else {
-
-        groupCount =
-          Number(
-            data.count ??
-            data.groupCount ??
-            data.registeredGroups ??
-            0
-          );
-
-      }
-
-
-      container.innerHTML = `
-
-        <div class="admin-stat">
-
-          <div class="stat-box">
-
-            <div class="stat-label">
-              登録グループ
-            </div>
-
-            <div class="stat-value">
-              ${formatNumber(groupCount)}
-            </div>
-
-          </div>
-
+        <div class="analytics-section-title">
+          📝 最新ログ
         </div>
 
+        <div id="adminLogs">
+          ${renderAdminLogs(
+            data?.logs || []
+          )}
+        </div>
       `;
-
     }
 
-
-    function renderAdminLogs(logs) {
-
-      const container =
-        document.getElementById(
-          "adminLogs"
-        );
-
-
-      if (!container) {
-        return;
+    function renderAdminLogs(
+      logs
+    ) {
+      if (
+        !Array.isArray(logs) ||
+        logs.length === 0
+      ) {
+        return `
+          <div class="empty">
+            ログがありません
+          </div>
+        `;
       }
 
+      return logs
+        .map(
+          (log) => `
+            <div class="record">
 
-      if (!Array.isArray(logs) || !logs.length) {
+              <div class="record-left">
 
-        container.innerHTML =
-          `<div class="empty">
-             ログはありません。
-           </div>`;
-
-        return;
-
-      }
-
-
-      container.innerHTML =
-        logs
-          .slice(0, 10)
-          .map(log => {
-
-            const createdAt =
-              log.created_at ??
-              log.createdAt;
-
-
-            const userId =
-              log.telegram_user_id ??
-              log.telegramUserId ??
-              "-";
-
-
-            const action =
-              log.action ||
-              "-";
-
-
-            return `
-
-              <div class="record">
-
-                <div class="record-left">
-
-                  <div class="record-date">
-                    ${formatDateTime(createdAt)}
-                  </div>
-
-                  <div class="record-meta">
-                    ${escapeHtml(action)}
-                  </div>
-
+                <div class="record-date">
+                  ${escapeHtml(
+                    formatDateJST(
+                      log?.created_at ||
+                      log?.createdAt
+                    )
+                  )}
                 </div>
 
-                <div class="record-sales">
-                  ${escapeHtml(String(userId))}
+                <div class="record-meta">
+                  ${escapeHtml(
+                    log?.action || "-"
+                  )}
+                  /
+                  ${escapeHtml(
+                    log?.telegram_user_id ||
+                    log?.telegramUserId ||
+                    "-"
+                  )}
                 </div>
 
               </div>
 
-            `;
-
-          })
-          .join("");
-
+            </div>
+          `
+        )
+        .join("");
     }
+        // =========================================================
+    // リセット
+    // =========================================================
 
-
-    /* ========================================
-       リセット
-    ======================================== */
-
-    function resetData() {
-
-      const modal =
-        document.getElementById(
-          "resetModal"
+    async function resetData() {
+      const confirmed =
+        confirm(
+          "自分の実績をすべて削除しますか？\n\n月間目標は残ります。"
         );
 
-
-      if (!modal) {
+      if (!confirmed) {
         return;
       }
 
-
-      modal.classList.remove(
-        "hidden"
-      );
-
-    }
-
-
-    function closeResetModal() {
-
-      const modal =
-        document.getElementById(
-          "resetModal"
-        );
-
-
-      if (!modal) {
-        return;
-      }
-
-
-      modal.classList.add(
-        "hidden"
-      );
-
-    }
-
-
-    async function confirmReset() {
-
-      clearError();
-
-      closeResetModal();
-
+      hideError();
 
       try {
-
         const data =
           await apiFetch(
             "/api/reset",
@@ -2993,87 +3038,57 @@
             }
           );
 
-
-        if (tg) {
-
-          tg.showPopup?.({
-            title: "削除完了",
-            message:
-              data?.message ||
-              "実績を削除しました。",
-            buttons: [
-              {
-                type: "ok"
-              }
-            ]
-          });
-
+        if (!data?.ok) {
+          throw new Error(
+            data?.error ||
+            "リセットに失敗しました"
+          );
         }
 
-
-        await loadPersonal(
-          "today"
+        alert(
+          data?.message ||
+          "実績をリセットしました。"
         );
 
+        await loadPersonal(
+          activePeriod
+        );
 
       } catch (error) {
-
         console.error(
           "reset error:",
           error
         );
 
-
         showError(
           error.message ||
-          "実績の削除に失敗しました。"
+          "リセットに失敗しました。"
         );
-
       }
-
     }
 
-
-    /* ========================================
-       初期化
-    ======================================== */
+    // =========================================================
+    // 初期化
+    // =========================================================
 
     async function init() {
-
       renderUserName();
 
-
-      /*
-       * 管理者なら管理タブを表示。
-       * 一般ユーザーには表示しない。
-       */
-
+      // 管理者の場合だけ管理タブを表示
       await checkAdminAccess();
 
-
-      /*
-       * 初期画面は今日の個人実績。
-       */
-
+      // 個人データ
       await loadPersonal(
         "today"
       );
 
-
-      /*
-       * 分析も初期ロード。
-       * loadPersonal内でも呼ばれるため、
-       * API負荷を避けるなら後からここは削除可能。
-       */
-
+      // 分析データ
       await loadAnalytics();
-
     }
 
-
-    /* ========================================
-       起動
-    ======================================== */
+    // =========================================================
+    // 起動
+    // =========================================================
 
     document.addEventListener(
       "DOMContentLoaded",
