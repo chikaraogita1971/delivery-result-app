@@ -285,7 +285,6 @@ async function getAggregate(
 
 /* =========================================================
    Daily statistics
-   ※ created_at GROUP BY エラー対策済み
 ========================================================= */
 
 async function getDailyStats(
@@ -499,7 +498,7 @@ async function getBestRecords(userId) {
 
 /* =========================================================
    Streak
-   ※ 今日の実績があれば必ず1日
+   今日の実績があれば1日
 ========================================================= */
 
 async function getStreak(userId) {
@@ -539,10 +538,6 @@ async function getStreak(userId) {
 
   let current = 0;
 
-  /*
-   * 今日または昨日に実績があれば
-   * 現在の連続稼働を計算する
-   */
   if (
     dates[0] === today ||
     dates[0] === yesterday
@@ -565,9 +560,6 @@ async function getStreak(userId) {
     }
   }
 
-  /*
-   * 過去最高連続稼働
-   */
   let best = 0;
   let streak = 0;
   let previous = null;
@@ -1137,5 +1129,4 @@ module.exports = async function handler(
         "分析データの取得に失敗しました"
     });
   }
-};
 };
