@@ -88,10 +88,13 @@ function getJSTDateString(date = new Date()) {
 }
 
 
-function getJSTMonthStart() {
-  const today = getJSTDateString();
-
-  return `${today.slice(0, 7)}-01`;
+function formatJSTDate(date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: JST,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(date);
 }
 
 
@@ -104,23 +107,41 @@ function getJSTPreviousDate(dateString) {
     date.getDate() - 1
   );
 
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: JST,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(date);
+  return formatJSTDate(date);
 }
 
 
-function getJSTWeekStart() {
-  const today = getJSTDateString();
+function getJSTMonthStart(dateString) {
+  return `${dateString.slice(0, 7)}-01`;
+}
+
+
+function getJSTMonthEnd(dateString) {
+  const year =
+    Number(dateString.slice(0, 4));
+
+  const month =
+    Number(dateString.slice(5, 7));
 
   const date = new Date(
-    `${today}T00:00:00+09:00`
+    `${year}-${String(
+      month + 1
+    ).padStart(2, "0")}-01T00:00:00+09:00`
   );
 
-  const day = date.getDay();
+  date.setDate(0);
+
+  return formatJSTDate(date);
+}
+
+
+function getJSTWeekStart(dateString) {
+  const date = new Date(
+    `${dateString}T00:00:00+09:00`
+  );
+
+  const day =
+    date.getDay();
 
   const diff =
     day === 0
@@ -131,38 +152,59 @@ function getJSTWeekStart() {
     date.getDate() - diff
   );
 
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: JST,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(date);
+  return formatJSTDate(date);
 }
 
 
-function getJSTMonthEnd() {
-  const today = getJSTDateString();
+// =========================================================
+// 前月
+// =========================================================
 
+function getPreviousMonthRange(dateString) {
   const year =
-    Number(today.slice(0, 4));
+    Number(dateString.slice(0, 4));
 
   const month =
-    Number(today.slice(5, 7));
+    Number(dateString.slice(5, 7));
 
-  const date = new Date(
-    `${year}-${String(
-      month + 1
-    ).padStart(2, "0")}-01T00:00:00+09:00`
-  );
+  const previousMonth =
+    new Date(
+      Date.UTC(
+        year,
+        month - 2,
+        1
+      )
+    );
 
-  date.setDate(0);
+  const previousYear =
+    previousMonth.getUTCFullYear();
 
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: JST,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(date);
+  const previousMonthNumber =
+    previousMonth.getUTCMonth() + 1;
+
+  const lastDay =
+    new Date(
+      Date.UTC(
+        previousYear,
+        previousMonthNumber,
+        0
+      )
+    ).getUTCDate();
+
+  const monthText =
+    String(
+      previousMonthNumber
+    ).padStart(2, "0");
+
+  return {
+    start:
+      `${previousYear}-${monthText}-01`,
+
+    end:
+      `${previousYear}-${monthText}-${String(
+        lastDay
+      ).padStart(2, "0")}`
+  };
 }
 
 
@@ -228,13 +270,13 @@ async function getStats(
 
 
 // =========================================================
-// 月間日別データ
+// 日別データ
 // =========================================================
 
 async function getDailyStats(
   userId,
-  monthStart,
-  monthEnd
+  startDate,
+  endDate
 ) {
   const rows = await sql`
     SELECT
@@ -264,11 +306,72 @@ async function getDailyStats(
 
       AND (
         created_at AT TIME ZONE ${JST}
-      )::date >= ${monthStart}::date
+      )::date >= ${startDate}::date
 
       AND (
         created_at AT TIME ZONE ${JST}
-      )::date <= ${monthEnd}::date
+      )::date <= ${endDate}::date
+
+    GROUP BY activity_date
+
+    ORDER BY activity_date ASC
+  `;
+
+  return rows.map(
+    (row) => ({
+      date:
+        String(row.activity_date),
+
+      sales:
+        Number(row.sales || 0),
+
+      count:
+        Number(row.count || 0),
+
+      hours:
+        Number(row.hours || 0)
+    })
+  );
+}
+
+
+// =========================================================
+// 自己ベスト用全期間データ
+// =========================================================
+
+async function getAllTimeDailyStats(
+  userId,
+  today
+) {
+  const rows = await sql`
+    SELECT
+      (
+        created_at AT TIME ZONE ${JST}
+      )::date AS activity_date,
+
+      COALESCE(
+        SUM(sale_amount),
+        0
+      ) AS sales,
+
+      COALESCE(
+        SUM(delivery_count),
+        0
+      ) AS count,
+
+      COALESCE(
+        SUM(work_hours),
+        0
+      ) AS hours
+
+    FROM delivery_results
+
+    WHERE telegram_user_id =
+      ${String(userId)}
+
+      AND (
+        created_at AT TIME ZONE ${JST}
+      )::date <= ${today}::date
 
     GROUP BY activity_date
 
@@ -309,6 +412,120 @@ async function getGoal(userId) {
   return Number(
     rows[0]?.monthly_goal || 0
   );
+}
+
+
+// =========================================================
+// 連続稼働日
+// =========================================================
+
+function calculateStreak(
+  daily,
+  today
+) {
+  const activeDates =
+    new Set(
+      daily
+        .filter(
+          (row) =>
+            row.count > 0 ||
+            row.sales > 0
+        )
+        .map(
+          (row) => row.date
+        )
+    );
+
+  let cursor =
+    today;
+
+  let streak = 0;
+
+  while (
+    activeDates.has(cursor)
+  ) {
+    streak += 1;
+
+    cursor =
+      getJSTPreviousDate(
+        cursor
+      );
+  }
+
+  return streak;
+}
+
+
+// =========================================================
+// 自己ベスト
+// =========================================================
+
+function calculateBest(
+  daily
+) {
+  let bestCount = 0;
+  let bestSales = 0;
+  let bestCountPerHour = 0;
+  let bestSalesPerHour = 0;
+
+  let bestCountDate = null;
+  let bestSalesDate = null;
+
+  for (const row of daily) {
+    const count =
+      Number(row.count || 0);
+
+    const sales =
+      Number(row.sales || 0);
+
+    const hours =
+      Number(row.hours || 0);
+
+    const countPerHour =
+      hours > 0
+        ? count / hours
+        : 0;
+
+    const salesPerHour =
+      hours > 0
+        ? sales / hours
+        : 0;
+
+    if (count > bestCount) {
+      bestCount = count;
+      bestCountDate = row.date;
+    }
+
+    if (sales > bestSales) {
+      bestSales = sales;
+      bestSalesDate = row.date;
+    }
+
+    if (
+      countPerHour >
+      bestCountPerHour
+    ) {
+      bestCountPerHour =
+        countPerHour;
+    }
+
+    if (
+      salesPerHour >
+      bestSalesPerHour
+    ) {
+      bestSalesPerHour =
+        salesPerHour;
+    }
+  }
+
+  return {
+    count: bestCount,
+    sales: bestSales,
+    countPerHour: bestCountPerHour,
+    salesPerHour: bestSalesPerHour,
+    countDate: bestCountDate,
+    salesDate: bestSalesDate
+  };
 }
 
 
@@ -366,17 +583,28 @@ module.exports = async function handler(
       );
 
     const weekStart =
-      getJSTWeekStart();
+      getJSTWeekStart(
+        today
+      );
 
     const monthStart =
-      getJSTMonthStart();
+      getJSTMonthStart(
+        today
+      );
 
     const monthEnd =
-      getJSTMonthEnd();
+      getJSTMonthEnd(
+        today
+      );
+
+    const previousMonth =
+      getPreviousMonthRange(
+        today
+      );
 
 
     // =====================================================
-    // 月日数
+    // 月情報
     // =====================================================
 
     const year =
@@ -418,8 +646,10 @@ module.exports = async function handler(
       yesterdayStats,
       weekStats,
       monthStats,
+      previousMonthStats,
       goal,
-      daily
+      monthlyDaily,
+      allTimeDaily
     ] = await Promise.all([
       getStats(
         userId,
@@ -445,6 +675,12 @@ module.exports = async function handler(
         today
       ),
 
+      getStats(
+        userId,
+        previousMonth.start,
+        previousMonth.end
+      ),
+
       getGoal(
         userId
       ),
@@ -453,6 +689,11 @@ module.exports = async function handler(
         userId,
         monthStart,
         monthEnd
+      ),
+
+      getAllTimeDailyStats(
+        userId,
+        today
       )
     ]);
 
@@ -462,7 +703,7 @@ module.exports = async function handler(
     // =====================================================
 
     const activeDays =
-      daily.filter(
+      monthlyDaily.filter(
         (row) =>
           row.count > 0 ||
           row.sales > 0
@@ -487,9 +728,30 @@ module.exports = async function handler(
 
 
     // =====================================================
+    // 今日のパフォーマンス
+    // =====================================================
+
+    const todayHourlySales =
+      todayStats.hours > 0
+        ? todayStats.sales /
+          todayStats.hours
+        : 0;
+
+    const todayCountPerHour =
+      todayStats.hours > 0
+        ? todayStats.count /
+          todayStats.hours
+        : 0;
+
+    const todayAverageUnitPrice =
+      todayStats.count > 0
+        ? todayStats.sales /
+          todayStats.count
+        : 0;
+
+
+    // =====================================================
     // 今日のペース
-    //
-    // 「ペース」は配達数
     // =====================================================
 
     const currentDailyPace =
@@ -521,8 +783,6 @@ module.exports = async function handler(
 
     // =====================================================
     // 目標
-    //
-    // monthly_goal は「配達件数」
     // =====================================================
 
     const remainingGoalCount =
@@ -549,7 +809,7 @@ module.exports = async function handler(
 
 
     // =====================================================
-    // 単価・時給
+    // 月間パフォーマンス
     // =====================================================
 
     const averageUnitPrice =
@@ -570,23 +830,9 @@ module.exports = async function handler(
           monthStats.hours
         : 0;
 
-    const todayCountPerHour =
-      todayStats.hours > 0
-        ? todayStats.count /
-          todayStats.hours
-        : 0;
-
-    const todaySalesPerHour =
-      todayStats.hours > 0
-        ? todayStats.sales /
-          todayStats.hours
-        : 0;
-
 
     // =====================================================
     // 前日比較
-    //
-    // 「差額」を返す
     // =====================================================
 
     const salesChangeFromYesterday =
@@ -599,102 +845,141 @@ module.exports = async function handler(
 
 
     // =====================================================
-    // ベスト記録
+    // 前月比較
     // =====================================================
 
-    let bestCount = 0;
-    let bestSales = 0;
-    let bestCountPerHour = 0;
-    let bestSalesPerHour = 0;
+    const salesChangeFromPreviousMonth =
+      monthStats.sales -
+      previousMonthStats.sales;
 
-    let bestDayCount = 0;
-    let bestDayCountDate = null;
+    const countChangeFromPreviousMonth =
+      monthStats.count -
+      previousMonthStats.count;
 
-    let bestDaySales = 0;
-    let bestDaySalesDate = null;
-
-    for (const row of daily) {
-      const rowCount =
-        Number(
-          row.count || 0
-        );
-
-      const rowSales =
-        Number(
-          row.sales || 0
-        );
-
-      const rowHours =
-        Number(
-          row.hours || 0
-        );
-
-      const rowCountPerHour =
-        rowHours > 0
-          ? rowCount /
-            rowHours
+    const salesChangeFromPreviousMonthRate =
+      previousMonthStats.sales > 0
+        ? (
+            salesChangeFromPreviousMonth /
+            previousMonthStats.sales
+          ) *
+          100
+        : monthStats.sales > 0
+          ? 100
           : 0;
 
-      const rowSalesPerHour =
-        rowHours > 0
-          ? rowSales /
-            rowHours
+    const countChangeFromPreviousMonthRate =
+      previousMonthStats.count > 0
+        ? (
+            countChangeFromPreviousMonth /
+            previousMonthStats.count
+          ) *
+          100
+        : monthStats.count > 0
+          ? 100
           : 0;
 
-      if (
-        rowCount >
-        bestCount
-      ) {
-        bestCount =
-          rowCount;
-      }
 
-      if (
-        rowSales >
-        bestSales
-      ) {
-        bestSales =
-          rowSales;
-      }
+    // =====================================================
+    // 今月最高
+    // =====================================================
 
-      if (
-        rowCountPerHour >
-        bestCountPerHour
-      ) {
-        bestCountPerHour =
-          rowCountPerHour;
-      }
+    const monthlyBest =
+      calculateBest(
+        monthlyDaily
+      );
 
-      if (
-        rowSalesPerHour >
-        bestSalesPerHour
-      ) {
-        bestSalesPerHour =
-          rowSalesPerHour;
-      }
 
-      if (
-        rowCount >
-        bestDayCount
-      ) {
-        bestDayCount =
-          rowCount;
+    // =====================================================
+    // 全期間自己ベスト
+    // =====================================================
 
-        bestDayCountDate =
-          row.date;
-      }
+    const allTimeBest =
+      calculateBest(
+        allTimeDaily
+      );
 
-      if (
-        rowSales >
-        bestDaySales
-      ) {
-        bestDaySales =
-          rowSales;
 
-        bestDaySalesDate =
-          row.date;
-      }
-    }
+    // =====================================================
+    // 今日の自己ベスト更新
+    // =====================================================
+
+    const isBestCount =
+      todayStats.count > 0 &&
+      todayStats.count >=
+        allTimeBest.count &&
+      todayStats.count ===
+        Math.max(
+          ...allTimeDaily
+            .filter(
+              (row) =>
+                row.date !== today
+            )
+            .map(
+              (row) =>
+                Number(
+                  row.count || 0
+                )
+            ),
+          0
+        );
+
+    const isBestSales =
+      todayStats.sales > 0 &&
+      todayStats.sales >=
+        allTimeBest.sales &&
+      todayStats.sales ===
+        Math.max(
+          ...allTimeDaily
+            .filter(
+              (row) =>
+                row.date !== today
+            )
+            .map(
+              (row) =>
+                Number(
+                  row.sales || 0
+                )
+            ),
+          0
+        );
+
+
+    // =====================================================
+    // 連続稼働日
+    // =====================================================
+
+    const streak =
+      calculateStreak(
+        allTimeDaily,
+        today
+      );
+
+
+    // =====================================================
+    // 今月進捗ペース
+    // =====================================================
+
+    const monthProgressRate =
+      daysInMonth > 0
+        ? (
+            elapsedDays /
+            daysInMonth
+          ) *
+          100
+        : 0;
+
+    const goalProgressRate =
+      goal > 0
+        ? (
+            monthStats.count /
+            goal
+          ) *
+          100
+        : 0;
+
+    const paceDifference =
+      goalProgressRate -
+      monthProgressRate;
 
 
     // =====================================================
@@ -716,35 +1001,36 @@ module.exports = async function handler(
       month:
         monthStats,
 
+      previousMonth:
+        previousMonthStats,
+
       goal,
 
       best: {
         count:
-          bestCount,
+          allTimeBest.count,
 
         sales:
-          bestSales,
+          allTimeBest.sales,
 
         countPerHour:
-          bestCountPerHour,
+          allTimeBest.countPerHour,
 
         salesPerHour:
-          bestSalesPerHour,
+          allTimeBest.salesPerHour,
 
-        dayCount:
-          bestDayCount,
+        countDate:
+          allTimeBest.countDate,
 
-        dayCountDate:
-          bestDayCountDate,
-
-        daySales:
-          bestDaySales,
-
-        daySalesDate:
-          bestDaySalesDate
+        salesDate:
+          allTimeBest.salesDate
       },
 
       analysis: {
+        // -----------------------------
+        // 基本
+        // -----------------------------
+
         averageDailyCount,
         averageDailySales,
 
@@ -757,35 +1043,126 @@ module.exports = async function handler(
 
         remainingGoalCount,
         requiredDailyCount,
+
         goalRate,
 
         averageUnitPrice,
 
-        salesChangeFromYesterday,
-        countChangeFromYesterday,
-
         countPerHour,
         salesPerHour,
 
+        // -----------------------------
+        // 今日
+        // -----------------------------
+
+        todayHourlySales,
         todayCountPerHour,
-        todaySalesPerHour,
+        todayAverageUnitPrice,
 
-        bestCount,
-        bestSales,
-        bestCountPerHour,
-        bestSalesPerHour,
+        // -----------------------------
+        // 前日比較
+        // -----------------------------
 
-        bestDayCount,
-        bestDayCountDate,
+        salesChangeFromYesterday,
+        countChangeFromYesterday,
 
-        bestDaySales,
-        bestDaySalesDate,
+        // -----------------------------
+        // 前月比較
+        // -----------------------------
+
+        previousMonthSales:
+          previousMonthStats.sales,
+
+        previousMonthCount:
+          previousMonthStats.count,
+
+        previousMonthHours:
+          previousMonthStats.hours,
+
+        salesChangeFromPreviousMonth,
+
+        countChangeFromPreviousMonth,
+
+        salesChangeFromPreviousMonthRate,
+
+        countChangeFromPreviousMonthRate,
+
+        // -----------------------------
+        // 今月最高
+        // -----------------------------
+
+        monthlyBestCount:
+          monthlyBest.count,
+
+        monthlyBestSales:
+          monthlyBest.sales,
+
+        monthlyBestCountDate:
+          monthlyBest.countDate,
+
+        monthlyBestSalesDate:
+          monthlyBest.salesDate,
+
+        // -----------------------------
+        // 自己ベスト
+        // -----------------------------
+
+        allTimeBestCount:
+          allTimeBest.count,
+
+        allTimeBestSales:
+          allTimeBest.sales,
+
+        allTimeBestCountPerHour:
+          allTimeBest.countPerHour,
+
+        allTimeBestSalesPerHour:
+          allTimeBest.salesPerHour,
+
+        isBestCount,
+        isBestSales,
+
+        // -----------------------------
+        // 連続稼働
+        // -----------------------------
+
+        streak,
+
+        // -----------------------------
+        // 今月ペース
+        // -----------------------------
+
+        monthProgressRate,
+
+        goalProgressRate,
+
+        paceDifference,
+
+        // -----------------------------
+        // 日付情報
+        // -----------------------------
 
         elapsedDays,
-        daysInMonth
+
+        daysInMonth,
+
+        today,
+
+        yesterday,
+
+        monthStart,
+
+        monthEnd,
+
+        previousMonthStart:
+          previousMonth.start,
+
+        previousMonthEnd:
+          previousMonth.end
       },
 
-      daily
+      daily:
+        monthlyDaily
     });
 
   } catch (error) {
