@@ -6,11 +6,9 @@ const sql = neon(process.env.DATABASE_URL);
 const TIME_ZONE = "Asia/Tokyo";
 const MAX_AUTH_AGE_SECONDS = 60 * 60;
 
-/*
-============================================================
-Telegram Mini App initData 検証
-============================================================
-*/
+// =========================================================
+// Telegram Mini App initData 検証
+// =========================================================
 
 function validateTelegramInitData(initData) {
   if (!initData || typeof initData !== "string") {
@@ -19,9 +17,18 @@ function validateTelegramInitData(initData) {
     );
   }
 
+  const botToken = process.env.BOT_TOKEN;
+
+  if (!botToken) {
+    throw new Error(
+      "BOT_TOKEN が設定されていません。"
+    );
+  }
+
   const params = new URLSearchParams(initData);
 
-  const receivedHash = params.get("hash");
+  const receivedHash =
+    params.get("hash");
 
   if (!receivedHash) {
     throw new Error(
@@ -31,39 +38,50 @@ function validateTelegramInitData(initData) {
 
   params.delete("hash");
 
-  const dataCheckString = [...params.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${key}=${value}`)
-    .join("\n");
+  const dataCheckString =
+    [...params.entries()]
+      .sort(([a], [b]) =>
+        a.localeCompare(b)
+      )
+      .map(
+        ([key, value]) =>
+          `${key}=${value}`
+      )
+      .join("\n");
 
-  /*
-  ============================================================
-  Telegram公式署名方式
-  ============================================================
-  */
+  const secretKey =
+    crypto
+      .createHmac(
+        "sha256",
+        "WebAppData"
+      )
+      .update(botToken)
+      .digest();
 
-  const secretKey = crypto
-    .createHmac("sha256", "WebAppData")
-    .update(process.env.BOT_TOKEN)
-    .digest();
+  const calculatedHash =
+    crypto
+      .createHmac(
+        "sha256",
+        secretKey
+      )
+      .update(dataCheckString)
+      .digest("hex");
 
-  const calculatedHash = crypto
-    .createHmac("sha256", secretKey)
-    .update(dataCheckString)
-    .digest("hex");
+  const receivedBuffer =
+    Buffer.from(
+      receivedHash,
+      "hex"
+    );
 
-  const receivedBuffer = Buffer.from(
-    receivedHash,
-    "hex"
-  );
-
-  const calculatedBuffer = Buffer.from(
-    calculatedHash,
-    "hex"
-  );
+  const calculatedBuffer =
+    Buffer.from(
+      calculatedHash,
+      "hex"
+    );
 
   if (
-    receivedBuffer.length !== calculatedBuffer.length ||
+    receivedBuffer.length !==
+      calculatedBuffer.length ||
     !crypto.timingSafeEqual(
       receivedBuffer,
       calculatedBuffer
@@ -74,15 +92,10 @@ function validateTelegramInitData(initData) {
     );
   }
 
-  /*
-  ============================================================
-  auth_date 有効期限
-  ============================================================
-  */
-
-  const authDate = Number(
-    params.get("auth_date")
-  );
+  const authDate =
+    Number(
+      params.get("auth_date")
+    );
 
   if (
     !Number.isInteger(authDate) ||
@@ -93,27 +106,26 @@ function validateTelegramInitData(initData) {
     );
   }
 
-  const now = Math.floor(
-    Date.now() / 1000
-  );
+  const now =
+    Math.floor(
+      Date.now() / 1000
+    );
 
   if (
-    now - authDate > MAX_AUTH_AGE_SECONDS
+    Math.abs(
+      now - authDate
+    ) >
+    MAX_AUTH_AGE_SECONDS
   ) {
     throw new Error(
       "Telegram initData の有効期限が切れています。"
     );
   }
 
-  /*
-  ============================================================
-  Telegramユーザー情報
-  ============================================================
-  */
+  const userRaw =
+    params.get("user");
 
-  const userJson = params.get("user");
-
-  if (!userJson) {
+  if (!userRaw) {
     throw new Error(
       "Telegramユーザー情報がありません。"
     );
@@ -122,10 +134,11 @@ function validateTelegramInitData(initData) {
   let user;
 
   try {
-    user = JSON.parse(userJson);
+    user =
+      JSON.parse(userRaw);
   } catch {
     throw new Error(
-      "Telegramユーザー情報を解析できません。"
+      "Telegramユーザー情報が不正です。"
     );
   }
 
@@ -138,29 +151,14 @@ function validateTelegramInitData(initData) {
   return String(user.id);
 }
 
-/*
-============================================================
-期間の開始・終了日時を取得
-============================================================
+// =========================================================
+// 期間
+// =========================================================
 
-day   : 今日
-week  : 今週
-month : 今月
-year  : 今年
-
-すべて Asia/Tokyo 基準。
-============================================================
-*/
-
-function getPeriodCondition(period) {
+function getPeriodCondition(
+  period
+) {
   switch (period) {
-
-    /*
-    ==========================================================
-    今日
-    ==========================================================
-    */
-
     case "day":
       return {
         start: sql`
@@ -169,7 +167,6 @@ function getPeriodCondition(period) {
             CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
           ) AT TIME ZONE ${TIME_ZONE}
         `,
-
         end: sql`
           (
             date_trunc(
@@ -177,26 +174,17 @@ function getPeriodCondition(period) {
               CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
             ) + INTERVAL '1 day'
           ) AT TIME ZONE ${TIME_ZONE}
-        `
+        `,
       };
-
-    /*
-    ==========================================================
-    今週
-    ==========================================================
-    */
 
     case "week":
       return {
         start: sql`
-          (
-            date_trunc(
-              'week',
-              CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
-            )
+          date_trunc(
+            'week',
+            CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
           ) AT TIME ZONE ${TIME_ZONE}
         `,
-
         end: sql`
           (
             date_trunc(
@@ -204,26 +192,17 @@ function getPeriodCondition(period) {
               CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
             ) + INTERVAL '1 week'
           ) AT TIME ZONE ${TIME_ZONE}
-        `
+        `,
       };
-
-    /*
-    ==========================================================
-    今月
-    ==========================================================
-    */
 
     case "month":
       return {
         start: sql`
-          (
-            date_trunc(
-              'month',
-              CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
-            )
+          date_trunc(
+            'month',
+            CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
           ) AT TIME ZONE ${TIME_ZONE}
         `,
-
         end: sql`
           (
             date_trunc(
@@ -231,26 +210,17 @@ function getPeriodCondition(period) {
               CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
             ) + INTERVAL '1 month'
           ) AT TIME ZONE ${TIME_ZONE}
-        `
+        `,
       };
-
-    /*
-    ==========================================================
-    今年
-    ==========================================================
-    */
 
     case "year":
       return {
         start: sql`
-          (
-            date_trunc(
-              'year',
-              CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
-            )
+          date_trunc(
+            'year',
+            CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
           ) AT TIME ZONE ${TIME_ZONE}
         `,
-
         end: sql`
           (
             date_trunc(
@@ -258,7 +228,7 @@ function getPeriodCondition(period) {
               CURRENT_TIMESTAMP AT TIME ZONE ${TIME_ZONE}
             ) + INTERVAL '1 year'
           ) AT TIME ZONE ${TIME_ZONE}
-        `
+        `,
       };
 
     default:
@@ -268,63 +238,57 @@ function getPeriodCondition(period) {
   }
 }
 
-/*
-============================================================
-API
-============================================================
-*/
+// =========================================================
+// API
+// =========================================================
 
-export default async function handler(req, res) {
-
-  /*
-  ============================================================
-  GETのみ許可
-  ============================================================
-  */
+export default async function handler(
+  req,
+  res
+) {
+  res.setHeader(
+    "Cache-Control",
+    "no-store"
+  );
 
   if (req.method !== "GET") {
     return res.status(405).json({
       ok: false,
-      error: "Method Not Allowed"
+      error: "Method Not Allowed",
     });
   }
 
   try {
-
-    /*
-    ============================================================
-    Telegram initData
-    ============================================================
-    */
+    // =====================================================
+    // Telegram認証
+    // =====================================================
 
     const initData =
-      req.headers["x-telegram-init-data"];
+      req.headers[
+        "x-telegram-init-data"
+      ];
 
     if (!initData) {
       return res.status(401).json({
         ok: false,
         error:
-          "Telegram認証情報がありません。"
+          "Telegram認証情報がありません。",
       });
     }
 
-    /*
-    ============================================================
-    Telegram本人確認
-    ============================================================
-    */
-
     const telegramUserId =
-      validateTelegramInitData(initData);
+      validateTelegramInitData(
+        initData
+      );
 
-    /*
-    ============================================================
-    period
-    ============================================================
-    */
+    // =====================================================
+    // 期間
+    // =====================================================
 
     const requestedPeriod =
-      Array.isArray(req.query?.period)
+      Array.isArray(
+        req.query?.period
+      )
         ? req.query.period[0]
         : req.query?.period;
 
@@ -336,221 +300,195 @@ export default async function handler(req, res) {
         "day",
         "week",
         "month",
-        "year"
+        "year",
       ].includes(period)
     ) {
       return res.status(400).json({
         ok: false,
         error:
-          "period は day / week / month / year のいずれかです。"
+          "period は day / week / month / year のいずれかです。",
       });
     }
 
-    /*
-    ============================================================
-    期間
-    ============================================================
-    */
-
     const {
       start,
-      end
-    } = getPeriodCondition(period);
+      end,
+    } =
+      getPeriodCondition(
+        period
+      );
 
-    /*
-    ============================================================
-    期間集計
-    ============================================================
-    */
+    // =====================================================
+    // 集計
+    // =====================================================
 
-    const aggregateRows = await sql`
-      SELECT
-        COALESCE(
-          SUM(sale_amount),
-          0
-        ) AS sales,
+    const aggregateRows =
+      await sql`
+        SELECT
+          COALESCE(
+            SUM(sale_amount),
+            0
+          ) AS sales,
 
-        COALESCE(
-          SUM(delivery_count),
-          0
-        ) AS count,
+          COALESCE(
+            SUM(delivery_count),
+            0
+          ) AS count,
 
-        COALESCE(
-          SUM(work_hours),
-          0
-        ) AS hours,
+          COALESCE(
+            SUM(work_hours),
+            0
+          ) AS hours,
 
-        COUNT(
-          DISTINCT (
-            created_at AT TIME ZONE ${TIME_ZONE}
-          )::date
-        ) AS work_days,
+          COUNT(
+            DISTINCT (
+              created_at
+              AT TIME ZONE ${TIME_ZONE}
+            )::date
+          ) AS work_days,
 
-        COALESCE(
-          MAX(sale_amount),
-          0
-        ) AS max_sales,
+          COALESCE(
+            MAX(sale_amount),
+            0
+          ) AS max_sales,
 
-        COALESCE(
-          MAX(delivery_count),
-          0
-        ) AS max_count
+          COALESCE(
+            MAX(delivery_count),
+            0
+          ) AS max_count
 
-      FROM delivery_results
+        FROM delivery_results
 
-      WHERE telegram_user_id =
-        ${telegramUserId}
+        WHERE telegram_user_id =
+          ${telegramUserId}
 
-        AND created_at >= ${start}
+          AND created_at >= ${start}
 
-        AND created_at < ${end}
-    `;
+          AND created_at < ${end}
+      `;
 
     const aggregate =
       aggregateRows[0] || {};
 
     const sales =
-      Number(aggregate.sales || 0);
+      Number(
+        aggregate.sales || 0
+      );
 
     const count =
-      Number(aggregate.count || 0);
+      Number(
+        aggregate.count || 0
+      );
 
     const hours =
-      Number(aggregate.hours || 0);
+      Number(
+        aggregate.hours || 0
+      );
 
     const workDays =
-      Number(aggregate.work_days || 0);
+      Number(
+        aggregate.work_days || 0
+      );
 
     const maxSales =
-      Number(aggregate.max_sales || 0);
+      Number(
+        aggregate.max_sales || 0
+      );
 
     const maxCount =
-      Number(aggregate.max_count || 0);
+      Number(
+        aggregate.max_count || 0
+      );
 
-    /*
-    ============================================================
-    平均単価
-    ============================================================
-    */
+    // =====================================================
+    // 平均単価
+    // =====================================================
 
     const average =
       count > 0
         ? sales / count
         : 0;
 
-    /*
-    ============================================================
-    月間目標
-    ============================================================
-    */
+    // =====================================================
+    // 累計配達数
+    // =====================================================
 
-    const goalRows = await sql`
-      SELECT
-        monthly_goal
+    const totalRows =
+      await sql`
+        SELECT
+          COALESCE(
+            SUM(delivery_count),
+            0
+          ) AS total_count
 
-      FROM delivery_goals
+        FROM delivery_results
 
-      WHERE telegram_user_id =
-        ${telegramUserId}
-
-      LIMIT 1
-    `;
-
-    const goal =
-      Number(
-        goalRows[0]?.monthly_goal || 0
-      );
-
-    /*
-    ============================================================
-    目標達成率
-    ============================================================
-    */
-
-    const rate =
-      goal > 0
-        ? (sales / goal) * 100
-        : 0;
-
-    /*
-    ============================================================
-    累計件数
-    ============================================================
-    */
-
-    const totalRows = await sql`
-      SELECT
-        COALESCE(
-          SUM(delivery_count),
-          0
-        ) AS total_count
-
-      FROM delivery_results
-
-      WHERE telegram_user_id =
-        ${telegramUserId}
-    `;
+        WHERE telegram_user_id =
+          ${telegramUserId}
+      `;
 
     const totalCount =
       Number(
-        totalRows[0]?.total_count || 0
+        totalRows[0]
+          ?.total_count || 0
       );
 
-    /*
-    ============================================================
-    最新20件
-    ============================================================
-    */
+    // =====================================================
+    // 最新20件
+    // =====================================================
 
-    const recordRows = await sql`
-      SELECT
-        id,
-        sale_amount,
-        delivery_count,
-        work_hours,
-        created_at
+    const recordRows =
+      await sql`
+        SELECT
+          id,
+          sale_amount,
+          delivery_count,
+          work_hours,
+          created_at
 
-      FROM delivery_results
+        FROM delivery_results
 
-      WHERE telegram_user_id =
-        ${telegramUserId}
+        WHERE telegram_user_id =
+          ${telegramUserId}
 
-        AND created_at >= ${start}
+          AND created_at >= ${start}
 
-        AND created_at < ${end}
+          AND created_at < ${end}
 
-      ORDER BY
-        created_at DESC,
-        id DESC
+        ORDER BY
+          created_at DESC,
+          id DESC
 
-      LIMIT 20
-    `;
+        LIMIT 20
+      `;
 
     const records =
-      recordRows.map(row => ({
-        id: Number(row.id),
+      recordRows.map(
+        row => ({
+          id: Number(
+            row.id
+          ),
 
-        sale: Number(
-          row.sale_amount
-        ),
+          sale: Number(
+            row.sale_amount
+          ),
 
-        count: Number(
-          row.delivery_count
-        ),
+          count: Number(
+            row.delivery_count
+          ),
 
-        hours: Number(
-          row.work_hours
-        ),
+          hours: Number(
+            row.work_hours
+          ),
 
-        createdAt:
-          row.created_at
-      }));
+          createdAt:
+            row.created_at,
+        })
+      );
 
-    /*
-    ============================================================
-    JSONレスポンス
-    ============================================================
-    */
+    // =====================================================
+    // レスポンス
+    // =====================================================
 
     return res.status(200).json({
       ok: true,
@@ -571,17 +509,11 @@ export default async function handler(req, res) {
 
       average,
 
-      goal,
-
-      rate,
-
       totalCount,
 
-      records
+      records,
     });
-
   } catch (error) {
-
     console.error(
       "Result API error:",
       error
@@ -591,7 +523,7 @@ export default async function handler(req, res) {
       ok: false,
       error:
         error?.message ||
-        "データ取得中にサーバーエラーが発生しました。"
+        "データ取得中にサーバーエラーが発生しました。",
     });
   }
 }
