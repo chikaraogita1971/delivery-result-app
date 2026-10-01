@@ -3,10 +3,8 @@ const { neon } = require("@neondatabase/serverless");
 const sql = neon(process.env.DATABASE_URL);
 
 // =========================================================
-// Telegram initData 検証
+// Telegram認証
 // =========================================================
-
-const BOT_TOKEN = process.env.BOT_TOKEN;
 
 function parseInitData(initData) {
   const params = new URLSearchParams(
@@ -42,175 +40,318 @@ function getTelegramUserId(req) {
 }
 
 // =========================================================
-// 表示用
+// 期間計算
 // =========================================================
 
-function formatNumber(value) {
-  return Number(value || 0)
-    .toLocaleString("ja-JP");
-}
-
-function formatHours(value) {
-  return Number(value || 0)
-    .toFixed(1);
-}
-
-function formatYen(value) {
-  return `¥${formatNumber(
-    Math.round(Number(value || 0))
-  )}`;
-}
-
-// =========================================================
-// 期間
-// =========================================================
-
-function getPeriodRange(period) {
+function getJstTodayParts() {
   const now = new Date();
 
-  const formatter =
+  const parts =
     new Intl.DateTimeFormat(
-      "ja-JP",
+      "en-CA",
       {
         timeZone: "Asia/Tokyo",
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
       }
-    );
+    ).formatToParts(now);
 
-  const parts =
-    formatter.formatToParts(now);
-
-  const year =
-    Number(
+  return {
+    year: Number(
       parts.find(
         item => item.type === "year"
       )?.value
-    );
+    ),
 
-  const month =
-    Number(
+    month: Number(
       parts.find(
         item => item.type === "month"
       )?.value
-    );
+    ),
 
-  const day =
-    Number(
+    day: Number(
       parts.find(
         item => item.type === "day"
       )?.value
-    );
+    ),
+  };
+}
 
+function pad2(value) {
+  return String(value).padStart(
+    2,
+    "0"
+  );
+}
+
+function toJstDateString(
+  year,
+  month,
+  day
+) {
+  return (
+    `${year}-${pad2(month)}-${pad2(day)}`
+  );
+}
+
+function jstDateToUtc(
+  year,
+  month,
+  day
+) {
+  return new Date(
+    `${toJstDateString(
+      year,
+      month,
+      day
+    )}T00:00:00+09:00`
+  );
+}
+
+function getPeriodRange(
+  period,
+  requestedMonth,
+  requestedYear
+) {
   const today =
-    new Date(
-      Date.UTC(
-        year,
-        month - 1,
-        day
-      )
-    );
+    getJstTodayParts();
 
-  let start;
-  let end;
+  let year =
+    today.year;
 
-  switch (period) {
-    case "today": {
-      start =
-        new Date(today);
+  let month =
+    today.month;
 
-      end =
-        new Date(today);
+  // -------------------------------------------------------
+  // 指定月
+  // -------------------------------------------------------
 
-      end.setUTCDate(
-        end.getUTCDate() + 1
+  if (
+    period === "month" &&
+    requestedMonth
+  ) {
+    const match =
+      /^(\d{4})-(\d{1,2})$/.exec(
+        String(requestedMonth)
       );
 
-      break;
+    if (!match) {
+      return {
+        error:
+          "月の指定はYYYY-MM形式で指定してください。",
+      };
     }
 
-    case "week": {
-      start =
-        new Date(today);
+    year =
+      Number(match[1]);
 
-      const dayOfWeek =
-        start.getUTCDay();
+    month =
+      Number(match[2]);
 
-      const mondayOffset =
-        dayOfWeek === 0
-          ? -6
-          : 1 - dayOfWeek;
-
-      start.setUTCDate(
-        start.getUTCDate() +
-        mondayOffset
-      );
-
-      end =
-        new Date(start);
-
-      end.setUTCDate(
-        end.getUTCDate() + 7
-      );
-
-      break;
+    if (
+      month < 1 ||
+      month > 12
+    ) {
+      return {
+        error:
+          "月の指定が正しくありません。",
+      };
     }
-
-    case "month": {
-      start =
-        new Date(
-          Date.UTC(
-            year,
-            month - 1,
-            1
-          )
-        );
-
-      end =
-        new Date(
-          Date.UTC(
-            year,
-            month,
-            1
-          )
-        );
-
-      break;
-    }
-
-    case "year": {
-      start =
-        new Date(
-          Date.UTC(
-            year,
-            0,
-            1
-          )
-        );
-
-      end =
-        new Date(
-          Date.UTC(
-            year + 1,
-            0,
-            1
-          )
-        );
-
-      break;
-    }
-
-    default:
-      return null;
   }
 
-  return {
-    start:
-      start.toISOString(),
-    end:
-      end.toISOString(),
-  };
+  // -------------------------------------------------------
+  // 指定年
+  // -------------------------------------------------------
+
+  if (
+    period === "year" &&
+    requestedYear
+  ) {
+    const match =
+      /^(\d{4})$/.exec(
+        String(requestedYear)
+      );
+
+    if (!match) {
+      return {
+        error:
+          "年の指定はYYYY形式で指定してください。",
+      };
+    }
+
+    year =
+      Number(match[1]);
+
+    if (
+      year < 2000 ||
+      year > 2100
+    ) {
+      return {
+        error:
+          "年の指定が正しくありません。",
+      };
+    }
+  }
+
+  // -------------------------------------------------------
+  // 今日
+  // -------------------------------------------------------
+
+  if (period === "today") {
+    const start =
+      jstDateToUtc(
+        today.year,
+        today.month,
+        today.day
+      );
+
+    const end =
+      new Date(start);
+
+    end.setUTCDate(
+      end.getUTCDate() + 1
+    );
+
+    return {
+      start:
+        start.toISOString(),
+
+      end:
+        end.toISOString(),
+
+      label:
+        toJstDateString(
+          today.year,
+          today.month,
+          today.day
+        ),
+    };
+  }
+
+  // -------------------------------------------------------
+  // 今週 / 指定週なし
+  // 月曜始まり
+  // -------------------------------------------------------
+
+  if (
+    period === "week"
+  ) {
+    const current =
+      jstDateToUtc(
+        today.year,
+        today.month,
+        today.day
+      );
+
+    const weekday =
+      current.getUTCDay();
+
+    const mondayOffset =
+      weekday === 0
+        ? -6
+        : 1 - weekday;
+
+    const start =
+      new Date(current);
+
+    start.setUTCDate(
+      start.getUTCDate() +
+      mondayOffset
+    );
+
+    const end =
+      new Date(start);
+
+    end.setUTCDate(
+      end.getUTCDate() + 7
+    );
+
+    return {
+      start:
+        start.toISOString(),
+
+      end:
+        end.toISOString(),
+
+      label:
+        "今週",
+    };
+  }
+
+  // -------------------------------------------------------
+  // 月
+  // -------------------------------------------------------
+
+  if (
+    period === "month"
+  ) {
+    const start =
+      jstDateToUtc(
+        year,
+        month,
+        1
+      );
+
+    const end =
+      month === 12
+        ? jstDateToUtc(
+            year + 1,
+            1,
+            1
+          )
+        : jstDateToUtc(
+            year,
+            month + 1,
+            1
+          );
+
+    return {
+      start:
+        start.toISOString(),
+
+      end:
+        end.toISOString(),
+
+      label:
+        `${year}-${pad2(month)}`,
+    };
+  }
+
+  // -------------------------------------------------------
+  // 年
+  // -------------------------------------------------------
+
+  if (
+    period === "year"
+  ) {
+    const start =
+      jstDateToUtc(
+        year,
+        1,
+        1
+      );
+
+    const end =
+      jstDateToUtc(
+        year + 1,
+        1,
+        1
+      );
+
+    return {
+      start:
+        start.toISOString(),
+
+      end:
+        end.toISOString(),
+
+      label:
+        `${year}年`,
+    };
+  }
+
+  return null;
 }
 
 // =========================================================
@@ -257,10 +398,14 @@ async function getStats(
     rows[0] || {};
 
   const records =
-    Number(row.records || 0);
+    Number(
+      row.records || 0
+    );
 
   const sales =
-    Number(row.sales || 0);
+    Number(
+      row.sales || 0
+    );
 
   const deliveryCount =
     Number(
@@ -298,7 +443,9 @@ async function getStats(
 // =========================================================
 
 async function getRecentResults(
-  userId
+  userId,
+  start,
+  end
 ) {
   const rows = await sql`
     SELECT
@@ -312,6 +459,12 @@ async function getRecentResults(
 
     WHERE telegram_user_id =
       ${userId}
+
+      AND created_at >=
+        ${start}
+
+      AND created_at <
+        ${end}
 
     ORDER BY
       created_at DESC,
@@ -415,7 +568,9 @@ async function getDailyResults(
 
   return rows.map(row => {
     const sales =
-      Number(row.sales || 0);
+      Number(
+        row.sales || 0
+      );
 
     const deliveryCount =
       Number(
@@ -459,6 +614,7 @@ module.exports =
     req,
     res
   ) {
+
     if (req.method !== "GET") {
       return res.status(405).json({
         ok: false,
@@ -468,6 +624,7 @@ module.exports =
     }
 
     try {
+
       // -----------------------------------------------------
       // Telegramユーザー認証
       // -----------------------------------------------------
@@ -484,7 +641,7 @@ module.exports =
       }
 
       // -----------------------------------------------------
-      // 期間
+      // パラメータ
       // -----------------------------------------------------
 
       const period =
@@ -493,8 +650,30 @@ module.exports =
           "today"
         ).toLowerCase();
 
+      const requestedMonth =
+        req.query?.month
+          ? String(
+              req.query.month
+            )
+          : "";
+
+      const requestedYear =
+        req.query?.year
+          ? String(
+              req.query.year
+            )
+          : "";
+
+      // -----------------------------------------------------
+      // 期間
+      // -----------------------------------------------------
+
       const range =
-        getPeriodRange(period);
+        getPeriodRange(
+          period,
+          requestedMonth,
+          requestedYear
+        );
 
       if (!range) {
         return res.status(400).json({
@@ -504,8 +683,16 @@ module.exports =
         });
       }
 
+      if (range.error) {
+        return res.status(400).json({
+          ok: false,
+          error:
+            range.error,
+        });
+      }
+
       // -----------------------------------------------------
-      // 集計
+      // 個人集計
       // -----------------------------------------------------
 
       const stats =
@@ -521,7 +708,9 @@ module.exports =
 
       const recentResults =
         await getRecentResults(
-          userId
+          userId,
+          range.start,
+          range.end
         );
 
       // -----------------------------------------------------
@@ -536,13 +725,25 @@ module.exports =
         );
 
       // -----------------------------------------------------
-      // レスポンス
+      // Response
       // -----------------------------------------------------
 
       return res.status(200).json({
+
         ok: true,
 
         period,
+
+        requestedMonth:
+          requestedMonth ||
+          null,
+
+        requestedYear:
+          requestedYear ||
+          null,
+
+        label:
+          range.label,
 
         range: {
           start:
@@ -553,6 +754,7 @@ module.exports =
         },
 
         stats: {
+
           records:
             stats.records,
 
@@ -575,9 +777,11 @@ module.exports =
         recentResults,
 
         daily,
+
       });
 
     } catch (error) {
+
       console.error(
         "[RESULT] API error:",
         {
