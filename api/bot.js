@@ -8,15 +8,22 @@ if (!BOT_TOKEN) {
   console.error("[BOT] BOT_TOKEN is not configured");
 }
 
-const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
+const TELEGRAM_API =
+  `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 // =========================================================
 // Telegram API
 // =========================================================
 
-async function telegramApi(method, payload = {}) {
+async function telegramApi(
+  method,
+  payload = {}
+) {
   try {
-    console.log("[BOT] Telegram API request:", method);
+    console.log(
+      "[BOT] Telegram API request:",
+      method
+    );
 
     const response = await fetch(
       `${TELEGRAM_API}/${method}`,
@@ -32,25 +39,35 @@ async function telegramApi(method, payload = {}) {
     const data = await response.json();
 
     if (!data.ok) {
-      console.error("[BOT] Telegram API error:", {
-        method,
-        description: data.description,
-        error_code: data.error_code,
-      });
+      console.error(
+        "[BOT] Telegram API error:",
+        {
+          method,
+          description: data.description,
+          error_code: data.error_code,
+        }
+      );
 
       throw new Error(
-        data.description || "Telegram API error"
+        data.description ||
+        "Telegram API error"
       );
     }
 
-    console.log("[BOT] Telegram API success:", method);
+    console.log(
+      "[BOT] Telegram API success:",
+      method
+    );
 
     return data.result;
   } catch (error) {
-    console.error("[BOT] Telegram API exception:", {
-      method,
-      message: error?.message,
-    });
+    console.error(
+      "[BOT] Telegram API exception:",
+      {
+        method,
+        message: error?.message,
+      }
+    );
 
     throw error;
   }
@@ -66,19 +83,28 @@ async function sendMessage(
   extra = {}
 ) {
   if (!chatId) {
-    throw new Error("chatId is missing");
+    throw new Error(
+      "chatId is missing"
+    );
   }
 
-  console.log("[BOT] sendMessage:", {
-    chatId: String(chatId),
-    textPreview: String(text || "").slice(0, 100),
-  });
+  console.log(
+    "[BOT] sendMessage:",
+    {
+      chatId: String(chatId),
+      textPreview:
+        String(text || "").slice(0, 100),
+    }
+  );
 
-  return telegramApi("sendMessage", {
-    chat_id: chatId,
-    text,
-    ...extra,
-  });
+  return telegramApi(
+    "sendMessage",
+    {
+      chat_id: chatId,
+      text,
+      ...extra,
+    }
+  );
 }
 
 // =========================================================
@@ -146,13 +172,19 @@ function getCommandName(text) {
 // =========================================================
 
 function formatNumber(value) {
-  return Number(value || 0).toLocaleString(
-    "ja-JP"
-  );
+  return Number(value || 0)
+    .toLocaleString("ja-JP");
 }
 
 function formatHours(value) {
-  return Number(value || 0).toFixed(1);
+  return Number(value || 0)
+    .toFixed(1);
+}
+
+function formatYen(value) {
+  return `¥${formatNumber(
+    Math.round(Number(value || 0))
+  )}`;
 }
 
 function parseWorkHours(value) {
@@ -175,7 +207,8 @@ function parseWorkHours(value) {
 
 function getAdminIds() {
   return String(
-    process.env.ADMIN_TELEGRAM_USER_IDS || ""
+    process.env.ADMIN_TELEGRAM_USER_IDS ||
+    ""
   )
     .split(",")
     .map(id => id.trim())
@@ -208,7 +241,9 @@ async function writeAuditLog({
       )
       VALUES (
         ${String(telegramUserId)},
-        ${chatId ? String(chatId) : null},
+        ${chatId
+          ? String(chatId)
+          : null},
         ${action},
         ${JSON.stringify(details)}
       )
@@ -253,7 +288,9 @@ function parseAddArguments(text) {
   }
 
   if (
-    !Number.isInteger(deliveryCount) ||
+    !Number.isInteger(
+      deliveryCount
+    ) ||
     deliveryCount <= 0 ||
     deliveryCount > 10000
   ) {
@@ -265,9 +302,8 @@ function parseAddArguments(text) {
   }
 
   return {
-    saleAmount: Math.round(
-      saleAmount
-    ),
+    saleAmount:
+      Math.round(saleAmount),
     deliveryCount,
     workHours,
   };
@@ -284,10 +320,13 @@ async function handleStart(message) {
   const chatId =
     getChatId(message);
 
-  console.log("[BOT] /start received:", {
-    userId,
-    chatId,
-  });
+  console.log(
+    "[BOT] /start received:",
+    {
+      userId,
+      chatId,
+    }
+  );
 
   await writeAuditLog({
     telegramUserId: userId,
@@ -305,6 +344,12 @@ async function handleStart(message) {
     "",
     "例：",
     "/add 5000 5 2",
+    "",
+    "【過去の実績】",
+    "/month 今月の実績",
+    "/month 2026-09 指定月",
+    "/year 今年の実績",
+    "/year 2025 指定年",
     "",
     "【その他】",
     "/cancel 直前の実績を削除",
@@ -338,6 +383,339 @@ async function handleStart(message) {
 }
 
 // =========================================================
+// 期間指定
+// =========================================================
+
+function parseMonthArgument(text) {
+  const parts =
+    String(text || "")
+      .trim()
+      .split(/\s+/);
+
+  if (parts.length === 1) {
+    const now = new Date();
+
+    const formatter =
+      new Intl.DateTimeFormat(
+        "ja-JP",
+        {
+          timeZone: "Asia/Tokyo",
+          year: "numeric",
+          month: "2-digit",
+        }
+      );
+
+    const values =
+      formatter.formatToParts(now);
+
+    const year =
+      values.find(
+        item => item.type === "year"
+      )?.value;
+
+    const month =
+      values.find(
+        item => item.type === "month"
+      )?.value;
+
+    return `${year}-${month}`;
+  }
+
+  const value = parts[1];
+
+  if (
+    !/^\d{4}-(0[1-9]|1[0-2])$/.test(
+      value
+    )
+  ) {
+    return null;
+  }
+
+  return value;
+}
+
+function parseYearArgument(text) {
+  const parts =
+    String(text || "")
+      .trim()
+      .split(/\s+/);
+
+  if (parts.length === 1) {
+    const now = new Date();
+
+    const formatter =
+      new Intl.DateTimeFormat(
+        "ja-JP",
+        {
+          timeZone: "Asia/Tokyo",
+          year: "numeric",
+        }
+      );
+
+    const values =
+      formatter.formatToParts(now);
+
+    return values.find(
+      item => item.type === "year"
+    )?.value;
+  }
+
+  const value = parts[1];
+
+  if (!/^\d{4}$/.test(value)) {
+    return null;
+  }
+
+  return value;
+}
+
+async function getPersonalPeriodStats(
+  userId,
+  start,
+  end
+) {
+  const rows = await sql`
+    SELECT
+      COUNT(*) AS records,
+      COALESCE(
+        SUM(sale_amount),
+        0
+      ) AS sales,
+      COALESCE(
+        SUM(delivery_count),
+        0
+      ) AS delivery_count,
+      COALESCE(
+        SUM(work_hours),
+        0
+      ) AS work_hours
+    FROM delivery_results
+    WHERE telegram_user_id = ${userId}
+      AND created_at >= ${start}
+      AND created_at < ${end}
+  `;
+
+  const row =
+    rows[0] || {};
+
+  const sales =
+    Number(row.sales || 0);
+
+  const deliveryCount =
+    Number(
+      row.delivery_count || 0
+    );
+
+  const workHours =
+    Number(
+      row.work_hours || 0
+    );
+
+  return {
+    records:
+      Number(row.records || 0),
+
+    sales,
+
+    deliveryCount,
+
+    workHours,
+
+    unitPrice:
+      deliveryCount > 0
+        ? sales / deliveryCount
+        : 0,
+
+    hourlySales:
+      workHours > 0
+        ? sales / workHours
+        : 0,
+  };
+}
+
+// =========================================================
+// /month
+// =========================================================
+
+async function handleMonth(message) {
+  const userId =
+    getTelegramUserId(message);
+
+  const chatId =
+    getChatId(message);
+
+  const month =
+    parseMonthArgument(
+      message.text
+    );
+
+  if (!month) {
+    return sendMessage(
+      chatId,
+      [
+        "❌ 月の指定が正しくありません。",
+        "",
+        "例：",
+        "/month",
+        "/month 2026-09",
+      ].join("\n")
+    );
+  }
+
+  const [
+    year,
+    monthNumber,
+  ] =
+    month
+      .split("-")
+      .map(Number);
+
+  const start =
+    `${year}-${String(
+      monthNumber
+    ).padStart(2, "0")}-01`;
+
+  const nextYear =
+    monthNumber === 12
+      ? year + 1
+      : year;
+
+  const nextMonth =
+    monthNumber === 12
+      ? 1
+      : monthNumber + 1;
+
+  const end =
+    `${nextYear}-${String(
+      nextMonth
+    ).padStart(2, "0")}-01`;
+
+  const stats =
+    await getPersonalPeriodStats(
+      userId,
+      `${start}T00:00:00+09:00`,
+      `${end}T00:00:00+09:00`
+    );
+
+  await writeAuditLog({
+    telegramUserId: userId,
+    chatId,
+    action: "month_view",
+    details: {
+      month,
+    },
+  });
+
+  return sendMessage(
+    chatId,
+    [
+      `📅 ${year}年${monthNumber}月の実績`,
+      "",
+      `売上：${formatYen(
+        stats.sales
+      )}`,
+      `配達：${formatNumber(
+        stats.deliveryCount
+      )}件`,
+      `稼働：${formatHours(
+        stats.workHours
+      )}時間`,
+      "",
+      `平均単価：${formatYen(
+        stats.unitPrice
+      )}`,
+      `時給換算：${formatYen(
+        stats.hourlySales
+      )}/h`,
+      "",
+      `記録：${formatNumber(
+        stats.records
+      )}件`,
+    ].join("\n")
+  );
+}
+
+// =========================================================
+// /year
+// =========================================================
+
+async function handleYear(message) {
+  const userId =
+    getTelegramUserId(message);
+
+  const chatId =
+    getChatId(message);
+
+  const year =
+    parseYearArgument(
+      message.text
+    );
+
+  if (!year) {
+    return sendMessage(
+      chatId,
+      [
+        "❌ 年の指定が正しくありません。",
+        "",
+        "例：",
+        "/year",
+        "/year 2025",
+      ].join("\n")
+    );
+  }
+
+  const start =
+    `${year}-01-01`;
+
+  const end =
+    `${Number(year) + 1}-01-01`;
+
+  const stats =
+    await getPersonalPeriodStats(
+      userId,
+      `${start}T00:00:00+09:00`,
+      `${end}T00:00:00+09:00`
+    );
+
+  await writeAuditLog({
+    telegramUserId: userId,
+    chatId,
+    action: "year_view",
+    details: {
+      year,
+    },
+  });
+
+  return sendMessage(
+    chatId,
+    [
+      `📅 ${year}年の実績`,
+      "",
+      `売上：${formatYen(
+        stats.sales
+      )}`,
+      `配達：${formatNumber(
+        stats.deliveryCount
+      )}件`,
+      `稼働：${formatHours(
+        stats.workHours
+      )}時間`,
+      "",
+      `平均単価：${formatYen(
+        stats.unitPrice
+      )}`,
+      `時給換算：${formatYen(
+        stats.hourlySales
+      )}/h`,
+      "",
+      `記録：${formatNumber(
+        stats.records
+      )}件`,
+    ].join("\n")
+  );
+}
+
+// =========================================================
 // /help
 // =========================================================
 
@@ -348,19 +726,27 @@ async function handleHelp(message) {
   const text = [
     "📖 使い方",
     "",
-    "実績を登録：",
+    "【実績を登録】",
     "/add 5000 5 2",
     "",
     "意味：",
     "5000円の売上・5件配達・2時間稼働",
     "",
-    "直前の実績を削除：",
+    "【月の実績】",
+    "/month",
+    "/month 2026-09",
+    "",
+    "【年の実績】",
+    "/year",
+    "/year 2025",
+    "",
+    "【直前の実績を削除】",
     "/cancel",
     "",
-    "自分の実績を全削除：",
+    "【自分の実績を全削除】",
     "/reset",
     "",
-    "個人ダッシュボード：",
+    "【個人ダッシュボード】",
     "📊 ボタンから開いてください。",
   ].join("\n");
 
@@ -369,7 +755,6 @@ async function handleHelp(message) {
     text
   );
 }
-
 // =========================================================
 // /add
 // =========================================================
@@ -386,11 +771,14 @@ async function handleAdd(message) {
       message.text
     );
 
-  console.log("[BOT] /add received:", {
-    userId,
-    chatId,
-    text: message.text,
-  });
+  console.log(
+    "[BOT] /add received:",
+    {
+      userId,
+      chatId,
+      text: message.text,
+    }
+  );
 
   if (!parsed) {
     return sendMessage(
@@ -443,7 +831,8 @@ async function handleAdd(message) {
     chatId,
     action: "add",
     details: {
-      resultId: Number(row.id),
+      resultId:
+        Number(row.id),
       saleAmount,
       deliveryCount,
       workHours,
@@ -452,20 +841,28 @@ async function handleAdd(message) {
 
   const unitPrice =
     deliveryCount > 0
-      ? saleAmount / deliveryCount
+      ? saleAmount /
+        deliveryCount
       : 0;
 
   const hourlySales =
     workHours > 0
-      ? saleAmount / workHours
+      ? saleAmount /
+        workHours
       : 0;
 
   const text = [
     "✅ 実績を登録しました！",
     "",
-    `売上：¥${formatNumber(saleAmount)}`,
-    `配達：${formatNumber(deliveryCount)}件`,
-    `稼働：${formatHours(workHours)}時間`,
+    `売上：¥${formatNumber(
+      saleAmount
+    )}`,
+    `配達：${formatNumber(
+      deliveryCount
+    )}件`,
+    `稼働：${formatHours(
+      workHours
+    )}時間`,
     "",
     `平均単価：¥${formatNumber(
       Math.round(unitPrice)
@@ -514,12 +911,14 @@ async function handleCancel(message) {
     );
   }
 
-  const row = rows[0];
+  const row =
+    rows[0];
 
   await sql`
     DELETE FROM delivery_results
     WHERE id = ${row.id}
-      AND telegram_user_id = ${userId}
+      AND telegram_user_id =
+        ${userId}
   `;
 
   await writeAuditLog({
@@ -527,16 +926,20 @@ async function handleCancel(message) {
     chatId,
     action: "cancel",
     details: {
-      resultId: Number(row.id),
-      saleAmount: Number(
-        row.sale_amount
-      ),
-      deliveryCount: Number(
-        row.delivery_count
-      ),
-      workHours: Number(
-        row.work_hours
-      ),
+      resultId:
+        Number(row.id),
+      saleAmount:
+        Number(
+          row.sale_amount
+        ),
+      deliveryCount:
+        Number(
+          row.delivery_count
+        ),
+      workHours:
+        Number(
+          row.work_hours
+        ),
     },
   });
 
@@ -601,69 +1004,78 @@ async function handleReset(message) {
 // =========================================================
 
 async function getAdminStatistics() {
-  const overallRows = await sql`
-    SELECT
-      COUNT(*) AS records,
-      COUNT(
-        DISTINCT telegram_user_id
-      ) AS users,
-      COALESCE(
-        SUM(sale_amount),
-        0
-      ) AS sales,
-      COALESCE(
-        SUM(delivery_count),
-        0
-      ) AS delivery_count,
-      COALESCE(
-        SUM(work_hours),
-        0
-      ) AS work_hours
-    FROM delivery_results
-  `;
+  const overallRows =
+    await sql`
+      SELECT
+        COUNT(*) AS records,
+        COUNT(
+          DISTINCT telegram_user_id
+        ) AS users,
+        COALESCE(
+          SUM(sale_amount),
+          0
+        ) AS sales,
+        COALESCE(
+          SUM(delivery_count),
+          0
+        ) AS delivery_count,
+        COALESCE(
+          SUM(work_hours),
+          0
+        ) AS work_hours
+      FROM delivery_results
+    `;
 
-  const monthRows = await sql`
-    SELECT
-      COUNT(*) AS records,
-      COUNT(
-        DISTINCT telegram_user_id
-      ) AS users,
-      COALESCE(
-        SUM(sale_amount),
-        0
-      ) AS sales,
-      COALESCE(
-        SUM(delivery_count),
-        0
-      ) AS delivery_count,
-      COALESCE(
-        SUM(work_hours),
-        0
-      ) AS work_hours
-    FROM delivery_results
-    WHERE created_at >= (
-      date_trunc(
-        'month',
-        CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'
-      ) AT TIME ZONE 'Asia/Tokyo'
-    )
-  `;
+  const monthRows =
+    await sql`
+      SELECT
+        COUNT(*) AS records,
+        COUNT(
+          DISTINCT telegram_user_id
+        ) AS users,
+        COALESCE(
+          SUM(sale_amount),
+          0
+        ) AS sales,
+        COALESCE(
+          SUM(delivery_count),
+          0
+        ) AS delivery_count,
+        COALESCE(
+          SUM(work_hours),
+          0
+        ) AS work_hours
+      FROM delivery_results
+      WHERE created_at >= (
+        date_trunc(
+          'month',
+          CURRENT_TIMESTAMP
+          AT TIME ZONE 'Asia/Tokyo'
+        )
+        AT TIME ZONE 'Asia/Tokyo'
+      )
+    `;
 
-  const latestRows = await sql`
-    SELECT
-      action,
-      telegram_user_id,
-      chat_id,
-      created_at
-    FROM audit_logs
-    ORDER BY created_at DESC
-    LIMIT 20
-  `;
+  const latestRows =
+    await sql`
+      SELECT
+        action,
+        telegram_user_id,
+        chat_id,
+        created_at
+      FROM audit_logs
+      ORDER BY
+        created_at DESC
+      LIMIT 20
+    `;
 
   return {
-    overall: overallRows[0],
-    month: monthRows[0],
-    latestLogs: latestRows,
+    overall:
+      overallRows[0],
+    month:
+      monthRows[0],
+    latestLogs:
+      latestRows,
   };
 }
 
@@ -762,37 +1174,63 @@ async function handleCommand(message) {
   const chatId =
     getChatId(message);
 
-  console.log("[BOT] command:", {
-    command,
-    userId,
-    chatId,
-    text: message.text,
-  });
+  console.log(
+    "[BOT] command:",
+    {
+      command,
+      userId,
+      chatId,
+      text: message.text,
+    }
+  );
 
   switch (command) {
     case "/start":
-      return handleStart(message);
+      return handleStart(
+        message
+      );
 
     case "/help":
-      return handleHelp(message);
+      return handleHelp(
+        message
+      );
 
     case "/add":
-      return handleAdd(message);
+      return handleAdd(
+        message
+      );
+
+    case "/month":
+      return handleMonth(
+        message
+      );
+
+    case "/year":
+      return handleYear(
+        message
+      );
 
     case "/cancel":
-      return handleCancel(message);
+      return handleCancel(
+        message
+      );
 
     case "/reset":
-      return handleReset(message);
+      return handleReset(
+        message
+      );
 
     case "/admin":
-      return handleAdmin(message);
+      return handleAdmin(
+        message
+      );
 
     default:
       console.log(
         "[BOT] unknown command:",
         command
       );
+
       return null;
   }
 }
@@ -801,113 +1239,125 @@ async function handleCommand(message) {
 // Webhook
 // =========================================================
 
-module.exports = async function handler(
-  req,
-  res
-) {
-  console.log("[BOT] webhook request:", {
-    method: req.method,
-    url: req.url,
-  });
-
-  if (req.method !== "POST") {
+module.exports =
+  async function handler(
+    req,
+    res
+  ) {
     console.log(
-      "[BOT] rejected non-POST request"
-    );
-
-    return res.status(405).json({
-      ok: false,
-      error: "Method Not Allowed",
-    });
-  }
-
-  try {
-    const update =
-      req.body || {};
-
-    console.log("[BOT] update received:", {
-      updateId: update.update_id,
-      hasMessage: Boolean(
-        update.message
-      ),
-    });
-
-    const message =
-      update.message;
-
-    if (!message) {
-      console.log(
-        "[BOT] ignored: message not found"
-      );
-
-      return res.status(200).json({
-        ok: true,
-        ignored: true,
-      });
-    }
-
-    if (
-      typeof message.text !== "string"
-    ) {
-      console.log(
-        "[BOT] ignored: text not found"
-      );
-
-      return res.status(200).json({
-        ok: true,
-        ignored: true,
-      });
-    }
-
-    if (
-      !message.text
-        .trim()
-        .startsWith("/")
-    ) {
-      console.log(
-        "[BOT] ignored: not a command"
-      );
-
-      return res.status(200).json({
-        ok: true,
-        ignored: true,
-      });
-    }
-
-    console.log(
-      "[BOT] processing command:",
-      message.text
-    );
-
-    await handleCommand(
-      message
-    );
-
-    console.log(
-      "[BOT] command completed:",
-      message.text
-    );
-
-    return res.status(200).json({
-      ok: true,
-    });
-  } catch (error) {
-    console.error(
-      "[BOT] webhook error:",
+      "[BOT] webhook request:",
       {
-        name: error?.name,
-        message: error?.message,
-        stack: error?.stack,
+        method: req.method,
+        url: req.url,
       }
     );
 
-    // TelegramへのWebhook自体は200で返す。
-    // 失敗内容はVercelログで確認できる。
-    return res.status(200).json({
-      ok: false,
-      error:
-        error?.message ||
-        "Bot処理に失敗しました。",
-    });
-  }
-};
+    if (req.method !== "POST") {
+      console.log(
+        "[BOT] rejected non-POST request"
+      );
+
+      return res.status(405).json({
+        ok: false,
+        error:
+          "Method Not Allowed",
+      });
+    }
+
+    try {
+      const update =
+        req.body || {};
+
+      console.log(
+        "[BOT] update received:",
+        {
+          updateId:
+            update.update_id,
+          hasMessage:
+            Boolean(
+              update.message
+            ),
+        }
+      );
+
+      const message =
+        update.message;
+
+      if (!message) {
+        console.log(
+          "[BOT] ignored: message not found"
+        );
+
+        return res.status(200).json({
+          ok: true,
+          ignored: true,
+        });
+      }
+
+      if (
+        typeof message.text !==
+        "string"
+      ) {
+        console.log(
+          "[BOT] ignored: text not found"
+        );
+
+        return res.status(200).json({
+          ok: true,
+          ignored: true,
+        });
+      }
+
+      if (
+        !message.text
+          .trim()
+          .startsWith("/")
+      ) {
+        console.log(
+          "[BOT] ignored: not a command"
+        );
+
+        return res.status(200).json({
+          ok: true,
+          ignored: true,
+        });
+      }
+
+      console.log(
+        "[BOT] processing command:",
+        message.text
+      );
+
+      await handleCommand(
+        message
+      );
+
+      console.log(
+        "[BOT] command completed:",
+        message.text
+      );
+
+      return res.status(200).json({
+        ok: true,
+      });
+    } catch (error) {
+      console.error(
+        "[BOT] webhook error:",
+        {
+          name:
+            error?.name,
+          message:
+            error?.message,
+          stack:
+            error?.stack,
+        }
+      );
+
+      return res.status(200).json({
+        ok: false,
+        error:
+          error?.message ||
+          "Bot処理に失敗しました。",
+      });
+    }
+  };
