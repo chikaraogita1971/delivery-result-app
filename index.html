@@ -2,10 +2,9 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
   />
 
   <title>配達リザルト</title>
@@ -15,12 +14,14 @@
   <style>
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     html,
     body {
       margin: 0;
       padding: 0;
+      min-height: 100%;
       background: #f5f7fb;
       color: #111827;
       font-family:
@@ -32,7 +33,7 @@
     }
 
     body {
-      min-height: 100vh;
+      padding-bottom: 32px;
     }
 
     button,
@@ -44,406 +45,643 @@
       cursor: pointer;
     }
 
-    .hidden {
-      display: none !important;
-    }
-
     .app {
       width: 100%;
       max-width: 760px;
       margin: 0 auto;
-      padding-bottom: 40px;
+      padding: 14px;
     }
 
-    /* ========================================================
-       ヘッダー
-       ======================================================== */
+    /* =========================================
+       Header
+    ========================================= */
 
     .header {
-      padding: 20px 16px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+
+      padding: 16px;
+      margin-bottom: 12px;
+
       background: #ffffff;
-      border-bottom: 1px solid #e5e7eb;
-      position: sticky;
-      top: 0;
-      z-index: 20;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+
+      box-shadow:
+        0 4px 14px rgba(0, 0, 0, 0.04);
     }
 
-    .header-title {
-      font-size: 22px;
+    .header-left {
+      min-width: 0;
+    }
+
+    .app-title {
+      margin: 0;
+      font-size: 20px;
       font-weight: 800;
       letter-spacing: -0.02em;
     }
 
-    .header-user {
+    .user-name {
       margin-top: 4px;
       color: #6b7280;
       font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    /* ========================================================
-       メインタブ
-       ======================================================== */
+    .refresh-btn {
+      flex-shrink: 0;
+
+      width: 42px;
+      height: 42px;
+
+      border: 0;
+      border-radius: 12px;
+
+      background: #f3f4f6;
+      color: #374151;
+
+      font-size: 18px;
+    }
+
+    .refresh-btn:active {
+      transform: scale(0.96);
+    }
+
+
+    /* =========================================
+       Main Navigation
+    ========================================= */
 
     .main-tabs {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, 1fr);
       gap: 8px;
-      padding: 12px 16px;
-      background: #ffffff;
-      border-bottom: 1px solid #e5e7eb;
+
+      margin-bottom: 12px;
     }
 
     .main-tab {
-      border: 0;
-      border-radius: 12px;
-      padding: 11px 8px;
-      background: #f3f4f6;
+      min-height: 46px;
+
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+
+      background: #ffffff;
       color: #6b7280;
+
+      font-size: 14px;
       font-weight: 700;
     }
 
     .main-tab.active {
       background: #111827;
       color: #ffffff;
+      border-color: #111827;
     }
 
     .main-tab.admin-tab {
-      grid-column: span 2;
+      display: none;
     }
 
-    /* ========================================================
-       コンテンツ
-       ======================================================== */
 
-    .content {
-      padding: 16px;
+    /* =========================================
+       Section
+    ========================================= */
+
+    .section {
+      display: none;
     }
 
-    .section-title {
-      margin: 4px 0 12px;
-      font-size: 18px;
-      font-weight: 800;
+    .section.active {
+      display: block;
     }
 
-    /* ========================================================
-       期間タブ
-       ======================================================== */
+
+    /* =========================================
+       Period Tabs
+    ========================================= */
 
     .period-tabs {
       display: grid;
-      grid-template-columns:
-        repeat(4, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 6px;
-      margin-bottom: 14px;
+
+      margin-bottom: 12px;
     }
 
     .period-tab {
+      min-height: 42px;
+
       border: 1px solid #e5e7eb;
-      border-radius: 10px;
+      border-radius: 12px;
+
       background: #ffffff;
       color: #6b7280;
-      padding: 9px 4px;
+
       font-size: 13px;
       font-weight: 700;
     }
 
     .period-tab.active {
-      background: #111827;
+      background: #2563eb;
       color: #ffffff;
-      border-color: #111827;
+      border-color: #2563eb;
     }
 
-    /* ========================================================
-       カード
-       ======================================================== */
+
+    /* =========================================
+       Cards
+    ========================================= */
 
     .card {
       background: #ffffff;
       border: 1px solid #e5e7eb;
-      border-radius: 16px;
+      border-radius: 18px;
+
       padding: 16px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
+
       box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.03);
+        0 4px 14px rgba(0, 0, 0, 0.035);
     }
 
     .card-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+
+      margin-bottom: 14px;
+
       font-size: 15px;
       font-weight: 800;
+    }
+
+    .card-subtitle {
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+
+    /* =========================================
+       Hero Stats
+    ========================================= */
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+
       margin-bottom: 12px;
     }
 
-    /* ========================================================
-       統計
-       ======================================================== */
+    .hero-card {
+      padding: 16px;
+
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+
+      box-shadow:
+        0 4px 14px rgba(0, 0, 0, 0.035);
+    }
+
+    .hero-label {
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .hero-value {
+      margin-top: 7px;
+
+      font-size: 27px;
+      line-height: 1.1;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-unit {
+      margin-left: 3px;
+      color: #6b7280;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+
+    /* =========================================
+       Stats Grid
+    ========================================= */
 
     .stats-grid {
       display: grid;
-      grid-template-columns:
-        repeat(2, 1fr);
-      gap: 10px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
     }
 
     .stat-box {
-      padding: 14px;
-      background: #f8fafc;
-      border-radius: 12px;
-      border: 1px solid #eef2f7;
+      padding: 13px;
+
+      background: #f9fafb;
+      border-radius: 14px;
     }
 
     .stat-label {
       color: #6b7280;
-      font-size: 12px;
-      margin-bottom: 5px;
-    }
-
-    .stat-value {
-      font-size: 21px;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-
-    .stat-unit {
-      font-size: 12px;
-      font-weight: 600;
-      margin-left: 2px;
-      color: #6b7280;
-    }
-
-    /* ========================================================
-       目標
-       ======================================================== */
-
-    .goal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .goal-value {
-      font-size: 20px;
-      font-weight: 800;
-    }
-
-    .goal-input-row {
-      display: flex;
-      gap: 8px;
-    }
-
-    .goal-input {
-      flex: 1;
-      min-width: 0;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      padding: 10px 12px;
-      background: #ffffff;
-    }
-
-    .primary-button {
-      border: 0;
-      border-radius: 10px;
-      background: #111827;
-      color: #ffffff;
-      padding: 10px 16px;
+      font-size: 11px;
       font-weight: 700;
     }
 
-    .progress-wrap {
-      margin-top: 12px;
+    .stat-value {
+      margin-top: 5px;
+
+      font-size: 18px;
+      font-weight: 850;
+    }
+
+
+    /* =========================================
+       Goal
+    ========================================= */
+
+    .goal-card {
+      background: #111827;
+      color: #ffffff;
+      border: 0;
+    }
+
+    .goal-card .card-title {
+      color: #ffffff;
+    }
+
+    .goal-summary {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .goal-count {
+      font-size: 30px;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .goal-count span {
+      margin-left: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      opacity: 0.7;
+    }
+
+    .goal-rate {
+      font-size: 22px;
+      font-weight: 900;
     }
 
     .progress-track {
-      width: 100%;
-      height: 12px;
+      height: 10px;
+      margin-top: 15px;
+
+      background: rgba(255, 255, 255, 0.16);
       border-radius: 999px;
-      background: #e5e7eb;
       overflow: hidden;
     }
 
     .progress-bar {
       height: 100%;
       width: 0%;
+
+      background: #ffffff;
       border-radius: 999px;
-      background: #111827;
-      transition: width 0.25s ease;
+
+      transition: width 0.35s ease;
     }
 
-    .progress-text {
+    .goal-input-row {
       display: flex;
-      justify-content: space-between;
-      margin-top: 7px;
-      font-size: 12px;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .goal-input {
+      flex: 1;
+      min-width: 0;
+
+      height: 42px;
+      padding: 0 12px;
+
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 11px;
+
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      outline: none;
+    }
+
+    .goal-input::placeholder {
+      color: rgba(255, 255, 255, 0.55);
+    }
+
+    .goal-save-btn {
+      height: 42px;
+      padding: 0 14px;
+
+      border: 0;
+      border-radius: 11px;
+
+      background: #ffffff;
+      color: #111827;
+
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+
+    /* =========================================
+       Highlight
+    ========================================= */
+
+    .highlight-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .highlight {
+      padding: 14px;
+
+      background: #f9fafb;
+      border-radius: 14px;
+    }
+
+    .highlight-icon {
+      font-size: 19px;
+    }
+
+    .highlight-label {
+      margin-top: 6px;
       color: #6b7280;
+      font-size: 11px;
+      font-weight: 700;
     }
 
-    /* ========================================================
-       実績履歴
-       ======================================================== */
-
-    .record {
-      padding: 12px 0;
-      border-bottom: 1px solid #eef2f7;
+    .highlight-value {
+      margin-top: 3px;
+      font-size: 19px;
+      font-weight: 900;
     }
 
-    .record:last-child {
-      border-bottom: 0;
+
+    /* =========================================
+       Record
+    ========================================= */
+
+    .record-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
-    .record-main {
+    .record-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-    }
+      gap: 12px;
 
-    .record-sale {
-      font-size: 17px;
-      font-weight: 800;
+      padding: 12px;
+
+      background: #f9fafb;
+      border-radius: 13px;
     }
 
     .record-date {
       color: #6b7280;
-      font-size: 11px;
-      margin-top: 3px;
-    }
-
-    .record-detail {
-      display: flex;
-      gap: 12px;
-      margin-top: 6px;
-      color: #4b5563;
       font-size: 12px;
-    }
-
-    /* ========================================================
-       分析
-       ======================================================== */
-
-    .analysis-grid {
-      display: grid;
-      grid-template-columns:
-        repeat(2, 1fr);
-      gap: 10px;
-    }
-
-    .analysis-box {
-      padding: 14px;
-      background: #f8fafc;
-      border: 1px solid #eef2f7;
-      border-radius: 12px;
-    }
-
-    .analysis-label {
-      color: #6b7280;
-      font-size: 12px;
-      line-height: 1.4;
-    }
-
-    .analysis-value {
-      margin-top: 5px;
-      font-size: 19px;
-      font-weight: 800;
-    }
-
-    /* ========================================================
-       管理
-       ======================================================== */
-
-    .admin-grid {
-      display: grid;
-      grid-template-columns:
-        repeat(2, 1fr);
-      gap: 10px;
-    }
-
-    .admin-box {
-      padding: 14px;
-      background: #f8fafc;
-      border: 1px solid #eef2f7;
-      border-radius: 12px;
-    }
-
-    .admin-label {
-      color: #6b7280;
-      font-size: 12px;
-    }
-
-    .admin-value {
-      margin-top: 5px;
-      font-size: 19px;
-      font-weight: 800;
-    }
-
-    /* ========================================================
-       エラー / ローディング
-       ======================================================== */
-
-    .error {
-      padding: 12px;
-      margin-bottom: 14px;
-      border-radius: 12px;
-      background: #fef2f2;
-      color: #b91c1c;
-      border: 1px solid #fecaca;
-      font-size: 13px;
-    }
-
-    .loading {
-      padding: 30px 10px;
-      text-align: center;
-      color: #6b7280;
-      font-size: 13px;
-    }
-
-    .empty {
-      padding: 24px 10px;
-      text-align: center;
-      color: #9ca3af;
-      font-size: 13px;
-    }
-
-    /* ========================================================
-       リセット
-       ======================================================== */
-
-    .danger-button {
-      width: 100%;
-      border: 1px solid #fecaca;
-      border-radius: 10px;
-      padding: 11px;
-      background: #ffffff;
-      color: #dc2626;
       font-weight: 700;
     }
 
-    /* ========================================================
-       スマホ
-       ======================================================== */
+    .record-main {
+      margin-top: 3px;
+      font-size: 14px;
+      font-weight: 800;
+    }
 
-    @media (max-width: 480px) {
-      .content {
-        padding: 12px;
+    .record-side {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .record-sales {
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .record-hours {
+      margin-top: 2px;
+      color: #6b7280;
+      font-size: 11px;
+    }
+
+
+    /* =========================================
+       Analytics
+    ========================================= */
+
+    .analytics-section-title {
+      margin: 18px 2px 8px;
+
+      font-size: 13px;
+      font-weight: 900;
+      color: #374151;
+    }
+
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .analytics-item {
+      padding: 14px;
+
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+    }
+
+    .analytics-item-label {
+      color: #6b7280;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .analytics-item-value {
+      margin-top: 5px;
+
+      font-size: 19px;
+      font-weight: 900;
+    }
+
+    .analytics-item-sub {
+      margin-top: 3px;
+
+      color: #9ca3af;
+      font-size: 10px;
+    }
+
+
+    /* =========================================
+       New Record Banner
+    ========================================= */
+
+    .record-banner {
+      display: none;
+
+      padding: 14px 16px;
+      margin-bottom: 12px;
+
+      border-radius: 16px;
+
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+    }
+
+    .record-banner.show {
+      display: block;
+    }
+
+    .record-banner-title {
+      font-size: 15px;
+      font-weight: 900;
+      color: #9a3412;
+    }
+
+    .record-banner-text {
+      margin-top: 4px;
+
+      color: #c2410c;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+
+    /* =========================================
+       Pace
+    ========================================= */
+
+    .pace-card {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    .pace-main {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .pace-value {
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .pace-unit {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .pace-detail {
+      margin-top: 8px;
+
+      color: #475569;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+
+    /* =========================================
+       Empty / Loading / Error
+    ========================================= */
+
+    .loading,
+    .empty,
+    .error-box {
+      padding: 24px 14px;
+
+      text-align: center;
+
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .error-box {
+      color: #b91c1c;
+
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+
+      border-radius: 14px;
+    }
+
+
+    /* =========================================
+       Admin
+    ========================================= */
+
+    .admin-only {
+      display: none;
+    }
+
+    .admin-only.visible {
+      display: block;
+    }
+
+
+    /* =========================================
+       Reset
+    ========================================= */
+
+    .danger-btn {
+      width: 100%;
+      min-height: 46px;
+
+      border: 1px solid #fecaca;
+      border-radius: 13px;
+
+      background: #fff1f2;
+      color: #be123c;
+
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+
+    /* =========================================
+       Responsive
+    ========================================= */
+
+    @media (max-width: 420px) {
+      .app {
+        padding: 10px;
       }
 
-      .header {
-        padding-left: 12px;
-        padding-right: 12px;
+      .hero-value {
+        font-size: 24px;
       }
 
-      .stats-grid,
-      .analysis-grid,
-      .admin-grid {
-        grid-template-columns:
-          repeat(2, 1fr);
+      .goal-count {
+        font-size: 27px;
       }
 
-      .stat-value {
-        font-size: 18px;
-      }
-
-      .analysis-value {
+      .analytics-item-value {
         font-size: 17px;
       }
     }
@@ -451,2287 +689,3298 @@
 </head>
 
 <body>
+
   <div class="app">
 
-    <!-- ======================================================
-         ヘッダー
-         ====================================================== -->
+    <!-- =====================================
+         Header
+    ====================================== -->
 
     <header class="header">
-      <div class="header-title">
-        📦 配達リザルト
+
+      <div class="header-left">
+        <h1 class="app-title">
+          📦 配達リザルト
+        </h1>
+
+        <div
+          id="userName"
+          class="user-name"
+        >
+          読み込み中...
+        </div>
       </div>
 
-      <div
-        id="userName"
-        class="header-user"
+      <button
+        id="refreshBtn"
+        class="refresh-btn"
+        type="button"
+        aria-label="更新"
       >
-        Telegramユーザー
-      </div>
+        🔄
+      </button>
+
     </header>
 
-    <!-- ======================================================
-         メインタブ
-         グループ・ランキングは置かない
-         ====================================================== -->
+
+    <!-- =====================================
+         Main Tabs
+    ====================================== -->
 
     <nav class="main-tabs">
 
       <button
-        id="personalTab"
         class="main-tab active"
-        onclick="showSection('personal')"
+        data-section="personal"
+        type="button"
       >
         📊 個人実績
       </button>
 
       <button
-        id="analyticsTab"
         class="main-tab"
-        onclick="showSection('analytics')"
+        data-section="analytics"
+        type="button"
       >
         📈 分析
       </button>
 
       <button
         id="adminTab"
-        class="main-tab admin-tab hidden"
-        onclick="showSection('admin')"
+        class="main-tab admin-tab"
+        data-section="admin"
+        type="button"
       >
-        🔐 管理
+        🛠 管理
       </button>
 
     </nav>
 
-    <main class="content">
 
-      <!-- エラー -->
+    <!-- =====================================
+         Personal
+    ====================================== -->
+
+    <section
+      id="personalSection"
+      class="section active"
+    >
+
+      <!-- Period -->
+
+      <div class="period-tabs">
+
+        <button
+          class="period-tab active"
+          data-period="today"
+          type="button"
+        >
+          今日
+        </button>
+
+        <button
+          class="period-tab"
+          data-period="week"
+          type="button"
+        >
+          今週
+        </button>
+
+        <button
+          class="period-tab"
+          data-period="month"
+          type="button"
+        >
+          今月
+        </button>
+
+        <button
+          class="period-tab"
+          data-period="year"
+          type="button"
+        >
+          年間
+        </button>
+
+      </div>
+
+
+      <!-- Record update banner -->
 
       <div
-        id="errorBox"
-        class="error hidden"
-      ></div>
-
-      <!-- ====================================================
-           個人実績
-           ==================================================== -->
-
-      <section
-        id="personalSection"
+        id="recordBanner"
+        class="record-banner"
       >
+        <div
+          id="recordBannerTitle"
+          class="record-banner-title"
+        ></div>
 
-        <div class="section-title">
-          個人実績
+        <div
+          id="recordBannerText"
+          class="record-banner-text"
+        ></div>
+      </div>
+
+
+      <!-- Hero -->
+
+      <div
+        id="personalHero"
+        class="hero-grid"
+      >
+        <div class="loading">
+          読み込み中...
+        </div>
+      </div>
+
+
+      <!-- Basic stats -->
+
+      <div
+        id="personalStats"
+        class="card"
+      >
+        <div class="card-title">
+          📊 基本実績
         </div>
 
-        <!-- 期間 -->
+        <div
+          id="personalStatsGrid"
+          class="stats-grid"
+        >
+          <div class="loading">
+            読み込み中...
+          </div>
+        </div>
+      </div>
 
-        <div class="period-tabs">
 
-          <button
-            id="periodToday"
-            class="period-tab active"
-            onclick="loadPersonal('today')"
-          >
-            今日
-          </button>
+      <!-- Goal -->
 
-          <button
-            id="periodWeek"
-            class="period-tab"
-            onclick="loadPersonal('week')"
-          >
-            今週
-          </button>
+      <div
+        id="goalCard"
+        class="card goal-card"
+      >
 
-          <button
-            id="periodMonth"
-            class="period-tab"
-            onclick="loadPersonal('month')"
+        <div class="card-title">
+          🎯 今月の目標
+
+          <span
+            id="goalMonthLabel"
+            class="card-subtitle"
+            style="color: rgba(255,255,255,.6)"
           >
             今月
-          </button>
+          </span>
+        </div>
+
+        <div class="goal-summary">
+
+          <div>
+            <div
+              id="goalCount"
+              class="goal-count"
+            >
+              0
+              <span>件</span>
+            </div>
+          </div>
+
+          <div
+            id="goalRate"
+            class="goal-rate"
+          >
+            0%
+          </div>
+
+        </div>
+
+        <div class="progress-track">
+          <div
+            id="goalProgress"
+            class="progress-bar"
+          ></div>
+        </div>
+
+        <div
+          id="goalMessage"
+          style="
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            opacity: .85;
+          "
+        >
+        </div>
+
+        <div class="goal-input-row">
+
+          <input
+            id="goalInput"
+            class="goal-input"
+            type="number"
+            min="0"
+            inputmode="numeric"
+            placeholder="月間目標件数"
+          />
 
           <button
-            id="periodYear"
-            class="period-tab"
-            onclick="loadPersonal('year')"
+            id="goalSaveBtn"
+            class="goal-save-btn"
+            type="button"
           >
-            年間
+            保存
           </button>
 
         </div>
 
-        <div
-          id="personalLoading"
-          class="loading"
-        >
-          読み込み中…
+      </div>
+
+
+      <!-- Highlights -->
+
+      <div class="card">
+
+        <div class="card-title">
+          🔥 今日のハイライト
         </div>
 
         <div
-          id="personalContent"
-          class="hidden"
+          id="todayHighlights"
+          class="highlight-grid"
         >
-
-          <!-- 実績 -->
-
-          <div class="card">
-
-            <div class="card-title">
-              📊 実績
-            </div>
-
-            <div class="stats-grid">
-
-              <div class="stat-box">
-                <div class="stat-label">
-                  売上
-                </div>
-
-                <div class="stat-value">
-                  <span id="salesValue">0</span>
-                  <span class="stat-unit">円</span>
-                </div>
-              </div>
-
-              <div class="stat-box">
-                <div class="stat-label">
-                  配達数
-                </div>
-
-                <div class="stat-value">
-                  <span id="countValue">0</span>
-                  <span class="stat-unit">件</span>
-                </div>
-              </div>
-
-              <div class="stat-box">
-                <div class="stat-label">
-                  稼働時間
-                </div>
-
-                <div class="stat-value">
-                  <span id="hoursValue">0</span>
-                  <span class="stat-unit">h</span>
-                </div>
-              </div>
-
-              <div class="stat-box">
-                <div class="stat-label">
-                  稼働日数
-                </div>
-
-                <div class="stat-value">
-                  <span id="workDaysValue">0</span>
-                  <span class="stat-unit">日</span>
-                </div>
-              </div>
-
-            </div>
+          <div class="loading">
+            読み込み中...
           </div>
+        </div>
 
-          <!-- 目標 -->
+      </div>
 
-          <div class="card">
 
-            <div class="card-title">
-              🎯 月間目標
-            </div>
+      <!-- Monthly best -->
 
-            <div class="goal-header">
+      <div class="card">
 
-              <div>
-                現在の目標
-              </div>
+        <div class="card-title">
+          🏆 今月最高記録
+        </div>
 
-              <div
-                id="goalValue"
-                class="goal-value"
-              >
-                0件
-              </div>
-
-            </div>
-
-            <div class="goal-input-row">
-
-              <input
-                id="goalInput"
-                class="goal-input"
-                type="number"
-                min="1"
-                step="1"
-                placeholder="例：500"
-              />
-
-              <button
-                class="primary-button"
-                onclick="saveGoal()"
-              >
-                保存
-              </button>
-
-            </div>
-
-            <div class="progress-wrap">
-
-              <div class="progress-track">
-                <div
-                  id="goalProgressBar"
-                  class="progress-bar"
-                ></div>
-              </div>
-
-              <div class="progress-text">
-
-                <span id="goalProgressText">
-                  0%
-                </span>
-
-                <span id="goalRemainingText">
-                  あと0件
-                </span>
-
-              </div>
-
-            </div>
-
+        <div
+          id="monthlyBest"
+          class="highlight-grid"
+        >
+          <div class="loading">
+            読み込み中...
           </div>
+        </div>
 
-          <!-- 履歴 -->
+      </div>
 
-          <div class="card">
 
-            <div class="card-title">
-              🧾 実績履歴
-            </div>
+      <!-- Streak -->
 
-            <div id="recordsList">
-            </div>
+      <div class="card">
 
+        <div class="card-title">
+          🔥 連続稼働
+        </div>
+
+        <div
+          id="streakCard"
+          class="highlight-grid"
+        >
+          <div class="loading">
+            読み込み中...
           </div>
+        </div>
 
-          <!-- リセット -->
+      </div>
 
-          <div class="card">
 
-            <button
-              class="danger-button"
-              onclick="resetData()"
-            >
-              🗑 自分の実績をすべて削除
-            </button>
+      <!-- Records -->
 
-          </div>
+      <div class="card">
+
+        <div class="card-title">
+
+          <span>
+            📝 実績履歴
+          </span>
+
+          <span
+            id="recordPeriodLabel"
+            class="card-subtitle"
+          >
+            今日
+          </span>
 
         </div>
-      </section>
-            <!-- ====================================================
-           分析
-           ==================================================== -->
 
-      <section
-        id="analyticsSection"
-        class="hidden"
-      >
+        <div
+          id="records"
+          class="record-list"
+        >
+          <div class="loading">
+            読み込み中...
+          </div>
+        </div>
 
-        <div class="section-title">
+      </div>
+
+
+      <!-- Reset -->
+
+      <div class="card">
+
+        <button
+          id="resetBtn"
+          class="danger-btn"
+          type="button"
+        >
+          🗑 自分の実績をリセット
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================
+         Analytics
+    ====================================== -->
+
+    <section
+      id="analyticsSection"
+      class="section"
+    >
+
+      <div class="card">
+
+        <div class="card-title">
           📈 個人分析
+
+          <span
+            id="analyticsDateLabel"
+            class="card-subtitle"
+          ></span>
+        </div>
+
+        <div class="analytics-section-title">
+          ⚡ 今日のパフォーマンス
         </div>
 
         <div
-          id="analyticsLoading"
-          class="loading"
+          id="todayAnalytics"
+          class="analytics-grid"
         >
-          読み込み中…
+          <div class="loading">
+            読み込み中...
+          </div>
+        </div>
+
+
+        <div class="analytics-section-title">
+          📊 ペース分析
         </div>
 
         <div
-          id="analyticsContent"
-          class="hidden"
+          id="paceAnalytics"
+          class="analytics-grid"
         >
-
-          <!-- 基本分析 -->
-
-          <div class="card">
-
-            <div class="card-title">
-              📊 ペース分析
-            </div>
-
-            <div class="analysis-grid">
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  1日平均配達
-                </div>
-
-                <div
-                  id="averageDailyCount"
-                  class="analysis-value"
-                >
-                  0件
-                </div>
-              </div>
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  1日平均売上
-                </div>
-
-                <div
-                  id="averageDailySales"
-                  class="analysis-value"
-                >
-                  0円
-                </div>
-              </div>
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  今日のペース
-                </div>
-
-                <div
-                  id="currentDailyPace"
-                  class="analysis-value"
-                >
-                  0件
-                </div>
-              </div>
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  月間予測配達
-                </div>
-
-                <div
-                  id="projectedMonthCount"
-                  class="analysis-value"
-                >
-                  0件
-                </div>
-              </div>
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  月間予測売上
-                </div>
-
-                <div
-                  id="projectedMonthSales"
-                  class="analysis-value"
-                >
-                  0円
-                </div>
-              </div>
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  残り日数
-                </div>
-
-                <div
-                  id="remainingDays"
-                  class="analysis-value"
-                >
-                  0日
-                </div>
-              </div>
-
-            </div>
-
+          <div class="loading">
+            読み込み中...
           </div>
-
-          <!-- 目標分析 -->
-
-          <div class="card">
-
-            <div class="card-title">
-              🎯 目標分析
-            </div>
-
-            <div class="analysis-grid">
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  目標まで残り
-                </div>
-
-                <div
-                  id="remainingGoalCount"
-                  class="analysis-value"
-                >
-                  0件
-                </div>
-              </div>
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  必要な1日平均
-                </div>
-
-                <div
-                  id="requiredDailyCount"
-                  class="analysis-value"
-                >
-                  0件
-                </div>
-              </div>
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  目標達成率
-                </div>
-
-                <div
-                  id="goalRate"
-                  class="analysis-value"
-                >
-                  0%
-                </div>
-              </div>
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  平均単価
-                </div>
-
-                <div
-                  id="averageUnitPrice"
-                  class="analysis-value"
-                >
-                  0円
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-          <!-- 前日比較 -->
-
-          <div class="card">
-
-            <div class="card-title">
-              🔄 前日比較
-            </div>
-
-            <div class="analysis-grid">
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  売上
-                </div>
-
-                <div
-                  id="salesChangeFromYesterday"
-                  class="analysis-value"
-                >
-                  0円
-                </div>
-              </div>
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  配達数
-                </div>
-
-                <div
-                  id="countChangeFromYesterday"
-                  class="analysis-value"
-                >
-                  0件
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-          <!-- 今日・昨日 -->
-
-          <div class="card">
-
-            <div class="card-title">
-              📅 今日と昨日
-            </div>
-
-            <div class="analysis-grid">
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  今日の配達
-                </div>
-
-                <div
-                  id="todayCount"
-                  class="analysis-value"
-                >
-                  0件
-                </div>
-              </div>
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  昨日の配達
-                </div>
-
-                <div
-                  id="yesterdayCount"
-                  class="analysis-value"
-                >
-                  0件
-                </div>
-              </div>
-
-              <div class="analysis-box">
-                <div class="analysis-label">
-                  今月の配達
-                </div>
-
-                <div
-                  id="monthCount"
-                  class="analysis-value"
-                >
-                  0件
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
         </div>
-      </section>
 
 
-      <!-- ====================================================
-           管理
-           ==================================================== -->
-
-      <section
-        id="adminSection"
-        class="hidden"
-      >
-
-        <div class="section-title">
-          🔐 管理
+        <div class="analytics-section-title">
+          🎯 目標分析
         </div>
 
         <div
-          id="adminLoading"
-          class="loading"
+          id="goalAnalytics"
+          class="analytics-grid"
         >
-          読み込み中…
+          <div class="loading">
+            読み込み中...
+          </div>
+        </div>
+
+
+        <div class="analytics-section-title">
+          🏆 自己ベスト
+        </div>
+
+        <div
+          id="bestAnalytics"
+          class="analytics-grid"
+        >
+          <div class="loading">
+            読み込み中...
+          </div>
+        </div>
+
+
+        <div class="analytics-section-title">
+          🔄 前月・前日比較
+        </div>
+
+        <div
+          id="comparisonAnalytics"
+          class="analytics-grid"
+        >
+          <div class="loading">
+            読み込み中...
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- Daily trend -->
+
+      <div class="card">
+
+        <div class="card-title">
+          📅 今月の日別推移
+        </div>
+
+        <div
+          id="dailyAnalytics"
+          class="record-list"
+        >
+          <div class="loading">
+            読み込み中...
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================
+         Admin
+    ====================================== -->
+
+    <section
+      id="adminSection"
+      class="section admin-only"
+    >
+
+      <div class="card">
+
+        <div class="card-title">
+          🛠 管理
         </div>
 
         <div
           id="adminContent"
-          class="hidden"
         >
-
-          <!-- 全体 -->
-
-          <div class="card">
-
-            <div class="card-title">
-              📊 全体
-            </div>
-
-            <div class="admin-grid">
-
-              <div class="admin-box">
-                <div class="admin-label">
-                  登録実績
-                </div>
-
-                <div
-                  id="adminRecords"
-                  class="admin-value"
-                >
-                  0件
-                </div>
-              </div>
-
-              <div class="admin-box">
-                <div class="admin-label">
-                  ユーザー
-                </div>
-
-                <div
-                  id="adminUsers"
-                  class="admin-value"
-                >
-                  0人
-                </div>
-              </div>
-
-              <div class="admin-box">
-                <div class="admin-label">
-                  売上
-                </div>
-
-                <div
-                  id="adminSales"
-                  class="admin-value"
-                >
-                  0円
-                </div>
-              </div>
-
-              <div class="admin-box">
-                <div class="admin-label">
-                  配達
-                </div>
-
-                <div
-                  id="adminCount"
-                  class="admin-value"
-                >
-                  0件
-                </div>
-              </div>
-
-              <div class="admin-box">
-                <div class="admin-label">
-                  稼働時間
-                </div>
-
-                <div
-                  id="adminHours"
-                  class="admin-value"
-                >
-                  0h
-                </div>
-              </div>
-
-            </div>
-
+          <div class="loading">
+            読み込み中...
           </div>
-
-
-          <!-- 今月 -->
-
-          <div class="card">
-
-            <div class="card-title">
-              📅 今月
-            </div>
-
-            <div
-              id="adminMonth"
-            >
-            </div>
-
-          </div>
-
-
-          <!-- 最終登録 -->
-
-          <div class="card">
-
-            <div class="card-title">
-              🕐 最終登録
-            </div>
-
-            <div
-              id="adminLastCreated"
-              style="
-                color:#6b7280;
-                font-size:13px;
-              "
-            >
-              -
-            </div>
-
-          </div>
-
-
-          <!-- 監査ログ -->
-
-          <div class="card">
-
-            <div class="card-title">
-              📝 最近の操作
-            </div>
-
-            <div
-              id="adminLogs"
-            >
-            </div>
-
-          </div>
-
         </div>
-      </section>
 
-    </main>
+      </div>
+
+    </section>
+
   </div>
 
 
+  <!-- =====================================
+       JavaScript
+  ====================================== -->
+
   <script>
-    // ========================================================
-    // Telegram
-    // ========================================================
+  // =========================================================
+  // Telegram
+  // =========================================================
 
-    const tg =
-      window.Telegram?.WebApp || null;
+  const tg =
+    window.Telegram?.WebApp || null;
 
-    const JST =
-      "Asia/Tokyo";
-
-    let activeSection =
-      "personal";
-
-    let activePeriod =
-      "today";
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
 
 
-    // ========================================================
-    // Telegram 初期化
-    // ========================================================
+  // =========================================================
+  // Constants
+  // =========================================================
 
-    if (tg) {
-      try {
-        tg.ready();
-        tg.expand();
-      } catch (error) {
-        console.error(
-          "Telegram WebApp init error:",
-          error
-        );
-      }
+  const JST = "Asia/Tokyo";
+
+  let activeSection = "personal";
+  let activePeriod = "today";
+
+  let currentAnalytics = null;
+  let currentPersonal = null;
+
+
+  // =========================================================
+  // Utility
+  // =========================================================
+
+  function formatNumber(value) {
+    return Number(
+      value || 0
+    ).toLocaleString("ja-JP");
+  }
+
+
+  function formatHours(value) {
+    const hours =
+      Number(value || 0);
+
+    return hours.toFixed(2);
+  }
+
+
+  function formatPercent(value) {
+    const number =
+      Number(value || 0);
+
+    return `${number.toFixed(1)}%`;
+  }
+
+
+  function formatYen(value) {
+    return `${formatNumber(value)}円`;
+  }
+
+
+  function formatSignedYen(value) {
+    const number =
+      Number(value || 0);
+
+    if (number > 0) {
+      return `+${formatNumber(number)}円`;
     }
 
-
-    // ========================================================
-    // 共通
-    // ========================================================
-
-    function formatNumber(value) {
-      const number =
-        Number(value || 0);
-
-      return number.toLocaleString(
-        "ja-JP"
-      );
+    if (number < 0) {
+      return `-${formatNumber(Math.abs(number))}円`;
     }
 
+    return "±0円";
+  }
 
-    function formatHours(value) {
-      const number =
-        Number(value || 0);
 
-      if (!Number.isFinite(number)) {
-        return "0";
-      }
+  function formatSignedCount(value) {
+    const number =
+      Number(value || 0);
 
-      return number
-        .toFixed(2)
-        .replace(/\.00$/, "")
-        .replace(/(\.\d)0$/, "$1");
+    if (number > 0) {
+      return `+${formatNumber(number)}件`;
     }
 
-
-    function formatPercent(value) {
-      const number =
-        Number(value || 0);
-
-      if (!Number.isFinite(number)) {
-        return "0%";
-      }
-
-      return `${number.toFixed(1)}%`;
+    if (number < 0) {
+      return `-${formatNumber(Math.abs(number))}件`;
     }
 
+    return "±0件";
+  }
 
-    function escapeHtml(value) {
-      return String(
-        value ?? ""
-      )
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+
+  function formatDateJST(dateString) {
+    if (!dateString) {
+      return "";
     }
 
-
-    function showError(message) {
-      const box =
-        document.getElementById(
-          "errorBox"
-        );
-
-      box.textContent =
-        message || "エラーが発生しました。";
-
-      box.classList.remove(
-        "hidden"
-      );
-    }
-
-
-    function hideError() {
-      const box =
-        document.getElementById(
-          "errorBox"
-        );
-
-      box.classList.add(
-        "hidden"
+    const date =
+      new Date(
+        `${dateString}T00:00:00+09:00`
       );
 
-      box.textContent = "";
+    return new Intl.DateTimeFormat(
+      "ja-JP",
+      {
+        timeZone: JST,
+        month: "numeric",
+        day: "numeric",
+        weekday: "short"
+      }
+    ).format(date);
+  }
+
+
+  function escapeHtml(value) {
+    return String(
+      value ?? ""
+    )
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+
+  function showError(
+    elementId,
+    message = "データを取得できませんでした"
+  ) {
+    const element =
+      document.getElementById(
+        elementId
+      );
+
+    if (!element) {
+      return;
     }
 
+    element.innerHTML = `
+      <div class="error-box">
+        ${escapeHtml(message)}
+      </div>
+    `;
+  }
 
-    // ========================================================
-    // API
-    // ========================================================
 
-    async function apiFetch(
-      url,
-      options = {}
+  // =========================================================
+  // API
+  // =========================================================
+
+  async function apiFetch(
+    path,
+    options = {}
+  ) {
+    const headers = {
+      ...(options.headers || {})
+    };
+
+    if (
+      tg?.initData
     ) {
-      const initData =
-        tg?.initData || "";
-
-      const headers = {
-        ...(options.headers || {}),
-      };
-
-      if (initData) {
-        headers[
-          "X-Telegram-Init-Data"
-        ] = initData;
-      }
-
-      const response =
-        await fetch(
-          url,
-          {
-            ...options,
-            headers,
-          }
-        );
-
-      let data = null;
-
-      try {
-        data =
-          await response.json();
-      } catch {
-        throw new Error(
-          "APIレスポンスを読み込めませんでした"
-        );
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          data?.error ||
-          `APIエラー: ${response.status}`
-        );
-      }
-
-      return data;
+      headers[
+        "X-Telegram-Init-Data"
+      ] = tg.initData;
     }
 
-
-    // ========================================================
-    // 日付
-    // ========================================================
-
-    function formatDateJST(value) {
-      if (!value) {
-        return "-";
-      }
-
-      const date =
-        new Date(value);
-
-      if (
-        Number.isNaN(
-          date.getTime()
-        )
-      ) {
-        return "-";
-      }
-
-      return new Intl.DateTimeFormat(
-        "ja-JP",
+    const response =
+      await fetch(
+        path,
         {
-          timeZone: JST,
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
+          ...options,
+          headers
         }
-      ).format(date);
+      );
+
+    let data = null;
+
+    try {
+      data =
+        await response.json();
+    } catch {
+      throw new Error(
+        "サーバーから不正なレスポンスが返りました"
+      );
     }
 
+    if (!response.ok || data?.ok === false) {
+      throw new Error(
+        data?.error ||
+        data?.message ||
+        `HTTP ${response.status}`
+      );
+    }
 
-    // ========================================================
-    // ユーザー名
-    // ========================================================
+    return data;
+  }
 
-    function renderUserName() {
-      const element =
-        document.getElementById(
-          "userName"
-        );
 
-      const user =
-        tg?.initDataUnsafe?.user;
+  // =========================================================
+  // User
+  // =========================================================
 
-      if (!user) {
-        element.textContent =
-          "Telegramユーザー";
+  function renderUserName() {
+    const element =
+      document.getElementById(
+        "userName"
+      );
 
-        return;
-      }
+    if (!element) {
+      return;
+    }
 
-      let name = "";
+    const user =
+      tg?.initDataUnsafe?.user;
 
-      if (user.first_name) {
-        name += user.first_name;
-      }
-
-      if (user.last_name) {
-        name += ` ${user.last_name}`;
-      }
-
-      if (
-        !name &&
-        user.username
-      ) {
-        name =
-          `@${user.username}`;
-      }
-
+    if (!user) {
       element.textContent =
-        name
-          ? `${name} さん`
-          : "Telegramユーザー";
+        "個人ダッシュボード";
+
+      return;
     }
 
+    const name =
+      [
+        user.first_name,
+        user.last_name
+      ]
+        .filter(Boolean)
+        .join(" ");
 
-    // ========================================================
-    // セクション切替
-    // ========================================================
+    if (name) {
+      element.textContent =
+        `${name} さん`;
+    } else if (user.username) {
+      element.textContent =
+        `@${user.username}`;
+    } else {
+      element.textContent =
+        "個人ダッシュボード";
+    }
+  }
 
-    function showSection(
-      section
-    ) {
-      activeSection =
-        section;
 
-      document
-        .getElementById(
+  // =========================================================
+  // Section
+  // =========================================================
+
+  function showSection(
+    section
+  ) {
+    activeSection =
+      section;
+
+    document
+      .querySelectorAll(
+        ".main-tab"
+      )
+      .forEach((button) => {
+        const isActive =
+          button.dataset.section ===
+          section;
+
+        button.classList.toggle(
+          "active",
+          isActive
+        );
+      });
+
+    document
+      .querySelectorAll(
+        ".section"
+      )
+      .forEach((element) => {
+        const target =
+          element.id ===
           "personalSection"
-        )
-        .classList.toggle(
-          "hidden",
-          section !== "personal"
-        );
+            ? "personal"
+            : element.id ===
+                "analyticsSection"
+              ? "analytics"
+              : element.id ===
+                  "adminSection"
+                ? "admin"
+                : "";
 
-      document
-        .getElementById(
-          "analyticsSection"
-        )
-        .classList.toggle(
-          "hidden",
-          section !== "analytics"
-        );
-
-      document
-        .getElementById(
-          "adminSection"
-        )
-        .classList.toggle(
-          "hidden",
-          section !== "admin"
-        );
-
-      document
-        .getElementById(
-          "personalTab"
-        )
-        .classList.toggle(
+        element.classList.toggle(
           "active",
-          section === "personal"
+          target === section
         );
+      });
 
-      document
-        .getElementById(
-          "analyticsTab"
-        )
-        .classList.toggle(
-          "active",
-          section === "analytics"
-        );
-
-      document
-        .getElementById(
-          "adminTab"
-        )
-        .classList.toggle(
-          "active",
-          section === "admin"
-        );
-
-      hideError();
-
-      if (
-        section ===
-        "personal"
-      ) {
-        loadPersonal(
-          activePeriod
-        );
-      }
-
-      if (
-        section ===
-        "analytics"
-      ) {
-        loadAnalytics();
-      }
-
-      if (
-        section ===
-        "admin"
-      ) {
-        loadAdmin();
-      }
-    }
-
-
-    // ========================================================
-    // 期間
-    // ========================================================
-
-    function getBackendPeriod(
-      period
+    if (
+      section === "personal"
     ) {
-      if (
-        period ===
-        "today"
-      ) {
-        return "day";
-      }
-
-      return period;
+      loadPersonal(
+        activePeriod
+      );
     }
 
-
-    function updatePeriodTabs(
-      period
+    if (
+      section === "analytics"
     ) {
-      document
-        .getElementById(
-          "periodToday"
-        )
-        .classList.toggle(
-          "active",
-          period === "today"
-        );
-
-      document
-        .getElementById(
-          "periodWeek"
-        )
-        .classList.toggle(
-          "active",
-          period === "week"
-        );
-
-      document
-        .getElementById(
-          "periodMonth"
-        )
-        .classList.toggle(
-          "active",
-          period === "month"
-        );
-
-      document
-        .getElementById(
-          "periodYear"
-        )
-        .classList.toggle(
-          "active",
-          period === "year"
-        );
+      loadAnalytics();
     }
 
-
-    function getActivePeriod() {
-      return activePeriod;
-    }
-        // ========================================================
-    // 個人実績
-    // ========================================================
-
-    async function loadPersonal(
-      period = "today"
+    if (
+      section === "admin"
     ) {
-      activePeriod =
-        period;
+      loadAdmin();
+    }
+  }
 
-      updatePeriodTabs(
+
+  // =========================================================
+  // Period
+  // =========================================================
+
+  function updatePeriodTabs() {
+    document
+      .querySelectorAll(
+        ".period-tab"
+      )
+      .forEach((button) => {
+        button.classList.toggle(
+          "active",
+          button.dataset.period ===
+            activePeriod
+        );
+      });
+  }
+
+
+  function getBackendPeriod(
+    period
+  ) {
+    switch (period) {
+      case "today":
+        return "today";
+
+      case "week":
+        return "week";
+
+      case "month":
+        return "month";
+
+      case "year":
+        return "year";
+
+      default:
+        return "today";
+    }
+  }
+
+
+  // =========================================================
+  // Personal
+  // =========================================================
+
+  async function loadPersonal(
+    period = activePeriod
+  ) {
+    activePeriod =
+      period;
+
+    updatePeriodTabs();
+
+    try {
+      const data =
+        await apiFetch(
+          `/api/result?period=${encodeURIComponent(
+            getBackendPeriod(
+              period
+            )
+          )}`
+        );
+
+      currentPersonal =
+        data;
+
+      renderPersonal(
+        data,
         period
       );
 
-      const loading =
-        document.getElementById(
-          "personalLoading"
-        );
-
-      const content =
-        document.getElementById(
-          "personalContent"
-        );
-
-      loading.classList.remove(
-        "hidden"
+    } catch (error) {
+      console.error(
+        "personal load error:",
+        error
       );
 
-      content.classList.add(
-        "hidden"
+      showError(
+        "personalHero",
+        error.message
       );
 
-      hideError();
+      showError(
+        "personalStatsGrid",
+        error.message
+      );
 
-      try {
-        const backendPeriod =
-          getBackendPeriod(
-            period
-          );
-
-        const data =
-          await apiFetch(
-            `/api/result?period=${encodeURIComponent(
-              backendPeriod
-            )}`
-          );
-
-        renderPersonal(
-          data
-        );
-
-        loading.classList.add(
-          "hidden"
-        );
-
-        content.classList.remove(
-          "hidden"
-        );
-      } catch (error) {
-        console.error(error);
-
-        loading.classList.add(
-          "hidden"
-        );
-
-        content.classList.remove(
-          "hidden"
-        );
-
-        showError(
-          error.message ||
-          "個人実績の取得に失敗しました。"
-        );
-      }
+      showError(
+        "records",
+        error.message
+      );
     }
 
-
-    function renderPersonal(
-      data
-    ) {
-      const sales =
-        Number(
-          data?.sales || 0
+    /*
+     * 分析APIも取得する。
+     * 個人画面のハイライト表示に使用。
+     */
+    try {
+      const analytics =
+        await apiFetch(
+          "/api/analytics"
         );
 
-      const count =
-        Number(
-          data?.count || 0
-        );
+      currentAnalytics =
+        analytics;
 
-      const hours =
-        Number(
-          data?.hours || 0
-        );
+      renderTodayHighlights(
+        analytics
+      );
 
-      const workDays =
-        Number(
-          data?.workDays || 0
-        );
+      renderMonthlyBest(
+        analytics
+      );
 
-      const goal =
-        Number(
-          data?.goal || 0
-        );
+      renderStreak(
+        analytics
+      );
 
-      document
-        .getElementById(
-          "salesValue"
-        )
-        .textContent =
-        formatNumber(
-          sales
-        );
-
-      document
-        .getElementById(
-          "countValue"
-        )
-        .textContent =
-        formatNumber(
-          count
-        );
-
-      document
-        .getElementById(
-          "hoursValue"
-        )
-        .textContent =
-        formatHours(
-          hours
-        );
-
-      document
-        .getElementById(
-          "workDaysValue"
-        )
-        .textContent =
-        formatNumber(
-          workDays
-        );
+      renderRecordBanner(
+        analytics
+      );
 
       renderGoal(
-        goal,
-        count
+        analytics
       );
 
-      renderRecords(
-        data?.records || []
+    } catch (error) {
+      console.error(
+        "analytics for personal error:",
+        error
       );
     }
+  }
 
 
-    // ========================================================
-    // 目標
-    // ========================================================
+  // =========================================================
+  // Personal Render
+  // =========================================================
 
-    function renderGoal(
-      goal,
-      count
-    ) {
-      const safeGoal =
-        Number(goal || 0);
+  function renderPersonal(
+    data,
+    period
+  ) {
+    const stats =
+      data.stats ||
+      data.data ||
+      data;
 
-      const safeCount =
-        Number(count || 0);
+    renderPersonalHero(
+      stats,
+      period
+    );
 
-      document
-        .getElementById(
-          "goalValue"
-        )
-        .textContent =
-        `${formatNumber(
-          safeGoal
-        )}件`;
+    renderPersonalStats(
+      stats,
+      period
+    );
 
-      const progress =
-        safeGoal > 0
-          ? Math.min(
-              100,
-              (safeCount /
-                safeGoal) *
-                100
-            )
-          : 0;
+    renderRecords(
+      data.records ||
+      data.history ||
+      []
+    );
 
-      document
-        .getElementById(
-          "goalProgressBar"
-        )
-        .style.width =
-        `${progress}%`;
-
-      document
-        .getElementById(
-          "goalProgressText"
-        )
-        .textContent =
-        `${progress.toFixed(1)}%`;
-
-      const remaining =
-        Math.max(
-          0,
-          safeGoal -
-            safeCount
-        );
-
-      document
-        .getElementById(
-          "goalRemainingText"
-        )
-        .textContent =
-        remaining > 0
-          ? `あと${formatNumber(
-              remaining
-            )}件`
-          : "目標達成！";
-    }
-
-
-    async function saveGoal() {
-      const input =
-        document.getElementById(
-          "goalInput"
-        );
-
-      const value =
-        Number(
-          input.value
-        );
-
-      if (
-        !Number.isInteger(value) ||
-        value <= 0
-      ) {
-        alert(
-          "1以上の整数を入力してください。"
-        );
-
-        return;
-      }
-
-      try {
-        const data =
-          await apiFetch(
-            "/api/goal",
-            {
-              method: "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-
-              body:
-                JSON.stringify({
-                  monthlyGoal:
-                    value,
-                }),
-            }
-          );
-
-        if (!data?.ok) {
-          throw new Error(
-            data?.error ||
-            "目標の保存に失敗しました。"
-          );
-        }
-
-        input.value = "";
-
-        await loadPersonal(
-          activePeriod
-        );
-
-        alert(
-          `月間目標を${formatNumber(
-            data.monthlyGoal ??
-            value
-          )}件に設定しました。`
-        );
-      } catch (error) {
-        console.error(error);
-
-        alert(
-          error.message ||
-          "目標の保存に失敗しました。"
-        );
-      }
-    }
-
-
-    // ========================================================
-    // 実績履歴
-    // ========================================================
-
-    function renderRecords(
-      records
-    ) {
-      const container =
-        document.getElementById(
-          "recordsList"
-        );
-
-      if (
-        !Array.isArray(records) ||
-        records.length === 0
-      ) {
-        container.innerHTML =
-          `<div class="empty">
-            この期間の実績はありません。
-          </div>`;
-
-        return;
-      }
-
-      container.innerHTML =
-        records
-          .map(
-            (record) => {
-              const sale =
-                Number(
-                  record?.sale ??
-                  record?.saleAmount ??
-                  0
-                );
-
-              const count =
-                Number(
-                  record?.count ??
-                  record?.deliveryCount ??
-                  0
-                );
-
-              const hours =
-                Number(
-                  record?.hours ??
-                  record?.workHours ??
-                  0
-                );
-
-              const createdAt =
-                record?.createdAt ??
-                record?.created_at;
-
-              return `
-                <div class="record">
-
-                  <div class="record-main">
-
-                    <div>
-                      <div class="record-sale">
-                        ${formatNumber(
-                          sale
-                        )}円
-                      </div>
-
-                      <div class="record-date">
-                        ${formatDateJST(
-                          createdAt
-                        )}
-                      </div>
-                    </div>
-
-                  </div>
-
-                  <div class="record-detail">
-                    <span>
-                      📦 ${formatNumber(
-                        count
-                      )}件
-                    </span>
-
-                    <span>
-                      ⏱ ${formatHours(
-                        hours
-                      )}h
-                    </span>
-                  </div>
-
-                </div>
-              `;
-            }
-          )
-          .join("");
-    }
-
-
-    // ========================================================
-    // 分析
-    // ========================================================
-
-    async function loadAnalytics() {
-      const loading =
-        document.getElementById(
-          "analyticsLoading"
-        );
-
-      const content =
-        document.getElementById(
-          "analyticsContent"
-        );
-
-      if (!loading || !content) {
-        return;
-      }
-
-      loading.classList.remove(
-        "hidden"
+    const label =
+      document.getElementById(
+        "recordPeriodLabel"
       );
 
-      content.classList.add(
-        "hidden"
+    if (label) {
+      const labels = {
+        today: "今日",
+        week: "今週",
+        month: "今月",
+        year: "年間"
+      };
+
+      label.textContent =
+        labels[period] ||
+        "今日";
+    }
+  }
+
+
+  function renderPersonalHero(
+    stats,
+    period
+  ) {
+    const element =
+      document.getElementById(
+        "personalHero"
       );
 
-      try {
-        const data =
-          await apiFetch(
-            "/api/analytics"
-          );
-
-        renderAnalytics(
-          data
-        );
-
-        loading.classList.add(
-          "hidden"
-        );
-
-        content.classList.remove(
-          "hidden"
-        );
-      } catch (error) {
-        console.error(error);
-
-        loading.classList.add(
-          "hidden"
-        );
-
-        content.classList.remove(
-          "hidden"
-        );
-
-        showError(
-          error.message ||
-          "分析データの取得に失敗しました。"
-        );
-      }
+    if (!element) {
+      return;
     }
 
-
-    function renderAnalytics(
-      data
-    ) {
-      const analysis =
-        data?.analysis || {};
-
-      const month =
-        data?.month || {};
-
-      const today =
-        data?.today || {};
-
-      const yesterday =
-        data?.yesterday || {};
-
-      document
-        .getElementById(
-          "averageDailyCount"
-        )
-        .textContent =
-        `${formatHours(
-          analysis.averageDailyCount
-        )}件`;
-
-      document
-        .getElementById(
-          "averageDailySales"
-        )
-        .textContent =
-        `${formatNumber(
-          analysis.averageDailySales
-        )}円`;
-
-      document
-        .getElementById(
-          "currentDailyPace"
-        )
-        .textContent =
-        `${formatHours(
-          analysis.currentDailyPace
-        )}件`;
-
-      document
-        .getElementById(
-          "projectedMonthCount"
-        )
-        .textContent =
-        `${formatNumber(
-          analysis.projectedMonthCount
-        )}件`;
-
-      document
-        .getElementById(
-          "projectedMonthSales"
-        )
-        .textContent =
-        `${formatNumber(
-          analysis.projectedMonthSales
-        )}円`;
-
-      document
-        .getElementById(
-          "remainingDays"
-        )
-        .textContent =
-        `${formatNumber(
-          analysis.remainingDays
-        )}日`;
-
-      document
-        .getElementById(
-          "remainingGoalCount"
-        )
-        .textContent =
-        `${formatNumber(
-          analysis.remainingGoalCount
-        )}件`;
-
-      document
-        .getElementById(
-          "requiredDailyCount"
-        )
-        .textContent =
-        `${formatHours(
-          analysis.requiredDailyCount
-        )}件`;
-
-      document
-        .getElementById(
-          "goalRate"
-        )
-        .textContent =
-        formatPercent(
-          analysis.goalRate
-        );
-
-      document
-        .getElementById(
-          "averageUnitPrice"
-        )
-        .textContent =
-        `${formatNumber(
-          analysis.averageUnitPrice
-        )}円`;
-
-      document
-        .getElementById(
-          "salesChangeFromYesterday"
-        )
-        .textContent =
-        formatSignedYen(
-          analysis.salesChangeFromYesterday
-        );
-
-      document
-        .getElementById(
-          "countChangeFromYesterday"
-        )
-        .textContent =
-        formatSignedCount(
-          analysis.countChangeFromYesterday
-        );
-
-      document
-        .getElementById(
-          "todayCount"
-        )
-        .textContent =
-        `${formatNumber(
-          today.count || 0
-        )}件`;
-
-      document
-        .getElementById(
-          "yesterdayCount"
-        )
-        .textContent =
-        `${formatNumber(
-          yesterday.count || 0
-        )}件`;
-
-      document
-        .getElementById(
-          "monthCount"
-        )
-        .textContent =
-        `${formatNumber(
-          month.count ||
-          month.deliveryCount ||
-          0
-        )}件`;
-    }
-
-
-    function formatSignedYen(
-      value
-    ) {
-      const number =
-        Number(value || 0);
-
-      if (number > 0) {
-        return `+${formatNumber(
-          number
-        )}円`;
-      }
-
-      if (number < 0) {
-        return `-${formatNumber(
-          Math.abs(number)
-        )}円`;
-      }
-
-      return "±0円";
-    }
-
-
-    function formatSignedCount(
-      value
-    ) {
-      const number =
-        Number(value || 0);
-
-      if (number > 0) {
-        return `+${formatNumber(
-          number
-        )}件`;
-      }
-
-      if (number < 0) {
-        return `-${formatNumber(
-          Math.abs(number)
-        )}件`;
-      }
-
-      return "±0件";
-    }
-
-
-    // ========================================================
-    // 管理者チェック
-    // ========================================================
-
-    async function checkAdminAccess() {
-      const tab =
-        document.getElementById(
-          "adminTab"
-        );
-
-      if (!tab) {
-        return false;
-      }
-
-      try {
-        const data =
-          await apiFetch(
-            "/api/admin"
-          );
-
-        if (
-          data?.isAdmin === true ||
-          data?.admin === true
-        ) {
-          tab.classList.remove(
-            "hidden"
-          );
-
-          return true;
-        }
-
-        return false;
-      } catch (error) {
-        console.error(
-          "admin check error:",
-          error
-        );
-
-        return false;
-      }
-    }
-        // ========================================================
-    // 管理画面
-    // ========================================================
-
-    async function loadAdmin() {
-      const loading =
-        document.getElementById(
-          "adminLoading"
-        );
-
-      const content =
-        document.getElementById(
-          "adminContent"
-        );
-
-      loading.classList.remove(
-        "hidden"
+    const sales =
+      Number(
+        stats.sales || 0
       );
 
-      content.classList.add(
-        "hidden"
+    const count =
+      Number(
+        stats.count ||
+        stats.delivery_count ||
+        0
       );
 
-      hideError();
-
-      try {
-        const data =
-          await apiFetch(
-            "/api/admin"
-          );
-
-        // 管理者でない場合
-        if (
-          data?.isAdmin === false
-        ) {
-          showError(
-            "管理者権限がありません。"
-          );
-
-          return;
-        }
-
-        renderAdmin(
-          data
-        );
-
-        loading.classList.add(
-          "hidden"
-        );
-
-        content.classList.remove(
-          "hidden"
-        );
-      } catch (error) {
-        console.error(error);
-
-        loading.classList.add(
-          "hidden"
-        );
-
-        content.classList.remove(
-          "hidden"
-        );
-
-        showError(
-          error.message ||
-          "管理データの取得に失敗しました。"
-        );
-      }
-    }
-
-
-    function renderAdmin(
-      data
-    ) {
-      const total =
-        data?.total ||
-        data?.overall ||
-        {};
-
-      const month =
-        data?.month ||
-        {};
-
-      const records =
-        Number(
-          total.records ??
-          total.resultCount ??
-          data?.totalRecords ??
-          0
-        );
-
-      const users =
-        Number(
-          total.users ??
-          total.userCount ??
-          data?.totalUsers ??
-          0
-        );
-
-      const sales =
-        Number(
-          total.sales ??
-          data?.totalSales ??
-          0
-        );
-
-      const count =
-        Number(
-          total.count ??
-          total.deliveryCount ??
-          data?.totalCount ??
-          0
-        );
-
-      const hours =
-        Number(
-          total.hours ??
-          total.workHours ??
-          data?.totalHours ??
-          0
-        );
-
-      document
-        .getElementById(
-          "adminRecords"
-        )
-        .textContent =
-        `${formatNumber(
-          records
-        )}件`;
-
-      document
-        .getElementById(
-          "adminUsers"
-        )
-        .textContent =
-        `${formatNumber(
-          users
-        )}人`;
-
-      document
-        .getElementById(
-          "adminSales"
-        )
-        .textContent =
-        `${formatNumber(
-          sales
-        )}円`;
-
-      document
-        .getElementById(
-          "adminCount"
-        )
-        .textContent =
-        `${formatNumber(
-          count
-        )}件`;
-
-      document
-        .getElementById(
-          "adminHours"
-        )
-        .textContent =
-        `${formatHours(
-          hours
-        )}h`;
-
-      renderAdminMonth(
-        month
-      );
-
-      const lastCreatedAt =
-        data?.lastCreatedAt ||
-        data?.last_created_at ||
-        null;
-
-      document
-        .getElementById(
-          "adminLastCreated"
-        )
-        .textContent =
-        formatDateJST(
-          lastCreatedAt
-        );
-
-      renderAdminLogs(
-        data?.logs || []
-      );
-    }
-
-
-    function renderAdminMonth(
-      month
-    ) {
-      const container =
-        document.getElementById(
-          "adminMonth"
-        );
-
-      const sales =
-        Number(
-          month?.sales ??
-          month?.totalSales ??
-          0
-        );
-
-      const count =
-        Number(
-          month?.count ??
-          month?.deliveryCount ??
-          0
-        );
-
-      const hours =
-        Number(
-          month?.hours ??
-          month?.workHours ??
-          0
-        );
-
-      const users =
-        Number(
-          month?.users ??
-          month?.userCount ??
-          0
-        );
-
-      const records =
-        Number(
-          month?.records ??
-          month?.resultCount ??
-          0
-        );
-
-      container.innerHTML = `
-        <div class="admin-grid">
-
-          <div class="admin-box">
-            <div class="admin-label">
-              実績登録
-            </div>
-
-            <div class="admin-value">
-              ${formatNumber(
-                records
-              )}件
-            </div>
-          </div>
-
-          <div class="admin-box">
-            <div class="admin-label">
-              ユーザー
-            </div>
-
-            <div class="admin-value">
-              ${formatNumber(
-                users
-              )}人
-            </div>
-          </div>
-
-          <div class="admin-box">
-            <div class="admin-label">
-              売上
-            </div>
-
-            <div class="admin-value">
-              ${formatNumber(
-                sales
-              )}円
-            </div>
-          </div>
-
-          <div class="admin-box">
-            <div class="admin-label">
-              配達
-            </div>
-
-            <div class="admin-value">
-              ${formatNumber(
-                count
-              )}件
-            </div>
-          </div>
-
-          <div class="admin-box">
-            <div class="admin-label">
-              稼働
-            </div>
-
-            <div class="admin-value">
-              ${formatHours(
-                hours
-              )}h
-            </div>
-          </div>
-
+    element.innerHTML = `
+      <div class="hero-card">
+        <div class="hero-label">
+          💰 売上
         </div>
+
+        <div class="hero-value">
+          ${formatYen(sales)}
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-label">
+          📦 配達数
+        </div>
+
+        <div class="hero-value">
+          ${formatNumber(count)}
+          <span class="hero-unit">
+            件
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
+
+  function renderPersonalStats(
+    stats,
+    period
+  ) {
+    const element =
+      document.getElementById(
+        "personalStatsGrid"
+      );
+
+    if (!element) {
+      return;
+    }
+
+    const hours =
+      Number(
+        stats.hours || 0
+      );
+
+    const count =
+      Number(
+        stats.count ||
+        stats.delivery_count ||
+        0
+      );
+
+    const sales =
+      Number(
+        stats.sales || 0
+      );
+
+    const hourlySales =
+      hours > 0
+        ? sales / hours
+        : 0;
+
+    const countPerHour =
+      hours > 0
+        ? count / hours
+        : 0;
+
+    element.innerHTML = `
+      <div class="stat-box">
+        <div class="stat-label">
+          ⏱ 稼働時間
+        </div>
+
+        <div class="stat-value">
+          ${formatHours(hours)}
+          <span style="font-size:11px;color:#6b7280">
+            時間
+          </span>
+        </div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-label">
+          💴 時給
+        </div>
+
+        <div class="stat-value">
+          ${formatYen(hourlySales)}
+        </div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-label">
+          📦 1時間あたり
+        </div>
+
+        <div class="stat-value">
+          ${countPerHour.toFixed(1)}
+          <span style="font-size:11px;color:#6b7280">
+            件/h
+          </span>
+        </div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-label">
+          🧾 記録数
+        </div>
+
+        <div class="stat-value">
+          ${formatNumber(
+            stats.records || 0
+          )}
+        </div>
+      </div>
+    `;
+  }
+
+
+  // =========================================================
+  // Goal
+  // =========================================================
+
+  function renderGoal(
+    data
+  ) {
+    const goal =
+      Number(
+        data.goal || 0
+      );
+
+    const month =
+      data.month || {};
+
+    const count =
+      Number(
+        month.count || 0
+      );
+
+    const analysis =
+      data.analysis || {};
+
+    const remaining =
+      Math.max(
+        0,
+        Number(
+          analysis.remainingGoalCount ||
+          0
+        )
+      );
+
+    const rate =
+      Number(
+        analysis.goalRate || 0
+      );
+
+    const goalCount =
+      document.getElementById(
+        "goalCount"
+      );
+
+    const goalRate =
+      document.getElementById(
+        "goalRate"
+      );
+
+    const progress =
+      document.getElementById(
+        "goalProgress"
+      );
+
+    const message =
+      document.getElementById(
+        "goalMessage"
+      );
+
+    const input =
+      document.getElementById(
+        "goalInput"
+      );
+
+    if (goalCount) {
+      goalCount.innerHTML = `
+        ${formatNumber(count)}
+        <span>
+          / ${formatNumber(goal)}件
+        </span>
       `;
     }
 
+    if (goalRate) {
+      goalRate.textContent =
+        formatPercent(rate);
+    }
 
-    function renderAdminLogs(
-      logs
-    ) {
-      const container =
-        document.getElementById(
-          "adminLogs"
-        );
-
-      if (
-        !Array.isArray(logs) ||
-        logs.length === 0
-      ) {
-        container.innerHTML =
-          `<div class="empty">
-            操作ログはありません。
-          </div>`;
-
-        return;
-      }
-
-      container.innerHTML =
-        logs
-          .map(
-            (log) => {
-              const action =
-                escapeHtml(
-                  log?.action ||
-                  "-"
-                );
-
-              const userId =
-                escapeHtml(
-                  log?.telegramUserId ||
-                  log?.telegram_user_id ||
-                  "-"
-                );
-
-              const createdAt =
-                log?.createdAt ||
-                log?.created_at;
-
-              return `
-                <div
-                  class="record"
-                >
-
-                  <div
-                    class="record-main"
-                  >
-                    <div>
-                      <div
-                        class="record-sale"
-                        style="font-size:14px;"
-                      >
-                        ${action}
-                      </div>
-
-                      <div
-                        class="record-date"
-                      >
-                        User:
-                        ${userId}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    class="record-date"
-                  >
-                    ${formatDateJST(
-                      createdAt
-                    )}
-                  </div>
-
-                </div>
-              `;
-            }
+    if (progress) {
+      progress.style.width =
+        `${Math.min(
+          100,
+          Math.max(
+            0,
+            rate
           )
-          .join("");
+        )}%`;
     }
 
-
-    // ========================================================
-    // リセット
-    // ========================================================
-
-    async function resetData() {
-      const confirmed =
-        confirm(
-          "自分の配達実績をすべて削除します。\n\n本当に実行しますか？"
-        );
-
-      if (!confirmed) {
-        return;
+    if (message) {
+      if (goal <= 0) {
+        message.textContent =
+          "月間目標を設定してください";
+      } else if (
+        remaining <= 0
+      ) {
+        message.textContent =
+          `🎉 目標達成！ ${formatNumber(
+            count - goal
+          )}件オーバー`;
+      } else {
+        message.textContent =
+          `あと ${formatNumber(
+            remaining
+          )}件で目標達成`;
       }
+    }
 
-      const confirmedAgain =
-        confirm(
-          "この操作は元に戻せません。\n\n本当に全削除しますか？"
-        );
+    if (
+      input &&
+      document.activeElement !== input
+    ) {
+      input.value =
+        goal > 0
+          ? goal
+          : "";
+    }
+  }
 
-      if (!confirmedAgain) {
-        return;
-      }
 
-      try {
-        const data =
-          await apiFetch(
-            "/api/reset",
-            {
-              method: "POST",
+  async function saveGoal() {
+    const input =
+      document.getElementById(
+        "goalInput"
+      );
 
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
+    if (!input) {
+      return;
+    }
 
-              body:
-                JSON.stringify({
-                  confirm: true,
-                }),
-            }
-          );
+    const goal =
+      Number(
+        input.value || 0
+      );
 
-        if (!data?.ok) {
-          throw new Error(
-            data?.error ||
-            "リセットに失敗しました"
-          );
+    if (
+      !Number.isFinite(goal) ||
+      goal < 0
+    ) {
+      alert(
+        "0以上の目標件数を入力してください"
+      );
+
+      return;
+    }
+
+    try {
+      await apiFetch(
+        "/api/goal",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+            monthly_goal:
+              Math.floor(goal)
+          })
         }
+      );
 
-        alert(
-          "自分の実績を削除しました。"
-        );
+      await loadPersonal(
+        activePeriod
+      );
 
-        await loadPersonal(
-          getActivePeriod()
-        );
+      alert(
+        "月間目標を保存しました"
+      );
 
-        await loadAnalytics();
-      } catch (error) {
-        console.error(error);
+    } catch (error) {
+      console.error(
+        "goal save error:",
+        error
+      );
 
-        alert(
-          error.message ||
-          "リセットに失敗しました。"
-        );
-      }
+      alert(
+        error.message ||
+        "目標の保存に失敗しました"
+      );
+    }
+  }
+
+
+  // =========================================================
+  // Today Highlights
+  // =========================================================
+
+  function renderTodayHighlights(
+    data
+  ) {
+    const element =
+      document.getElementById(
+        "todayHighlights"
+      );
+
+    if (!element) {
+      return;
     }
 
+    const today =
+      data.today || {};
 
-    // ========================================================
-    // 初期化
-    // ========================================================
+    const analysis =
+      data.analysis || {};
 
-    async function init() {
-      renderUserName();
+    const salesPerHour =
+      Number(
+        analysis.todayHourlySales ||
+        0
+      );
 
-      // 管理者なら管理タブを表示
-      await checkAdminAccess();
+    const countPerHour =
+      Number(
+        analysis.todayCountPerHour ||
+        0
+      );
 
-      // 個人実績を初期表示
-      await loadPersonal(
-        "today"
+    const count =
+      Number(
+        today.count || 0
+      );
+
+    const sales =
+      Number(
+        today.sales || 0
+      );
+
+    element.innerHTML = `
+      <div class="highlight">
+        <div class="highlight-icon">
+          💴
+        </div>
+
+        <div class="highlight-label">
+          今日の時給
+        </div>
+
+        <div class="highlight-value">
+          ${formatYen(
+            salesPerHour
+          )}
+        </div>
+      </div>
+
+      <div class="highlight">
+        <div class="highlight-icon">
+          📦
+        </div>
+
+        <div class="highlight-label">
+          1時間あたり配達
+        </div>
+
+        <div class="highlight-value">
+          ${countPerHour.toFixed(1)}
+          <span style="font-size:11px">
+            件/h
+          </span>
+        </div>
+      </div>
+
+      <div class="highlight">
+        <div class="highlight-icon">
+          💰
+        </div>
+
+        <div class="highlight-label">
+          今日の売上
+        </div>
+
+        <div class="highlight-value">
+          ${formatYen(sales)}
+        </div>
+      </div>
+
+      <div class="highlight">
+        <div class="highlight-icon">
+          📦
+        </div>
+
+        <div class="highlight-label">
+          今日の配達
+        </div>
+
+        <div class="highlight-value">
+          ${formatNumber(count)}
+          <span style="font-size:11px">
+            件
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
+
+  // =========================================================
+  // Monthly Best
+  // =========================================================
+
+  function renderMonthlyBest(
+    data
+  ) {
+    const element =
+      document.getElementById(
+        "monthlyBest"
+      );
+
+    if (!element) {
+      return;
+    }
+
+    const analysis =
+      data.analysis || {};
+
+    const bestCount =
+      Number(
+        analysis.monthlyBestCount ||
+        0
+      );
+
+    const bestSales =
+      Number(
+        analysis.monthlyBestSales ||
+        0
+      );
+
+    const bestCountDate =
+      analysis.monthlyBestCountDate;
+
+    const bestSalesDate =
+      analysis.monthlyBestSalesDate;
+
+    element.innerHTML = `
+      <div class="highlight">
+        <div class="highlight-icon">
+          📦
+        </div>
+
+        <div class="highlight-label">
+          1日の最高配達数
+        </div>
+
+        <div class="highlight-value">
+          ${formatNumber(bestCount)}
+          <span style="font-size:11px">
+            件
+          </span>
+        </div>
+
+        ${
+          bestCountDate
+            ? `
+              <div class="analytics-item-sub">
+                ${formatDateJST(
+                  bestCountDate
+                )}
+              </div>
+            `
+            : ""
+        }
+      </div>
+
+      <div class="highlight">
+        <div class="highlight-icon">
+          💰
+        </div>
+
+        <div class="highlight-label">
+          1日の最高売上
+        </div>
+
+        <div class="highlight-value">
+          ${formatYen(bestSales)}
+        </div>
+
+        ${
+          bestSalesDate
+            ? `
+              <div class="analytics-item-sub">
+                ${formatDateJST(
+                  bestSalesDate
+                )}
+              </div>
+            `
+            : ""
+        }
+      </div>
+    `;
+  }
+
+
+  // =========================================================
+  // Streak
+  // =========================================================
+
+  function renderStreak(
+    data
+  ) {
+    const element =
+      document.getElementById(
+        "streakCard"
+      );
+
+    if (!element) {
+      return;
+    }
+
+    const analysis =
+      data.analysis || {};
+
+    const streak =
+      Number(
+        analysis.streak || 0
+      );
+
+    element.innerHTML = `
+      <div class="highlight">
+        <div class="highlight-icon">
+          🔥
+        </div>
+
+        <div class="highlight-label">
+          連続稼働日
+        </div>
+
+        <div class="highlight-value">
+          ${formatNumber(streak)}
+          <span style="font-size:11px">
+            日
+          </span>
+        </div>
+      </div>
+
+      <div class="highlight">
+        <div class="highlight-icon">
+          📅
+        </div>
+
+        <div class="highlight-label">
+          今日
+        </div>
+
+        <div class="highlight-value">
+          ${
+            streak > 0
+              ? "稼働中🔥"
+              : "未稼働"
+          }
+        </div>
+      </div>
+    `;
+  }
+
+
+  // =========================================================
+  // Record Banner
+  // =========================================================
+
+  function renderRecordBanner(
+    data
+  ) {
+    const banner =
+      document.getElementById(
+        "recordBanner"
+      );
+
+    const title =
+      document.getElementById(
+        "recordBannerTitle"
+      );
+
+    const text =
+      document.getElementById(
+        "recordBannerText"
+      );
+
+    if (
+      !banner ||
+      !title ||
+      !text
+    ) {
+      return;
+    }
+
+    const analysis =
+      data.analysis || {};
+
+    const countRecord =
+      Boolean(
+        analysis.isBestCount
+      );
+
+    const salesRecord =
+      Boolean(
+        analysis.isBestSales
+      );
+
+    if (
+      !countRecord &&
+      !salesRecord
+    ) {
+      banner.classList.remove(
+        "show"
+      );
+
+      return;
+    }
+
+    const messages = [];
+
+    if (countRecord) {
+      messages.push(
+        `配達数 ${formatNumber(
+          data.today?.count || 0
+        )}件`
       );
     }
 
-    init();
-  </script>
+    if (salesRecord) {
+      messages.push(
+        `売上 ${formatYen(
+          data.today?.sales || 0
+        )}`
+      );
+    }
+
+    title.textContent =
+      "🏆 自己ベスト更新！";
+
+    text.textContent =
+      messages.join(" / ");
+
+    banner.classList.add(
+      "show"
+    );
+  }
+
+
+  // =========================================================
+  // Records
+  // =========================================================
+
+  function renderRecords(
+    records
+  ) {
+    const element =
+      document.getElementById(
+        "records"
+      );
+
+    if (!element) {
+      return;
+    }
+
+    if (
+      !Array.isArray(records) ||
+      records.length === 0
+    ) {
+      element.innerHTML = `
+        <div class="empty">
+          実績はまだありません
+        </div>
+      `;
+
+      return;
+    }
+
+    element.innerHTML =
+      records
+        .map(
+          (record) => {
+            const date =
+              record.created_at ||
+              record.date ||
+              "";
+
+            const count =
+              Number(
+                record.delivery_count ||
+                record.count ||
+                0
+              );
+
+            const sales =
+              Number(
+                record.sale_amount ||
+                record.sales ||
+                0
+              );
+
+            const hours =
+              Number(
+                record.work_hours ||
+                record.hours ||
+                0
+              );
+
+            return `
+              <div class="record-item">
+
+                <div>
+                  <div class="record-date">
+                    ${escapeHtml(
+                      date
+                    )}
+                  </div>
+
+                  <div class="record-main">
+                    📦 ${formatNumber(
+                      count
+                    )}件
+                  </div>
+                </div>
+
+                <div class="record-side">
+
+                  <div class="record-sales">
+                    ${formatYen(
+                      sales
+                    )}
+                  </div>
+
+                  <div class="record-hours">
+                    ${formatHours(
+                      hours
+                    )}時間
+                  </div>
+
+                </div>
+
+              </div>
+            `;
+          }
+        )
+        .join("");
+  }
+      // =========================================================
+  // Analytics
+  // =========================================================
+
+  async function loadAnalytics() {
+    try {
+      const data =
+        await apiFetch(
+          "/api/analytics"
+        );
+
+      currentAnalytics =
+        data;
+
+      renderAnalytics(
+        data
+      );
+
+    } catch (error) {
+      console.error(
+        "analytics load error:",
+        error
+      );
+
+      showError(
+        "todayAnalytics",
+        error.message
+      );
+
+      showError(
+        "paceAnalytics",
+        error.message
+      );
+
+      showError(
+        "goalAnalytics",
+        error.message
+      );
+
+      showError(
+        "bestAnalytics",
+        error.message
+      );
+
+      showError(
+        "comparisonAnalytics",
+        error.message
+      );
+
+      showError(
+        "dailyAnalytics",
+        error.message
+      );
+    }
+  }
+
+
+  function renderAnalytics(
+    data
+  ) {
+    const analysis =
+      data.analysis || {};
+
+    const today =
+      data.today || {};
+
+    const yesterday =
+      data.yesterday || {};
+
+    const month =
+      data.month || {};
+
+    const previousMonth =
+      data.previousMonth || {};
+
+    const goal =
+      Number(
+        data.goal || 0
+      );
+
+    renderAnalyticsDate(
+      analysis
+    );
+
+    renderTodayAnalytics(
+      today,
+      analysis
+    );
+
+    renderPaceAnalytics(
+      month,
+      analysis
+    );
+
+    renderGoalAnalytics(
+      goal,
+      month,
+      analysis
+    );
+
+    renderBestAnalytics(
+      today,
+      analysis
+    );
+
+    renderComparisonAnalytics(
+      today,
+      yesterday,
+      month,
+      previousMonth,
+      analysis
+    );
+
+    renderDailyAnalytics(
+      data.daily || []
+    );
+  }
+
+
+  // =========================================================
+  // Analytics Date
+  // =========================================================
+
+  function renderAnalyticsDate(
+    analysis
+  ) {
+    const element =
+      document.getElementById(
+        "analyticsDateLabel"
+      );
+
+    if (!element) {
+      return;
+    }
+
+    if (
+      analysis.today
+    ) {
+      element.textContent =
+        formatDateJST(
+          analysis.today
+        );
+    } else {
+      element.textContent = "";
+    }
+  }
+
+
+  // =========================================================
+  // 今日の分析
+  // =========================================================
+
+  function renderTodayAnalytics(
+    today,
+    analysis
+  ) {
+    const element =
+      document.getElementById(
+        "todayAnalytics"
+      );
+
+    if (!element) {
+      return;
+    }
+
+    const sales =
+      Number(
+        today.sales || 0
+      );
+
+    const count =
+      Number(
+        today.count || 0
+      );
+
+    const hours =
+      Number(
+        today.hours || 0
+      );
+
+    const hourlySales =
+      Number(
+        analysis.todayHourlySales ||
+        0
+      );
+
+    const countPerHour =
+      Number(
+        analysis.todayCountPerHour ||
+        0
+      );
+
+    const unitPrice =
+      Number(
+        analysis.todayAverageUnitPrice ||
+        0
+      );
+
+    element.innerHTML = `
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          💰 今日の売上
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatYen(sales)}
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          📦 今日の配達
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatNumber(count)}件
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          ⏱ 今日の稼働時間
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatHours(hours)}
+          <span style="font-size:11px;color:#6b7280">
+            時間
+          </span>
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          💴 今日の時給
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatYen(hourlySales)}
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          📦 1時間あたり配達
+        </div>
+
+        <div class="analytics-item-value">
+          ${countPerHour.toFixed(1)}
+          <span style="font-size:11px;color:#6b7280">
+            件/h
+          </span>
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          🧾 今日の平均単価
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatYen(unitPrice)}
+        </div>
+      </div>
+    `;
+  }
+
+
+  // =========================================================
+  // ペース分析
+  // =========================================================
+
+  function renderPaceAnalytics(
+    month,
+    analysis
+  ) {
+    const element =
+      document.getElementById(
+        "paceAnalytics"
+      );
+
+    if (!element) {
+      return;
+    }
+
+    const averageDailyCount =
+      Number(
+        analysis.averageDailyCount ||
+        0
+      );
+
+    const averageDailySales =
+      Number(
+        analysis.averageDailySales ||
+        0
+      );
+
+    const currentDailyPace =
+      Number(
+        analysis.currentDailyPace ||
+        0
+      );
+
+    const projectedCount =
+      Number(
+        analysis.projectedMonthCount ||
+        0
+      );
+
+    const projectedSales =
+      Number(
+        analysis.projectedMonthSales ||
+        0
+      );
+
+    const elapsedDays =
+      Number(
+        analysis.elapsedDays ||
+        0
+      );
+
+    const daysInMonth =
+      Number(
+        analysis.daysInMonth ||
+        0
+      );
+
+    const remainingDays =
+      Number(
+        analysis.remainingDays ||
+        0
+      );
+
+    element.innerHTML = `
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          📦 1日平均配達
+        </div>
+
+        <div class="analytics-item-value">
+          ${averageDailyCount.toFixed(1)}件
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          💰 1日平均売上
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatYen(
+            averageDailySales
+          )}
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          ⚡ 今日のペース
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatNumber(
+            currentDailyPace
+          )}件
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          📦 月間予測配達
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatNumber(
+            Math.round(
+              projectedCount
+            )
+          )}件
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          💰 月間予測売上
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatYen(
+            Math.round(
+              projectedSales
+            )
+          )}
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          📅 経過日数
+        </div>
+
+        <div class="analytics-item-value">
+          ${elapsedDays}
+          <span style="font-size:11px;color:#6b7280">
+            / ${daysInMonth}日
+          </span>
+        </div>
+
+        <div class="analytics-item-sub">
+          残り ${remainingDays}日
+        </div>
+      </div>
+    `;
+  }
+
+
+  // =========================================================
+  // 目標分析
+  // =========================================================
+
+  function renderGoalAnalytics(
+    goal,
+    month,
+    analysis
+  ) {
+    const element =
+      document.getElementById(
+        "goalAnalytics"
+      );
+
+    if (!element) {
+      return;
+    }
+
+    const count =
+      Number(
+        month.count || 0
+      );
+
+    const remaining =
+      Number(
+        analysis.remainingGoalCount ||
+        0
+      );
+
+    const requiredDaily =
+      Number(
+        analysis.requiredDailyCount ||
+        0
+      );
+
+    const goalRate =
+      Number(
+        analysis.goalRate ||
+        0
+      );
+
+    const monthProgressRate =
+      Number(
+        analysis.monthProgressRate ||
+        0
+      );
+
+    const goalProgressRate =
+      Number(
+        analysis.goalProgressRate ||
+        0
+      );
+
+    const paceDifference =
+      Number(
+        analysis.paceDifference ||
+        0
+      );
+
+    let paceText =
+      "目標ペース内";
+
+    if (
+      paceDifference > 0.01
+    ) {
+      paceText =
+        "目標ペースより先行";
+    } else if (
+      paceDifference < -0.01
+    ) {
+      paceText =
+        "目標ペースより遅れ";
+    }
+
+    element.innerHTML = `
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          🎯 月間目標
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatNumber(goal)}件
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          📦 現在の実績
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatNumber(count)}件
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          🔥 目標まであと
+        </div>
+
+        <div class="analytics-item-value">
+          ${
+            remaining > 0
+              ? `${formatNumber(
+                  remaining
+                )}件`
+              : "達成済み 🎉"
+          }
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          📅 必要な1日平均
+        </div>
+
+        <div class="analytics-item-value">
+          ${requiredDaily.toFixed(1)}
+          <span style="font-size:11px;color:#6b7280">
+            件/日
+          </span>
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          🎯 目標達成率
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatPercent(
+            goalRate
+          )}
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          🚀 今月の進捗ペース
+        </div>
+
+        <div class="analytics-item-value">
+          ${paceText}
+        </div>
+
+        <div class="analytics-item-sub">
+          実績 ${formatPercent(
+            goalProgressRate
+          )}
+          / 日数進捗 ${formatPercent(
+            monthProgressRate
+          )}
+        </div>
+      </div>
+    `;
+  }
+
+
+  // =========================================================
+  // 自己ベスト
+  // =========================================================
+
+  function renderBestAnalytics(
+    today,
+    analysis
+  ) {
+    const element =
+      document.getElementById(
+        "bestAnalytics"
+      );
+
+    if (!element) {
+      return;
+    }
+
+    const todayCount =
+      Number(
+        today.count || 0
+      );
+
+    const todaySales =
+      Number(
+        today.sales || 0
+      );
+
+    const monthlyBestCount =
+      Number(
+        analysis.monthlyBestCount ||
+        0
+      );
+
+    const monthlyBestSales =
+      Number(
+        analysis.monthlyBestSales ||
+        0
+      );
+
+    const allTimeBestCount =
+      Number(
+        analysis.allTimeBestCount ||
+        0
+      );
+
+    const allTimeBestSales =
+      Number(
+        analysis.allTimeBestSales ||
+        0
+      );
+
+    const countRecord =
+      Boolean(
+        analysis.isBestCount
+      );
+
+    const salesRecord =
+      Boolean(
+        analysis.isBestSales
+      );
+
+    element.innerHTML = `
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          🏆 今月最高配達
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatNumber(
+            monthlyBestCount
+          )}件
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          🏆 今月最高売上
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatYen(
+            monthlyBestSales
+          )}
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          👑 自己ベスト配達
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatNumber(
+            allTimeBestCount
+          )}件
+        </div>
+
+        <div class="analytics-item-sub">
+          ${
+            countRecord
+              ? "今日、自己ベスト更新！🔥"
+              : `今日 ${formatNumber(
+                  todayCount
+                )}件`
+          }
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          👑 自己ベスト売上
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatYen(
+            allTimeBestSales
+          )}
+        </div>
+
+        <div class="analytics-item-sub">
+          ${
+            salesRecord
+              ? "今日、自己ベスト更新！🔥"
+              : `今日 ${formatYen(
+                  todaySales
+                )}`
+          }
+        </div>
+      </div>
+    `;
+  }
+
+
+  // =========================================================
+  // 前日・前月比較
+  // =========================================================
+
+  function renderComparisonAnalytics(
+    today,
+    yesterday,
+    month,
+    previousMonth,
+    analysis
+  ) {
+    const element =
+      document.getElementById(
+        "comparisonAnalytics"
+      );
+
+    if (!element) {
+      return;
+    }
+
+    const todaySales =
+      Number(
+        today.sales || 0
+      );
+
+    const yesterdaySales =
+      Number(
+        yesterday.sales || 0
+      );
+
+    const todayCount =
+      Number(
+        today.count || 0
+      );
+
+    const yesterdayCount =
+      Number(
+        yesterday.count || 0
+      );
+
+    const previousMonthSales =
+      Number(
+        previousMonth.sales || 0
+      );
+
+    const previousMonthCount =
+      Number(
+        previousMonth.count || 0
+      );
+
+    const monthSales =
+      Number(
+        month.sales || 0
+      );
+
+    const monthCount =
+      Number(
+        month.count || 0
+      );
+
+    const salesYesterdayDiff =
+      Number(
+        analysis.salesChangeFromYesterday ||
+        0
+      );
+
+    const countYesterdayDiff =
+      Number(
+        analysis.countChangeFromYesterday ||
+        0
+      );
+
+    const salesPreviousDiff =
+      Number(
+        analysis.salesChangeFromPreviousMonth ||
+        0
+      );
+
+    const countPreviousDiff =
+      Number(
+        analysis.countChangeFromPreviousMonth ||
+        0
+      );
+
+    const salesPreviousRate =
+      Number(
+        analysis.salesChangeFromPreviousMonthRate ||
+        0
+      );
+
+    const countPreviousRate =
+      Number(
+        analysis.countChangeFromPreviousMonthRate ||
+        0
+      );
+
+    element.innerHTML = `
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          🔄 前日売上差
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatSignedYen(
+            salesYesterdayDiff
+          )}
+        </div>
+
+        <div class="analytics-item-sub">
+          今日 ${formatYen(
+            todaySales
+          )}
+          / 昨日 ${formatYen(
+            yesterdaySales
+          )}
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          🔄 前日配達差
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatSignedCount(
+            countYesterdayDiff
+          )}
+        </div>
+
+        <div class="analytics-item-sub">
+          今日 ${formatNumber(
+            todayCount
+          )}件
+          / 昨日 ${formatNumber(
+            yesterdayCount
+          )}件
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          📅 先月売上差
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatSignedYen(
+            salesPreviousDiff
+          )}
+        </div>
+
+        <div class="analytics-item-sub">
+          今月 ${formatYen(
+            monthSales
+          )}
+          / 先月 ${formatYen(
+            previousMonthSales
+          )}
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          📅 先月配達差
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatSignedCount(
+            countPreviousDiff
+          )}
+        </div>
+
+        <div class="analytics-item-sub">
+          今月 ${formatNumber(
+            monthCount
+          )}件
+          / 先月 ${formatNumber(
+            previousMonthCount
+          )}件
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          📈 先月比売上
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatPercent(
+            salesPreviousRate
+          )}
+        </div>
+      </div>
+
+      <div class="analytics-item">
+        <div class="analytics-item-label">
+          📈 先月比配達
+        </div>
+
+        <div class="analytics-item-value">
+          ${formatPercent(
+            countPreviousRate
+          )}
+        </div>
+      </div>
+    `;
+  }
+
+
+  // =========================================================
+  // 日別推移
+  // =========================================================
+
+  function renderDailyAnalytics(
+    daily
+  ) {
+    const element =
+      document.getElementById(
+        "dailyAnalytics"
+      );
+
+    if (!element) {
+      return;
+    }
+
+    if (
+      !Array.isArray(daily) ||
+      daily.length === 0
+    ) {
+      element.innerHTML = `
+        <div class="empty">
+          今月の実績はまだありません
+        </div>
+      `;
+
+      return;
+    }
+
+    const sorted =
+      [...daily].reverse();
+
+    element.innerHTML =
+      sorted
+        .map(
+          (row) => {
+            const count =
+              Number(
+                row.count || 0
+              );
+
+            const sales =
+              Number(
+                row.sales || 0
+              );
+
+            const hours =
+              Number(
+                row.hours || 0
+              );
+
+            const countPerHour =
+              hours > 0
+                ? count / hours
+                : 0;
+
+            return `
+              <div class="record-item">
+
+                <div>
+                  <div class="record-date">
+                    ${escapeHtml(
+                      formatDateJST(
+                        row.date
+                      )
+                    )}
+                  </div>
+
+                  <div class="record-main">
+                    📦 ${formatNumber(
+                      count
+                    )}件
+                  </div>
+                </div>
+
+                <div class="record-side">
+
+                  <div class="record-sales">
+                    ${formatYen(
+                      sales
+                    )}
+                  </div>
+
+                  <div class="record-hours">
+                    ${formatHours(
+                      hours
+                    )}h
+                    /
+                    ${countPerHour.toFixed(
+                      1
+                    )}件/h
+                  </div>
+
+                </div>
+
+              </div>
+            `;
+          }
+        )
+        .join("");
+  }
+      // =========================================================
+  // Admin
+  // =========================================================
+
+  async function checkAdminAccess() {
+    try {
+      const data =
+        await apiFetch(
+          "/api/admin"
+        );
+
+      if (
+        data?.isAdmin ||
+        data?.admin === true
+      ) {
+        const tab =
+          document.getElementById(
+            "adminTab"
+          );
+
+        if (tab) {
+          tab.classList.add(
+            "visible"
+          );
+          tab.style.display =
+            "block";
+        }
+      }
+    } catch (error) {
+      // 管理者でない場合は何もしない
+      console.log(
+        "admin access:",
+        error.message
+      );
+    }
+  }
+
+
+  async function loadAdmin() {
+    const element =
+      document.getElementById(
+        "adminContent"
+      );
+
+    if (!element) {
+      return;
+    }
+
+    element.innerHTML = `
+      <div class="loading">
+        管理データを読み込み中...
+      </div>
+    `;
+
+    try {
+      const data =
+        await apiFetch(
+          "/api/admin"
+        );
+
+      renderAdmin(
+        data
+      );
+
+    } catch (error) {
+      console.error(
+        "admin load error:",
+        error
+      );
+
+      showError(
+        "adminContent",
+        error.message
+      );
+    }
+  }
+
+
+  function renderAdmin(
+    data
+  ) {
+    const element =
+      document.getElementById(
+        "adminContent"
+      );
+
+    if (!element) {
+      return;
+    }
+
+    const overall =
+      data.overall || {};
+
+    const month =
+      data.month || {};
+
+    const logs =
+      data.logs || [];
+
+    element.innerHTML = `
+      <div class="stats-grid">
+
+        <div class="stat-box">
+          <div class="stat-label">
+            👥 ユーザー数
+          </div>
+
+          <div class="stat-value">
+            ${formatNumber(
+              overall.users || 0
+            )}
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-label">
+            📦 総配達数
+          </div>
+
+          <div class="stat-value">
+            ${formatNumber(
+              overall.count || 0
+            )}件
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-label">
+            💰 総売上
+          </div>
+
+          <div class="stat-value">
+            ${formatYen(
+              overall.sales || 0
+            )}
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-label">
+            ⏱ 総稼働時間
+          </div>
+
+          <div class="stat-value">
+            ${formatHours(
+              overall.hours || 0
+            )}h
+          </div>
+        </div>
+
+      </div>
+
+      <div class="analytics-section-title">
+        📅 今月
+      </div>
+
+      <div class="stats-grid">
+
+        <div class="stat-box">
+          <div class="stat-label">
+            📦 配達
+          </div>
+
+          <div class="stat-value">
+            ${formatNumber(
+              month.count || 0
+            )}件
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-label">
+            💰 売上
+          </div>
+
+          <div class="stat-value">
+            ${formatYen(
+              month.sales || 0
+            )}
+          </div>
+        </div>
+
+      </div>
+
+      <div class="analytics-section-title">
+        📝 最近の操作
+      </div>
+
+      <div class="record-list">
+
+        ${
+          Array.isArray(logs) &&
+          logs.length > 0
+            ? logs
+                .slice(0, 10)
+                .map(
+                  (log) => `
+                    <div class="record-item">
+
+                      <div>
+                        <div class="record-date">
+                          ${escapeHtml(
+                            log.created_at ||
+                            ""
+                          )}
+                        </div>
+
+                        <div class="record-main">
+                          ${escapeHtml(
+                            log.action ||
+                            ""
+                          )}
+                        </div>
+                      </div>
+
+                      <div class="record-side">
+                        <div class="record-sales">
+                          ${escapeHtml(
+                            String(
+                              log.telegram_user_id ||
+                              ""
+                            )
+                          )}
+                        </div>
+                      </div>
+
+                    </div>
+                  `
+                )
+                .join("")
+            : `
+              <div class="empty">
+                ログはありません
+              </div>
+            `
+        }
+
+      </div>
+    `;
+  }
+
+
+  // =========================================================
+  // Reset
+  // =========================================================
+
+  async function resetData() {
+    const confirmed =
+      window.confirm(
+        "自分の配達実績をすべて削除します。\n\n月間目標は残ります。\n\n本当にリセットしますか？"
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await apiFetch(
+        "/api/reset",
+        {
+          method: "POST"
+        }
+      );
+
+      alert(
+        "実績をリセットしました"
+      );
+
+      await loadPersonal(
+        activePeriod
+      );
+
+      if (
+        activeSection ===
+        "analytics"
+      ) {
+        await loadAnalytics();
+      }
+
+    } catch (error) {
+      console.error(
+        "reset error:",
+        error
+      );
+
+      alert(
+        error.message ||
+        "リセットに失敗しました"
+      );
+    }
+  }
+
+
+  // =========================================================
+  // Event: Main Tabs
+  // =========================================================
+
+  document
+    .querySelectorAll(
+      ".main-tab"
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => {
+          const section =
+            button.dataset.section;
+
+          if (!section) {
+            return;
+          }
+
+          showSection(
+            section
+          );
+        }
+      );
+    });
+
+
+  // =========================================================
+  // Event: Period Tabs
+  // =========================================================
+
+  document
+    .querySelectorAll(
+      ".period-tab"
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        async () => {
+          const period =
+            button.dataset.period;
+
+          if (!period) {
+            return;
+          }
+
+          activePeriod =
+            period;
+
+          updatePeriodTabs();
+
+          await loadPersonal(
+            period
+          );
+        }
+      );
+    });
+
+
+  // =========================================================
+  // Event: Goal
+  // =========================================================
+
+  const goalSaveBtn =
+    document.getElementById(
+      "goalSaveBtn"
+    );
+
+  if (goalSaveBtn) {
+    goalSaveBtn.addEventListener(
+      "click",
+      saveGoal
+    );
+  }
+
+
+  const goalInput =
+    document.getElementById(
+      "goalInput"
+    );
+
+  if (goalInput) {
+    goalInput.addEventListener(
+      "keydown",
+      (event) => {
+        if (
+          event.key ===
+          "Enter"
+        ) {
+          saveGoal();
+        }
+      }
+    );
+  }
+
+
+  // =========================================================
+  // Event: Reset
+  // =========================================================
+
+  const resetBtn =
+    document.getElementById(
+      "resetBtn"
+    );
+
+  if (resetBtn) {
+    resetBtn.addEventListener(
+      "click",
+      resetData
+    );
+  }
+
+
+  // =========================================================
+  // Event: Refresh
+  // =========================================================
+
+  const refreshBtn =
+    document.getElementById(
+      "refreshBtn"
+    );
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener(
+      "click",
+      async () => {
+        refreshBtn.disabled =
+          true;
+
+        refreshBtn.style.opacity =
+          "0.5";
+
+        try {
+          if (
+            activeSection ===
+            "personal"
+          ) {
+            await loadPersonal(
+              activePeriod
+            );
+          }
+
+          if (
+            activeSection ===
+            "analytics"
+          ) {
+            await loadAnalytics();
+          }
+
+          if (
+            activeSection ===
+            "admin"
+          ) {
+            await loadAdmin();
+          }
+
+        } finally {
+          refreshBtn.disabled =
+            false;
+
+          refreshBtn.style.opacity =
+            "1";
+        }
+      }
+    );
+  }
+
+
+  // =========================================================
+  // Telegram Main Button
+  // =========================================================
+
+  if (tg) {
+    try {
+      tg.MainButton.hide();
+    } catch {
+      // ignore
+    }
+  }
+
+
+  // =========================================================
+  // Init
+  // =========================================================
+
+  async function init() {
+    renderUserName();
+
+    updatePeriodTabs();
+
+    await checkAdminAccess();
+
+    await loadPersonal(
+      "today"
+    );
+  }
+
+
+  init();
+</script>
+  
 </body>
 </html>
