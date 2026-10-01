@@ -3,17 +3,9 @@ const { neon } = require("@neondatabase/serverless");
 const sql = neon(process.env.DATABASE_URL);
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const JST = "Asia/Tokyo";
+const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
-const TELEGRAM_API =
-  `https://api.telegram.org/bot${BOT_TOKEN}`;
-
-
-// ============================================================
-// Telegram API
-// ============================================================
-
-async function telegramApi(method, body = {}) {
+async function telegramApi(method, payload = {}) {
   const response = await fetch(
     `${TELEGRAM_API}/${method}`,
     {
@@ -21,7 +13,7 @@ async function telegramApi(method, body = {}) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
     }
   );
 
@@ -29,45 +21,24 @@ async function telegramApi(method, body = {}) {
 
   if (!data.ok) {
     throw new Error(
-      data.description ||
-      `Telegram API error: ${method}`
+      data.description || "Telegram API error"
     );
   }
 
   return data.result;
 }
 
-
 async function sendMessage(
   chatId,
   text,
-  options = {}
+  extra = {}
 ) {
-  return telegramApi(
-    "sendMessage",
-    {
-      chat_id: chatId,
-      text,
-
-      parse_mode:
-        options.parseMode || "HTML",
-
-      disable_web_page_preview: true,
-
-      ...(options.replyMarkup
-        ? {
-            reply_markup:
-              options.replyMarkup,
-          }
-        : {}),
-    }
-  );
+  return telegramApi("sendMessage", {
+    chat_id: chatId,
+    text,
+    ...extra,
+  });
 }
-
-
-// ============================================================
-// 共通
-// ============================================================
 
 function getTelegramUserId(message) {
   return String(
@@ -75,103 +46,61 @@ function getTelegramUserId(message) {
   );
 }
 
-
 function getChatId(message) {
   return String(
     message?.chat?.id || ""
   );
 }
 
+function getDisplayName(message) {
+  const firstName =
+    message?.from?.first_name || "";
 
-function isGroupChat(message) {
-  const type =
-    message?.chat?.type;
+  const lastName =
+    message?.from?.last_name || "";
 
-  return (
-    type === "group" ||
-    type === "supergroup"
-  );
+  const username =
+    message?.from?.username || "";
+
+  const name =
+    `${firstName} ${lastName}`.trim();
+
+  if (name) {
+    return username
+      ? `${name} (@${username})`
+      : name;
+  }
+
+  if (username) {
+    return `@${username}`;
+  }
+
+  return "配達員";
 }
 
-
-function getDisplayName(user) {
-  if (!user) {
-    return "ユーザー";
-  }
-
-  const fullName = [
-    user.first_name,
-    user.last_name,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
-
-  if (fullName) {
-    return fullName;
-  }
-
-  if (user.username) {
-    return `@${user.username}`;
-  }
-
-  return `ユーザー${user.id}`;
-}
-
-
-function getCommandName(message) {
-  const text =
-    String(
-      message?.text || ""
-    ).trim();
-
-  if (!text.startsWith("/")) {
+function getCommandName(text) {
+  if (!text) {
     return "";
   }
 
-  return text
-    .split(/\s+/)[0]
-    .split("@")[0]
-    .toLowerCase();
+  return (
+    text
+      .trim()
+      .split(/\s+/)[0]
+      .split("@")[0]
+      .toLowerCase()
+  );
 }
-
 
 function formatNumber(value) {
-  return Number(
-    value || 0
-  ).toLocaleString("ja-JP");
+  return Number(value || 0).toLocaleString(
+    "ja-JP"
+  );
 }
-
 
 function formatHours(value) {
-  const hours =
-    Number(value || 0);
-
-  return hours
-    .toFixed(2)
-    .replace(/\.00$/, "")
-    .replace(/(\.\d)0$/, "$1");
+  return Number(value || 0).toFixed(1);
 }
-
-
-function formatDateJST(value) {
-  if (!value) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat(
-    "ja-JP",
-    {
-      timeZone: JST,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }
-  ).format(new Date(value));
-}
-
 
 function parseWorkHours(value) {
   const hours = Number(value);
@@ -184,25 +113,21 @@ function parseWorkHours(value) {
     return null;
   }
 
-  return Math.round(
-    hours * 100
-  ) / 100;
+  return hours;
 }
 
-
-// ============================================================
+// =========================================================
 // 管理者
-// ============================================================
+// =========================================================
 
 function getAdminIds() {
   return String(
     process.env.ADMIN_TELEGRAM_USER_IDS || ""
   )
     .split(",")
-    .map((id) => id.trim())
+    .map(id => id.trim())
     .filter(Boolean);
 }
-
 
 function isAdmin(userId) {
   return getAdminIds().includes(
@@ -210,16 +135,15 @@ function isAdmin(userId) {
   );
 }
 
-
-// ============================================================
-// Audit Log
-// ============================================================
+// =========================================================
+// 監査ログ
+// =========================================================
 
 async function writeAuditLog({
   telegramUserId,
   chatId = null,
   action,
-  details = null,
+  details = {},
 }) {
   try {
     await sql`
@@ -233,11 +157,7 @@ async function writeAuditLog({
         ${String(telegramUserId)},
         ${chatId ? String(chatId) : null},
         ${action},
-        ${
-          details
-            ? JSON.stringify(details)
-            : null
-        }
+        ${JSON.stringify(details)}
       )
     `;
   } catch (error) {
@@ -248,10 +168,9 @@ async function writeAuditLog({
   }
 }
 
-
-// ============================================================
-// /add 引数
-// ============================================================
+// =========================================================
+// /add
+// =========================================================
 
 function parseAddArguments(text) {
   const parts =
@@ -260,13 +179,7 @@ function parseAddArguments(text) {
       .split(/\s+/);
 
   if (parts.length !== 4) {
-    return {
-      ok: false,
-      error:
-        `⚠️ 入力形式が正しくありません。\n\n` +
-        `<code>/add 売上 配達件数 稼働時間</code>\n` +
-        `例：<code>/add 20000 30 8</code>`,
-    };
+    return null;
   }
 
   const saleAmount =
@@ -283,11 +196,7 @@ function parseAddArguments(text) {
     saleAmount < 0 ||
     saleAmount > 100000000
   ) {
-    return {
-      ok: false,
-      error:
-        "⚠️ 売上金額が不正です。",
-    };
+    return null;
   }
 
   if (
@@ -295,889 +204,74 @@ function parseAddArguments(text) {
     deliveryCount <= 0 ||
     deliveryCount > 10000
   ) {
-    return {
-      ok: false,
-      error:
-        "⚠️ 配達件数が不正です。",
-    };
+    return null;
   }
 
   if (workHours === null) {
-    return {
-      ok: false,
-      error:
-        "⚠️ 稼働時間は0より大きく24時間以下で指定してください。",
-    };
+    return null;
   }
 
   return {
-    ok: true,
-
-    saleAmount:
-      Math.floor(saleAmount),
-
+    saleAmount: Math.round(
+      saleAmount
+    ),
     deliveryCount,
-
     workHours,
   };
 }
 
-
-// ============================================================
-// 月間目標
-// ============================================================
-
-async function getMonthlyGoal(userId) {
-  const rows = await sql`
-    SELECT monthly_goal
-    FROM delivery_goals
-    WHERE telegram_user_id =
-      ${userId}
-    LIMIT 1
-  `;
-
-  return rows.length
-    ? Number(rows[0].monthly_goal)
-    : 500;
-}
-
-
-// ============================================================
+// =========================================================
 // /start
-// ============================================================
+// =========================================================
 
-async function handleStart(message) {
+async function handleStart(
+  message
+) {
   const userId =
     getTelegramUserId(message);
 
   const chatId =
     getChatId(message);
-
-  if (!userId || !chatId) {
-    return;
-  }
 
   await writeAuditLog({
     telegramUserId: userId,
     chatId,
     action: "start",
-    details: {
-      chatType:
-        message?.chat?.type || null,
-    },
   });
 
-  const displayName =
-    getDisplayName(
-      message?.from
-    );
+  const text = [
+    `こんにちは、${getDisplayName(message)}さん！`,
+    "",
+    "配達実績を記録できます。",
+    "",
+    "【記録】",
+    "/add 売上 配達件数 稼働時間",
+    "",
+    "例：",
+    "/add 5000 5 2",
+    "",
+    "【その他】",
+    "/cancel 直前の実績を削除",
+    "/reset 自分の実績を全削除",
+    "/help ヘルプ",
+    "",
+    "下のボタンから個人ダッシュボードを開けます。",
+  ].join("\n");
 
-  const text =
-    `🔥 <b>配達リザルトBotへようこそ！</b>\n\n` +
-    `${displayName}さん、今日もお疲れさまです！\n\n` +
-
-    `📦 <b>実績登録</b>\n` +
-    `<code>/add 売上 配達件数 稼働時間</code>\n` +
-    `例：<code>/add 20000 30 8</code>\n\n` +
-
-    `↩️ <b>最新実績を削除</b>\n` +
-    `<code>/cancel</code>\n\n` +
-
-    `🗑 <b>自分の実績を全削除</b>\n` +
-    `<code>/reset</code>\n\n` +
-
-    `🎯 <b>月間目標</b>\n` +
-    `<code>/goal 500</code>\n\n` +
-
-    `📱 <b>個人ダッシュボード</b>\n` +
-    `今日・今週・今月・年間の実績、` +
-    `分析、目標進捗を確認できます。\n\n` +
-
-    `💡 <code>/help</code> でコマンドを確認できます。`;
-
-  await sendMessage(
+  return sendMessage(
     chatId,
-    text
-  );
-
-  await sendMiniAppButton(
-    chatId
-  );
-}
-
-
-// ============================================================
-// /help
-// ============================================================
-
-async function handleHelp(message) {
-  const chatId =
-    getChatId(message);
-
-  if (!chatId) {
-    return;
-  }
-
-  const text =
-    `📖 <b>配達リザルトBot ヘルプ</b>\n` +
-    `━━━━━━━━━━━━━━\n\n` +
-
-    `📦 <b>実績登録</b>\n` +
-    `<code>/add 20000 30 8</code>\n` +
-    `売上・配達件数・稼働時間を登録\n\n` +
-
-    `↩️ <b>最新実績を削除</b>\n` +
-    `<code>/cancel</code>\n\n` +
-
-    `🗑 <b>自分の実績を全削除</b>\n` +
-    `<code>/reset</code>\n\n` +
-
-    `🎯 <b>月間目標</b>\n` +
-    `<code>/goal 500</code>\n` +
-    `引数なしで現在の目標を確認\n\n` +
-
-    `📱 <b>個人ダッシュボード</b>\n` +
-    `今日・今週・今月・年間の実績、` +
-    `分析・目標進捗・実績履歴を確認できます。`;
-
-  await sendMessage(
-    chatId,
-    text
-  );
-
-  await sendMiniAppButton(
-    chatId
-  );
-}
-// ============================================================
-// /add
-// 個人実績登録
-// ============================================================
-
-async function handleAdd(message) {
-  const userId =
-    getTelegramUserId(message);
-
-  const chatId =
-    getChatId(message);
-
-  if (!userId || !chatId) {
-    return;
-  }
-
-  const args =
-    parseAddArguments(
-      message?.text || ""
-    );
-
-  if (!args.ok) {
-    await sendMessage(
-      chatId,
-      args.error
-    );
-
-    return;
-  }
-
-  const {
-    saleAmount,
-    deliveryCount,
-    workHours,
-  } = args;
-
-  const inserted =
-    await sql`
-      INSERT INTO delivery_results (
-        telegram_user_id,
-        sale_amount,
-        delivery_count,
-        work_hours,
-        chat_id
-      )
-      VALUES (
-        ${String(userId)},
-        ${saleAmount},
-        ${deliveryCount},
-        ${workHours},
-        ${String(chatId)}
-      )
-      RETURNING
-        id,
-        sale_amount,
-        delivery_count,
-        work_hours,
-        created_at
-    `;
-
-  const result =
-    inserted[0];
-
-  await writeAuditLog({
-    telegramUserId: userId,
-    chatId,
-    action: "add",
-    details: {
-      result_id:
-        String(result.id),
-
-      sale_amount:
-        saleAmount,
-
-      delivery_count:
-        deliveryCount,
-
-      work_hours:
-        workHours,
-    },
-  });
-
-  const unitPrice =
-    deliveryCount > 0
-      ? Math.round(
-          saleAmount /
-          deliveryCount
-        )
-      : 0;
-
-  const hourlySales =
-    workHours > 0
-      ? Math.round(
-          saleAmount /
-          workHours
-        )
-      : 0;
-
-  const monthlyGoal =
-    await getMonthlyGoal(
-      userId
-    );
-
-  const text =
-    `✅ <b>実績登録しました！</b>\n` +
-    `━━━━━━━━━━━━━━\n` +
-    `💰 売上：<b>${formatNumber(
-      saleAmount
-    )}円</b>\n` +
-    `📦 配達：<b>${formatNumber(
-      deliveryCount
-    )}件</b>\n` +
-    `⏱ 稼働：<b>${formatHours(
-      workHours
-    )}時間</b>\n` +
-    `💴 件単価：約<b>${formatNumber(
-      unitPrice
-    )}円</b>\n` +
-    `⚡ 時給換算：約<b>${formatNumber(
-      hourlySales
-    )}円</b>\n` +
-    `━━━━━━━━━━━━━━\n` +
-    `🎯 月間目標：${formatNumber(
-      monthlyGoal
-    )}件`;
-
-  await sendMessage(
-    chatId,
-    text
-  );
-}
-
-
-// ============================================================
-// /cancel
-// 最新の自分の実績を削除
-// ============================================================
-
-async function handleCancel(message) {
-  const userId =
-    getTelegramUserId(message);
-
-  const chatId =
-    getChatId(message);
-
-  if (!userId || !chatId) {
-    return;
-  }
-
-  const rows =
-    await sql`
-      SELECT
-        id,
-        sale_amount,
-        delivery_count,
-        work_hours
-      FROM delivery_results
-      WHERE telegram_user_id =
-        ${userId}
-      ORDER BY
-        created_at DESC,
-        id DESC
-      LIMIT 1
-    `;
-
-  if (!rows.length) {
-    await sendMessage(
-      chatId,
-      `⚠️ <b>削除する実績がありません。</b>\n\n` +
-      `🎯 月間目標：${formatNumber(
-        await getMonthlyGoal(userId)
-      )}件`
-    );
-
-    return;
-  }
-
-  const result =
-    rows[0];
-
-  await sql`
-    DELETE FROM delivery_results
-    WHERE id = ${result.id}
-      AND telegram_user_id =
-        ${userId}
-  `;
-
-  await writeAuditLog({
-    telegramUserId: userId,
-    chatId,
-    action: "cancel",
-    details: {
-      result_id:
-        String(result.id),
-
-      sale_amount:
-        Number(result.sale_amount),
-
-      delivery_count:
-        Number(result.delivery_count),
-
-      work_hours:
-        Number(result.work_hours),
-    },
-  });
-
-  await sendMessage(
-    chatId,
-    `↩️ <b>最新の実績を削除しました。</b>\n\n` +
-    `💰 売上：${formatNumber(
-      result.sale_amount
-    )}円\n` +
-    `📦 配達：${formatNumber(
-      result.delivery_count
-    )}件\n` +
-    `⏱ 稼働：${formatHours(
-      result.work_hours
-    )}時間`
-  );
-}
-
-
-// ============================================================
-// /reset
-// 自分の実績をすべて削除
-// ============================================================
-
-async function handleReset(message) {
-  const userId =
-    getTelegramUserId(message);
-
-  const chatId =
-    getChatId(message);
-
-  if (!userId || !chatId) {
-    return;
-  }
-
-  const countRows =
-    await sql`
-      SELECT COUNT(*)::int AS count
-      FROM delivery_results
-      WHERE telegram_user_id =
-        ${userId}
-    `;
-
-  const count =
-    Number(
-      countRows[0]?.count || 0
-    );
-
-  if (count === 0) {
-    await sendMessage(
-      chatId,
-      `⚠️ <b>削除する実績がありません。</b>\n\n` +
-      `🎯 月間目標：${formatNumber(
-        await getMonthlyGoal(userId)
-      )}件は残っています。`
-    );
-
-    return;
-  }
-
-  await sql`
-    DELETE FROM delivery_results
-    WHERE telegram_user_id =
-      ${userId}
-  `;
-
-  await writeAuditLog({
-    telegramUserId: userId,
-    chatId,
-    action: "reset",
-    details: {
-      deleted_count: count,
-    },
-  });
-
-  await sendMessage(
-    chatId,
-    `🗑 <b>実績をすべて削除しました。</b>\n\n` +
-    `削除件数：<b>${formatNumber(
-      count
-    )}件</b>\n\n` +
-    `🎯 月間目標：<b>${formatNumber(
-      await getMonthlyGoal(userId)
-    )}件</b>\n` +
-    `※月間目標は残っています。`
-  );
-}
-
-
-// ============================================================
-// /goal
-// 月間目標
-// ============================================================
-
-async function handleGoal(message) {
-  const userId =
-    getTelegramUserId(message);
-
-  const chatId =
-    getChatId(message);
-
-  if (!userId || !chatId) {
-    return;
-  }
-
-  const parts =
-    String(
-      message?.text || ""
-    )
-      .trim()
-      .split(/\s+/);
-
-  // 引数なし → 現在の目標を表示
-  if (parts.length < 2) {
-    await sendMessage(
-      chatId,
-      `🎯 <b>現在の月間目標</b>\n\n` +
-      `<b>${formatNumber(
-        await getMonthlyGoal(userId)
-      )}件</b>\n\n` +
-      `変更：<code>/goal 500</code>`
-    );
-
-    return;
-  }
-
-  const rawGoal =
-    String(parts[1])
-      .replace(/,/g, "");
-
-  if (!/^\d+$/.test(rawGoal)) {
-    await sendMessage(
-      chatId,
-      `⚠️ 目標件数は整数で指定してください。\n\n` +
-      `例：<code>/goal 500</code>`
-    );
-
-    return;
-  }
-
-  const monthlyGoal =
-    Number(rawGoal);
-
-  if (
-    monthlyGoal <= 0 ||
-    monthlyGoal > 1000000
-  ) {
-    await sendMessage(
-      chatId,
-      `⚠️ 月間目標は1〜1,000,000件で指定してください。`
-    );
-
-    return;
-  }
-
-  await sql`
-    INSERT INTO delivery_goals (
-      telegram_user_id,
-      monthly_goal,
-      updated_at
-    )
-    VALUES (
-      ${userId},
-      ${monthlyGoal},
-      NOW()
-    )
-    ON CONFLICT (
-      telegram_user_id
-    )
-    DO UPDATE SET
-      monthly_goal =
-        EXCLUDED.monthly_goal,
-      updated_at =
-        NOW()
-  `;
-
-  await writeAuditLog({
-    telegramUserId: userId,
-    chatId,
-    action: "goal_update",
-    details: {
-      monthlyGoal,
-    },
-  });
-
-  await sendMessage(
-    chatId,
-    `🎯 <b>月間目標を更新しました！</b>\n\n` +
-    `目標：<b>${formatNumber(
-      monthlyGoal
-    )}件</b>`
-  );
-}
-// ============================================================
-// 管理者用：個人実績の全体統計
-// ※ グループ・ランキングは完全に廃止
-// ============================================================
-
-async function getAdminStatistics() {
-  const overallRows =
-    await sql`
-      SELECT
-        COUNT(*)::int AS result_count,
-        COUNT(
-          DISTINCT telegram_user_id
-        )::int AS user_count,
-        COALESCE(
-          SUM(sale_amount),
-          0
-        )::bigint AS sales,
-        COALESCE(
-          SUM(delivery_count),
-          0
-        )::bigint AS delivery_count,
-        COALESCE(
-          SUM(work_hours),
-          0
-        )::numeric AS work_hours
-      FROM delivery_results
-    `;
-
-  const monthRows =
-    await sql`
-      SELECT
-        COUNT(*)::int AS result_count,
-        COUNT(
-          DISTINCT telegram_user_id
-        )::int AS user_count,
-        COALESCE(
-          SUM(sale_amount),
-          0
-        )::bigint AS sales,
-        COALESCE(
-          SUM(delivery_count),
-          0
-        )::bigint AS delivery_count,
-        COALESCE(
-          SUM(work_hours),
-          0
-        )::numeric AS work_hours
-      FROM delivery_results
-      WHERE (
-        created_at AT TIME ZONE ${JST}
-      ) >= (
-        date_trunc(
-          'month',
-          NOW() AT TIME ZONE ${JST}
-        )
-      )
-      AND (
-        created_at AT TIME ZONE ${JST}
-      ) < (
-        date_trunc(
-          'month',
-          NOW() AT TIME ZONE ${JST}
-        ) +
-        INTERVAL '1 month'
-      )
-    `;
-
-  const logRows =
-    await sql`
-      SELECT
-        id,
-        telegram_user_id,
-        chat_id,
-        action,
-        details,
-        created_at
-      FROM audit_logs
-      ORDER BY
-        created_at DESC
-      LIMIT 20
-    `;
-
-  const lastRows =
-    await sql`
-      SELECT
-        created_at
-      FROM delivery_results
-      ORDER BY
-        created_at DESC
-      LIMIT 1
-    `;
-
-  const overall =
-    overallRows[0] || {};
-
-  const month =
-    monthRows[0] || {};
-
-  return {
-    overall: {
-      resultCount:
-        Number(
-          overall.result_count || 0
-        ),
-
-      userCount:
-        Number(
-          overall.user_count || 0
-        ),
-
-      sales:
-        Number(
-          overall.sales || 0
-        ),
-
-      deliveryCount:
-        Number(
-          overall.delivery_count || 0
-        ),
-
-      workHours:
-        Number(
-          overall.work_hours || 0
-        ),
-    },
-
-    month: {
-      resultCount:
-        Number(
-          month.result_count || 0
-        ),
-
-      userCount:
-        Number(
-          month.user_count || 0
-        ),
-
-      sales:
-        Number(
-          month.sales || 0
-        ),
-
-      deliveryCount:
-        Number(
-          month.delivery_count || 0
-        ),
-
-      workHours:
-        Number(
-          month.work_hours || 0
-        ),
-    },
-
-    logs:
-      logRows.map((row) => ({
-        id:
-          String(row.id),
-
-        telegramUserId:
-          String(row.telegram_user_id),
-
-        chatId:
-          row.chat_id
-            ? String(row.chat_id)
-            : null,
-
-        action:
-          row.action,
-
-        details:
-          row.details,
-
-        createdAt:
-          row.created_at,
-      })),
-
-    lastCreatedAt:
-      lastRows[0]?.created_at || null,
-  };
-}
-
-
-// ============================================================
-// /admin
-// 管理者専用
-// ============================================================
-
-async function handleAdmin(message) {
-  const userId =
-    getTelegramUserId(message);
-
-  const chatId =
-    getChatId(message);
-
-  if (!userId || !chatId) {
-    return;
-  }
-
-  if (!isAdmin(userId)) {
-    await sendMessage(
-      chatId,
-      `⛔ このコマンドは管理者専用です。`
-    );
-
-    return;
-  }
-
-  const stats =
-    await getAdminStatistics();
-
-  const overall =
-    stats.overall;
-
-  const month =
-    stats.month;
-
-  const overallHourly =
-    overall.workHours > 0
-      ? Math.round(
-          overall.sales /
-          overall.workHours
-        )
-      : 0;
-
-  const monthHourly =
-    month.workHours > 0
-      ? Math.round(
-          month.sales /
-          month.workHours
-        )
-      : 0;
-
-  const text =
-    `🔐 <b>管理者ダッシュボード</b>\n` +
-    `━━━━━━━━━━━━━━\n` +
-    `📊 <b>全体</b>\n` +
-    `登録実績：${formatNumber(
-      overall.resultCount
-    )}件\n` +
-    `ユーザー：${formatNumber(
-      overall.userCount
-    )}人\n` +
-    `売上：${formatNumber(
-      overall.sales
-    )}円\n` +
-    `配達：${formatNumber(
-      overall.deliveryCount
-    )}件\n` +
-    `稼働：${formatHours(
-      overall.workHours
-    )}時間\n` +
-    `時給換算：約${formatNumber(
-      overallHourly
-    )}円\n\n` +
-    `📅 <b>今月</b>\n` +
-    `実績登録：${formatNumber(
-      month.resultCount
-    )}件\n` +
-    `アクティブ：${formatNumber(
-      month.userCount
-    )}人\n` +
-    `売上：${formatNumber(
-      month.sales
-    )}円\n` +
-    `配達：${formatNumber(
-      month.deliveryCount
-    )}件\n` +
-    `稼働：${formatHours(
-      month.workHours
-    )}時間\n` +
-    `時給換算：約${formatNumber(
-      monthHourly
-    )}円`;
-
-  await writeAuditLog({
-    telegramUserId: userId,
-    chatId,
-    action: "admin_view",
-    details: {
-      overall,
-      month,
-    },
-  });
-
-  await sendMessage(
-    chatId,
-    text
-  );
-}
-
-
-// ============================================================
-// Mini App ボタン
-// ============================================================
-
-async function sendMiniAppButton(chatId) {
-  const webAppUrl =
-    process.env.MINI_APP_URL ||
-    process.env.WEB_APP_URL;
-
-  if (!webAppUrl) {
-    await sendMessage(
-      chatId,
-      `⚠️ Mini AppのURLが設定されていません。`
-    );
-
-    return;
-  }
-
-  await telegramApi(
-    "sendMessage",
+    text,
     {
-      chat_id:
-        chatId,
-
-      text:
-        `📱 <b>個人ダッシュボード</b>\n\n` +
-        `今日・今週・今月・年間の実績、\n` +
-        `目標進捗、分析、実績履歴を確認できます。`,
-
-      parse_mode:
-        "HTML",
-
       reply_markup: {
         inline_keyboard: [
           [
             {
               text:
                 "📊 個人ダッシュボードを開く",
-
               web_app: {
                 url:
-                  webAppUrl,
+                  process.env.MINI_APP_URL ||
+                  process.env.WEB_APP_URL,
               },
             },
           ],
@@ -1186,67 +280,469 @@ async function sendMiniAppButton(chatId) {
     }
   );
 }
-/// ============================================================
-// コマンドルーター
-// ============================================================
 
-async function handleCommand(message) {
+// =========================================================
+// /help
+// =========================================================
+
+async function handleHelp(
+  message
+) {
+  const chatId =
+    getChatId(message);
+
+  const text = [
+    "📖 使い方",
+    "",
+    "実績を登録：",
+    "/add 5000 5 2",
+    "",
+    "意味：",
+    "5000円の売上・5件配達・2時間稼働",
+    "",
+    "直前の実績を削除：",
+    "/cancel",
+    "",
+    "自分の実績を全削除：",
+    "/reset",
+    "",
+    "個人ダッシュボード：",
+    "📊 ボタンから開いてください。",
+  ].join("\n");
+
+  return sendMessage(
+    chatId,
+    text
+  );
+}
+
+// =========================================================
+// /add
+// =========================================================
+
+async function handleAdd(
+  message
+) {
+  const userId =
+    getTelegramUserId(message);
+
+  const chatId =
+    getChatId(message);
+
+  const parsed =
+    parseAddArguments(
+      message.text
+    );
+
+  if (!parsed) {
+    return sendMessage(
+      chatId,
+      [
+        "❌ 入力形式が正しくありません。",
+        "",
+        "正しい形式：",
+        "/add 売上 配達件数 稼働時間",
+        "",
+        "例：",
+        "/add 5000 5 2",
+      ].join("\n")
+    );
+  }
+
+  const {
+    saleAmount,
+    deliveryCount,
+    workHours,
+  } = parsed;
+
+  const rows = await sql`
+    INSERT INTO delivery_results (
+      telegram_user_id,
+      sale_amount,
+      delivery_count,
+      work_hours,
+      chat_id
+    )
+    VALUES (
+      ${userId},
+      ${saleAmount},
+      ${deliveryCount},
+      ${workHours},
+      ${chatId}
+    )
+    RETURNING
+      id,
+      sale_amount,
+      delivery_count,
+      work_hours,
+      created_at
+  `;
+
+  const row = rows[0];
+
+  await writeAuditLog({
+    telegramUserId: userId,
+    chatId,
+    action: "add",
+    details: {
+      resultId: Number(row.id),
+      saleAmount,
+      deliveryCount,
+      workHours,
+    },
+  });
+
+  const unitPrice =
+    deliveryCount > 0
+      ? saleAmount / deliveryCount
+      : 0;
+
+  const hourlySales =
+    workHours > 0
+      ? saleAmount / workHours
+      : 0;
+
+  const text = [
+    "✅ 実績を登録しました！",
+    "",
+    `売上：¥${formatNumber(saleAmount)}`,
+    `配達：${formatNumber(deliveryCount)}件`,
+    `稼働：${formatHours(workHours)}時間`,
+    "",
+    `平均単価：¥${formatNumber(
+      Math.round(unitPrice)
+    )}`,
+    `時給換算：¥${formatNumber(
+      Math.round(hourlySales)
+    )}/h`,
+  ].join("\n");
+
+  return sendMessage(
+    chatId,
+    text
+  );
+}
+
+// =========================================================
+// /cancel
+// =========================================================
+
+async function handleCancel(
+  message
+) {
+  const userId =
+    getTelegramUserId(message);
+
+  const chatId =
+    getChatId(message);
+
+  const rows = await sql`
+    SELECT
+      id,
+      sale_amount,
+      delivery_count,
+      work_hours
+    FROM delivery_results
+    WHERE telegram_user_id =
+      ${userId}
+    ORDER BY
+      created_at DESC,
+      id DESC
+    LIMIT 1
+  `;
+
+  if (rows.length === 0) {
+    return sendMessage(
+      chatId,
+      "削除できる実績がありません。"
+    );
+  }
+
+  const row = rows[0];
+
+  await sql`
+    DELETE FROM delivery_results
+    WHERE id = ${row.id}
+      AND telegram_user_id = ${userId}
+  `;
+
+  await writeAuditLog({
+    telegramUserId: userId,
+    chatId,
+    action: "cancel",
+    details: {
+      resultId: Number(row.id),
+      saleAmount: Number(
+        row.sale_amount
+      ),
+      deliveryCount: Number(
+        row.delivery_count
+      ),
+      workHours: Number(
+        row.work_hours
+      ),
+    },
+  });
+
+  return sendMessage(
+    chatId,
+    [
+      "↩️ 直前の実績を削除しました。",
+      "",
+      `売上：¥${formatNumber(
+        row.sale_amount
+      )}`,
+      `配達：${formatNumber(
+        row.delivery_count
+      )}件`,
+      `稼働：${formatHours(
+        row.work_hours
+      )}時間`,
+    ].join("\n")
+  );
+}
+
+// =========================================================
+// /reset
+// =========================================================
+
+async function handleReset(
+  message
+) {
+  const userId =
+    getTelegramUserId(message);
+
+  const chatId =
+    getChatId(message);
+
+  const rows = await sql`
+    DELETE FROM delivery_results
+    WHERE telegram_user_id =
+      ${userId}
+    RETURNING id
+  `;
+
+  const deletedCount =
+    rows.length;
+
+  await writeAuditLog({
+    telegramUserId: userId,
+    chatId,
+    action: "reset",
+    details: {
+      deletedCount,
+    },
+  });
+
+  return sendMessage(
+    chatId,
+    deletedCount > 0
+      ? `🗑 ${deletedCount}件の実績を削除しました。`
+      : "削除する実績はありませんでした。"
+  );
+}
+
+// =========================================================
+// /admin
+// =========================================================
+
+async function getAdminStatistics() {
+  const overallRows = await sql`
+    SELECT
+      COUNT(*) AS records,
+      COUNT(
+        DISTINCT telegram_user_id
+      ) AS users,
+      COALESCE(
+        SUM(sale_amount),
+        0
+      ) AS sales,
+      COALESCE(
+        SUM(delivery_count),
+        0
+      ) AS delivery_count,
+      COALESCE(
+        SUM(work_hours),
+        0
+      ) AS work_hours
+    FROM delivery_results
+  `;
+
+  const monthRows = await sql`
+    SELECT
+      COUNT(*) AS records,
+      COUNT(
+        DISTINCT telegram_user_id
+      ) AS users,
+      COALESCE(
+        SUM(sale_amount),
+        0
+      ) AS sales,
+      COALESCE(
+        SUM(delivery_count),
+        0
+      ) AS delivery_count,
+      COALESCE(
+        SUM(work_hours),
+        0
+      ) AS work_hours
+    FROM delivery_results
+    WHERE created_at >= (
+      date_trunc(
+        'month',
+        CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'
+      ) AT TIME ZONE 'Asia/Tokyo'
+    )
+  `;
+
+  const latestRows = await sql`
+    SELECT
+      action,
+      telegram_user_id,
+      chat_id,
+      created_at
+    FROM audit_logs
+    ORDER BY created_at DESC
+    LIMIT 20
+  `;
+
+  return {
+    overall: overallRows[0],
+    month: monthRows[0],
+    latestLogs: latestRows,
+  };
+}
+
+async function handleAdmin(
+  message
+) {
+  const userId =
+    getTelegramUserId(message);
+
+  const chatId =
+    getChatId(message);
+
+  if (!isAdmin(userId)) {
+    await writeAuditLog({
+      telegramUserId: userId,
+      chatId,
+      action: "admin_denied",
+    });
+
+    return sendMessage(
+      chatId,
+      "⛔ 管理者権限がありません。"
+    );
+  }
+
+  const stats =
+    await getAdminStatistics();
+
+  await writeAuditLog({
+    telegramUserId: userId,
+    chatId,
+    action: "admin_view",
+  });
+
+  const overall =
+    stats.overall || {};
+
+  const month =
+    stats.month || {};
+
+  const text = [
+    "🛠 管理者ダッシュボード",
+    "",
+    "【全期間】",
+    `記録：${formatNumber(
+      overall.records
+    )}件`,
+    `ユーザー：${formatNumber(
+      overall.users
+    )}人`,
+    `売上：¥${formatNumber(
+      overall.sales
+    )}`,
+    `配達：${formatNumber(
+      overall.delivery_count
+    )}件`,
+    `稼働：${formatHours(
+      overall.work_hours
+    )}時間`,
+    "",
+    "【今月】",
+    `記録：${formatNumber(
+      month.records
+    )}件`,
+    `ユーザー：${formatNumber(
+      month.users
+    )}人`,
+    `売上：¥${formatNumber(
+      month.sales
+    )}`,
+    `配達：${formatNumber(
+      month.delivery_count
+    )}件`,
+    `稼働：${formatHours(
+      month.work_hours
+    )}時間`,
+  ].join("\n");
+
+  return sendMessage(
+    chatId,
+    text
+  );
+}
+
+// =========================================================
+// コマンド処理
+// =========================================================
+
+async function handleCommand(
+  message
+) {
   const command =
-    getCommandName(message);
+    getCommandName(
+      message.text
+    );
 
   switch (command) {
     case "/start":
-    case "start":
-      await handleStart(message);
-      return;
+      return handleStart(message);
 
     case "/help":
-    case "help":
-      await handleHelp(message);
-      return;
+      return handleHelp(message);
 
     case "/add":
-    case "add":
-      await handleAdd(message);
-      return;
+      return handleAdd(message);
 
     case "/cancel":
-    case "cancel":
-      await handleCancel(message);
-      return;
+      return handleCancel(message);
 
     case "/reset":
-    case "reset":
-      await handleReset(message);
-      return;
-
-    case "/goal":
-    case "goal":
-      await handleGoal(message);
-      return;
+      return handleReset(message);
 
     case "/admin":
-    case "admin":
-      await handleAdmin(message);
-      return;
+      return handleAdmin(message);
 
     default:
-      return;
+      return null;
   }
 }
 
-
-// ============================================================
+// =========================================================
 // Webhook
-// ============================================================
+// =========================================================
 
-async function handler(req, res) {
+module.exports = async function handler(
+  req,
+  res
+) {
   if (req.method !== "POST") {
-    res.status(200).json({
-      ok: true,
+    return res.status(405).json({
+      ok: false,
+      error: "Method Not Allowed",
     });
-
-    return;
   }
 
   try {
@@ -1254,53 +750,51 @@ async function handler(req, res) {
       req.body || {};
 
     const message =
-      update.message ||
-      update.edited_message;
+      update.message;
 
     if (!message) {
-      res.status(200).json({
+      return res.status(200).json({
         ok: true,
+        ignored: true,
       });
-
-      return;
     }
 
-    // コマンド以外は無視
-    const text =
-      String(
-        message.text || ""
-      ).trim();
-
-    if (!text.startsWith("/")) {
-      res.status(200).json({
+    if (
+      typeof message.text !== "string"
+    ) {
+      return res.status(200).json({
         ok: true,
+        ignored: true,
       });
+    }
 
-      return;
+    if (
+      !message.text.trim().startsWith("/")
+    ) {
+      return res.status(200).json({
+        ok: true,
+        ignored: true,
+      });
     }
 
     await handleCommand(
       message
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       ok: true,
     });
   } catch (error) {
     console.error(
-      "Webhook error:",
+      "bot webhook error:",
       error
     );
 
-    res.status(200).json({
-      ok: true,
+    return res.status(200).json({
+      ok: false,
+      error:
+        error?.message ||
+        "Bot処理に失敗しました。",
     });
   }
-}
-
-
-// ============================================================
-// export
-// ============================================================
-
-module.exports = handler;
+};
