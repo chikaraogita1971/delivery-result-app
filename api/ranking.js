@@ -6,7 +6,6 @@ const sql = neon(process.env.DATABASE_URL);
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const JST = "Asia/Tokyo";
 
-
 // =========================================================
 // Telegram initData 検証
 // =========================================================
@@ -17,30 +16,22 @@ function validateTelegramInitData(initData) {
   }
 
   const params = new URLSearchParams(initData);
-
   const hash = params.get("hash");
 
   if (!hash) {
     throw new Error("Telegram hash がありません");
   }
 
-  const authDate = Number(
-    params.get("auth_date")
-  );
+  const authDate = Number(params.get("auth_date"));
 
   if (!authDate) {
     throw new Error("Telegram auth_date がありません");
   }
 
-  const now = Math.floor(
-    Date.now() / 1000
-  );
+  const now = Math.floor(Date.now() / 1000);
 
   // 1時間以上古いinitDataは拒否
-  if (
-    now - authDate >
-    60 * 60
-  ) {
+  if (now - authDate > 60 * 60) {
     throw new Error(
       "Telegram認証の有効期限が切れています"
     );
@@ -48,64 +39,35 @@ function validateTelegramInitData(initData) {
 
   params.delete("hash");
 
-  const dataCheckString =
-    [...params.entries()]
-      .sort(
-        ([a], [b]) =>
-          a.localeCompare(b)
-      )
-      .map(
-        ([key, value]) =>
-          `${key}=${value}`
-      )
-      .join("\n");
+  const dataCheckString = [...params.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n");
 
-  const secretKey =
-    crypto
-      .createHmac(
-        "sha256",
-        "WebAppData"
-      )
-      .update(BOT_TOKEN)
-      .digest();
+  const secretKey = crypto
+    .createHmac("sha256", "WebAppData")
+    .update(BOT_TOKEN)
+    .digest();
 
-  const calculatedHash =
-    crypto
-      .createHmac(
-        "sha256",
-        secretKey
-      )
-      .update(dataCheckString)
-      .digest("hex");
+  const calculatedHash = crypto
+    .createHmac("sha256", secretKey)
+    .update(dataCheckString)
+    .digest("hex");
 
-  if (
-    calculatedHash.length !==
-    hash.length
-  ) {
-    throw new Error(
-      "Telegram認証に失敗しました"
-    );
+  if (calculatedHash.length !== hash.length) {
+    throw new Error("Telegram認証に失敗しました");
   }
 
   if (
     !crypto.timingSafeEqual(
-      Buffer.from(
-        calculatedHash,
-        "utf8"
-      ),
-      Buffer.from(
-        hash,
-        "utf8"
-      )
+      Buffer.from(calculatedHash, "utf8"),
+      Buffer.from(hash, "utf8")
     )
   ) {
-    throw new Error(
-      "Telegram認証に失敗しました"
-    );
+    throw new Error("Telegram認証に失敗しました");
   }
 
-  const userRaw =
-    params.get("user");
+  const userRaw = params.get("user");
 
   if (!userRaw) {
     throw new Error(
@@ -132,14 +94,11 @@ function validateTelegramInitData(initData) {
   return String(user.id);
 }
 
-
 // =========================================================
 // 期間条件
 // =========================================================
 
-function getPeriodCondition(
-  period
-) {
+function getPeriodCondition(period) {
   switch (period) {
     case "today":
       return `
@@ -190,7 +149,6 @@ function getPeriodCondition(
   }
 }
 
-
 // =========================================================
 // 名前
 // =========================================================
@@ -211,15 +169,11 @@ function getDisplayName(row) {
   return `ユーザー ${row.telegram_user_id}`;
 }
 
-
 // =========================================================
 // 効率計算
 // =========================================================
 
-function calculateEfficiency(
-  count,
-  hours
-) {
+function calculateEfficiency(count, hours) {
   const c = Number(count || 0);
   const h = Number(hours || 0);
 
@@ -230,19 +184,12 @@ function calculateEfficiency(
   return c / h;
 }
 
-
 // =========================================================
 // ランキング生成
 // =========================================================
 
-async function buildRanking(
-  period,
-  chatId
-) {
-  const condition =
-    getPeriodCondition(
-      period
-    );
+async function buildRanking(period, chatId) {
+  const condition = getPeriodCondition(period);
 
   /*
    * chatId がある場合
@@ -294,6 +241,16 @@ async function buildRanking(
       WHERE gm.chat_id =
         ${chatId}
 
+        -- Botアカウントをランキングから除外
+        AND COALESCE(gm.username, '') <> 'delivery_result_bot'
+        AND COALESCE(gm.username, '') <> 'GroupAnonymousBot'
+
+        -- Bot IDでも確実に除外
+        AND gm.telegram_user_id NOT IN (
+          '8981642532',
+          '1087968824'
+        )
+
       GROUP BY
         gm.telegram_user_id,
         gm.username,
@@ -341,62 +298,55 @@ async function buildRanking(
     `;
   }
 
-  return rows.map(
-    (row, index) => {
-      const count =
+  return rows.map((row, index) => {
+    const count =
+      Number(
+        row.delivery_count || 0
+      );
+
+    const sales =
+      Number(
+        row.sale_amount || 0
+      );
+
+    const hours =
+      Number(
+        row.work_hours || 0
+      );
+
+    return {
+      rank: index + 1,
+
+      telegramUserId:
+        String(
+          row.telegram_user_id
+        ),
+
+      name:
+        getDisplayName(row),
+
+      count,
+
+      sales,
+
+      hours,
+
+      efficiency:
         Number(
-          row.delivery_count || 0
-        );
-
-      const sales =
-        Number(
-          row.sale_amount || 0
-        );
-
-      const hours =
-        Number(
-          row.work_hours || 0
-        );
-
-      return {
-        rank:
-          index + 1,
-
-        telegramUserId:
-          String(
-            row.telegram_user_id
-          ),
-
-        name:
-          getDisplayName(row),
-
-        count,
-
-        sales,
-
-        hours,
-
-        efficiency:
-          Number(
-            calculateEfficiency(
-              count,
-              hours
-            ).toFixed(2)
-          )
-      };
-    }
-  );
+          calculateEfficiency(
+            count,
+            hours
+          ).toFixed(2)
+        )
+    };
+  });
 }
-
 
 // =========================================================
 // API
 // =========================================================
 
-module.exports = async function handler(
-  req,
-  res
-) {
+module.exports = async function handler(req, res) {
   try {
     // -----------------------------------------------------
     // CORS
@@ -417,10 +367,7 @@ module.exports = async function handler(
       "GET, OPTIONS"
     );
 
-    if (
-      req.method ===
-      "OPTIONS"
-    ) {
+    if (req.method === "OPTIONS") {
       return res
         .status(200)
         .json({
@@ -428,19 +375,14 @@ module.exports = async function handler(
         });
     }
 
-    if (
-      req.method !==
-      "GET"
-    ) {
+    if (req.method !== "GET") {
       return res
         .status(405)
         .json({
           ok: false,
-          error:
-            "Method Not Allowed"
+          error: "Method Not Allowed"
         });
     }
-
 
     // -----------------------------------------------------
     // Telegram認証
@@ -455,7 +397,6 @@ module.exports = async function handler(
       validateTelegramInitData(
         initData
       );
-
 
     // -----------------------------------------------------
     // パラメータ
@@ -482,7 +423,6 @@ module.exports = async function handler(
             "period は today / week / month のいずれかです"
         });
     }
-
 
     // -----------------------------------------------------
     // グループ取得
@@ -515,7 +455,6 @@ module.exports = async function handler(
         ? memberRows[0].chat_id
         : null;
 
-
     // -----------------------------------------------------
     // ランキング
     // -----------------------------------------------------
@@ -525,7 +464,6 @@ module.exports = async function handler(
         period,
         chatId
       );
-
 
     // -----------------------------------------------------
     // 自分の順位
@@ -539,7 +477,6 @@ module.exports = async function handler(
           ) ===
           String(userId)
       ) || null;
-
 
     // -----------------------------------------------------
     // タイプ別ランキング
@@ -555,8 +492,7 @@ module.exports = async function handler(
         .map(
           (item, index) => ({
             ...item,
-            rank:
-              index + 1
+            rank: index + 1
           })
         );
 
@@ -570,8 +506,7 @@ module.exports = async function handler(
         .map(
           (item, index) => ({
             ...item,
-            rank:
-              index + 1
+            rank: index + 1
           })
         );
 
@@ -587,11 +522,9 @@ module.exports = async function handler(
         .map(
           (item, index) => ({
             ...item,
-            rank:
-              index + 1
+            rank: index + 1
           })
         );
-
 
     // -----------------------------------------------------
     // 自分の各順位
@@ -617,7 +550,6 @@ module.exports = async function handler(
           item.telegramUserId ===
           userId
       ) || null;
-
 
     // -----------------------------------------------------
     // レスポンス
