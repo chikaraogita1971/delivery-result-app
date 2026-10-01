@@ -17,7 +17,6 @@ function validateTelegramInitData(initData) {
   }
 
   const params = new URLSearchParams(initData);
-
   const hash = params.get("hash");
 
   if (!hash) {
@@ -50,7 +49,9 @@ function validateTelegramInitData(initData) {
     return null;
   }
 
-  const authDate = Number(params.get("auth_date"));
+  const authDate = Number(
+    params.get("auth_date")
+  );
 
   if (
     !Number.isFinite(authDate) ||
@@ -95,8 +96,13 @@ function getJSTMonthStart() {
 
 
 function getJSTPreviousDate(dateString) {
-  const date = new Date(`${dateString}T00:00:00+09:00`);
-  date.setDate(date.getDate() - 1);
+  const date = new Date(
+    `${dateString}T00:00:00+09:00`
+  );
+
+  date.setDate(
+    date.getDate() - 1
+  );
 
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: JST,
@@ -110,12 +116,20 @@ function getJSTPreviousDate(dateString) {
 function getJSTWeekStart() {
   const today = getJSTDateString();
 
-  const date = new Date(`${today}T00:00:00+09:00`);
+  const date = new Date(
+    `${today}T00:00:00+09:00`
+  );
+
   const day = date.getDay();
 
-  const diff = day === 0 ? 6 : day - 1;
+  const diff =
+    day === 0
+      ? 6
+      : day - 1;
 
-  date.setDate(date.getDate() - diff);
+  date.setDate(
+    date.getDate() - diff
+  );
 
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: JST,
@@ -129,11 +143,16 @@ function getJSTWeekStart() {
 function getJSTMonthEnd() {
   const today = getJSTDateString();
 
-  const year = Number(today.slice(0, 4));
-  const month = Number(today.slice(5, 7));
+  const year =
+    Number(today.slice(0, 4));
+
+  const month =
+    Number(today.slice(5, 7));
 
   const date = new Date(
-    `${year}-${String(month + 1).padStart(2, "0")}-01T00:00:00+09:00`
+    `${year}-${String(
+      month + 1
+    ).padStart(2, "0")}-01T00:00:00+09:00`
   );
 
   date.setDate(0);
@@ -151,30 +170,59 @@ function getJSTMonthEnd() {
 // 集計
 // =========================================================
 
-async function getStats(userId, startDate, endDate) {
+async function getStats(
+  userId,
+  startDate,
+  endDate
+) {
   const rows = await sql`
     SELECT
-      COALESCE(SUM(sale_amount), 0) AS sales,
-      COALESCE(SUM(delivery_count), 0) AS count,
-      COALESCE(SUM(work_hours), 0) AS hours,
+      COALESCE(
+        SUM(sale_amount),
+        0
+      ) AS sales,
+
+      COALESCE(
+        SUM(delivery_count),
+        0
+      ) AS count,
+
+      COALESCE(
+        SUM(work_hours),
+        0
+      ) AS hours,
+
       COUNT(*) AS records
+
     FROM delivery_results
-    WHERE telegram_user_id = ${String(userId)}
+
+    WHERE telegram_user_id =
+      ${String(userId)}
+
       AND (
         created_at AT TIME ZONE ${JST}
       )::date >= ${startDate}::date
+
       AND (
         created_at AT TIME ZONE ${JST}
       )::date <= ${endDate}::date
   `;
 
-  const row = rows[0] || {};
+  const row =
+    rows[0] || {};
 
   return {
-    sales: Number(row.sales || 0),
-    count: Number(row.count || 0),
-    hours: Number(row.hours || 0),
-    records: Number(row.records || 0)
+    sales:
+      Number(row.sales || 0),
+
+    count:
+      Number(row.count || 0),
+
+    hours:
+      Number(row.hours || 0),
+
+    records:
+      Number(row.records || 0)
   };
 }
 
@@ -183,14 +231,21 @@ async function getStats(userId, startDate, endDate) {
 // 月間日別データ
 // =========================================================
 
-async function getDailyStats(userId, monthStart, monthEnd) {
+async function getDailyStats(
+  userId,
+  monthStart,
+  monthEnd
+) {
   const rows = await sql`
     SELECT
       (
         created_at AT TIME ZONE ${JST}
       )::date AS activity_date,
 
-      COALESCE(SUM(sale_amount), 0) AS sales,
+      COALESCE(
+        SUM(sale_amount),
+        0
+      ) AS sales,
 
       COALESCE(
         SUM(delivery_count),
@@ -204,7 +259,8 @@ async function getDailyStats(userId, monthStart, monthEnd) {
 
     FROM delivery_results
 
-    WHERE telegram_user_id = ${String(userId)}
+    WHERE telegram_user_id =
+      ${String(userId)}
 
       AND (
         created_at AT TIME ZONE ${JST}
@@ -219,12 +275,21 @@ async function getDailyStats(userId, monthStart, monthEnd) {
     ORDER BY activity_date ASC
   `;
 
-  return rows.map(row => ({
-    date: String(row.activity_date),
-    sales: Number(row.sales || 0),
-    count: Number(row.count || 0),
-    hours: Number(row.hours || 0)
-  }));
+  return rows.map(
+    (row) => ({
+      date:
+        String(row.activity_date),
+
+      sales:
+        Number(row.sales || 0),
+
+      count:
+        Number(row.count || 0),
+
+      hours:
+        Number(row.hours || 0)
+    })
+  );
 }
 
 
@@ -236,7 +301,8 @@ async function getGoal(userId) {
   const rows = await sql`
     SELECT monthly_goal
     FROM delivery_goals
-    WHERE telegram_user_id = ${String(userId)}
+    WHERE telegram_user_id =
+      ${String(userId)}
     LIMIT 1
   `;
 
@@ -250,7 +316,10 @@ async function getGoal(userId) {
 // Handler
 // =========================================================
 
-module.exports = async function handler(req, res) {
+module.exports = async function handler(
+  req,
+  res
+) {
   try {
     if (req.method !== "GET") {
       return res.status(405).json({
@@ -259,11 +328,19 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    // =====================================================
+    // Telegram認証
+    // =====================================================
+
     const initData =
-      req.headers["x-telegram-init-data"];
+      req.headers[
+        "x-telegram-init-data"
+      ];
 
     const user =
-      validateTelegramInitData(initData);
+      validateTelegramInitData(
+        initData
+      );
 
     if (!user?.id) {
       return res.status(401).json({
@@ -272,12 +349,21 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const userId = String(user.id);
+    const userId =
+      String(user.id);
 
-    const today = getJSTDateString();
+
+    // =====================================================
+    // 日付
+    // =====================================================
+
+    const today =
+      getJSTDateString();
 
     const yesterday =
-      getJSTPreviousDate(today);
+      getJSTPreviousDate(
+        today
+      );
 
     const weekStart =
       getJSTWeekStart();
@@ -288,34 +374,45 @@ module.exports = async function handler(req, res) {
     const monthEnd =
       getJSTMonthEnd();
 
-    // 今月の日数
-    const now = new Date(
-      `${today}T00:00:00+09:00`
-    );
+
+    // =====================================================
+    // 月日数
+    // =====================================================
 
     const year =
-      now.getFullYear();
+      Number(
+        today.slice(0, 4)
+      );
 
     const month =
-      now.getMonth();
+      Number(
+        today.slice(5, 7)
+      );
 
     const daysInMonth =
       new Date(
         year,
-        month + 1,
+        month,
         0
       ).getDate();
 
     const elapsedDays =
-      Number(today.slice(8, 10));
+      Number(
+        today.slice(8, 10)
+      );
 
     const remainingDays =
       Math.max(
         0,
-        daysInMonth - elapsedDays
+        daysInMonth -
+          elapsedDays
       );
 
-    // 各期間
+
+    // =====================================================
+    // データ取得
+    // =====================================================
+
     const [
       todayStats,
       yesterdayStats,
@@ -348,7 +445,9 @@ module.exports = async function handler(req, res) {
         today
       ),
 
-      getGoal(userId),
+      getGoal(
+        userId
+      ),
 
       getDailyStats(
         userId,
@@ -359,39 +458,46 @@ module.exports = async function handler(req, res) {
 
 
     // =====================================================
-    // 日平均
+    // 稼働日数
     // =====================================================
 
     const activeDays =
       daily.filter(
-        row =>
+        (row) =>
           row.count > 0 ||
           row.sales > 0
       ).length;
 
+
+    // =====================================================
+    // 1日平均
+    // =====================================================
+
     const averageDailyCount =
       activeDays > 0
-        ? monthStats.count / activeDays
+        ? monthStats.count /
+          activeDays
         : 0;
 
     const averageDailySales =
       activeDays > 0
-        ? monthStats.sales / activeDays
+        ? monthStats.sales /
+          activeDays
         : 0;
 
 
     // =====================================================
-    // 現在ペース
+    // 今日のペース
+    //
+    // 「ペース」は配達数
     // =====================================================
 
     const currentDailyPace =
-      elapsedDays > 0
-        ? monthStats.sales / elapsedDays
-        : 0;
+      todayStats.count;
 
 
     // =====================================================
-    // 月末予測
+    // 月間予測
     // =====================================================
 
     const projectedMonthCount =
@@ -399,7 +505,8 @@ module.exports = async function handler(req, res) {
         ? (
             monthStats.count /
             elapsedDays
-          ) * daysInMonth
+          ) *
+          daysInMonth
         : 0;
 
     const projectedMonthSales =
@@ -407,18 +514,22 @@ module.exports = async function handler(req, res) {
         ? (
             monthStats.sales /
             elapsedDays
-          ) * daysInMonth
+          ) *
+          daysInMonth
         : 0;
 
 
     // =====================================================
     // 目標
+    //
+    // monthly_goal は「配達件数」
     // =====================================================
 
     const remainingGoalCount =
       Math.max(
         0,
-        goal - monthStats.sales
+        goal -
+          monthStats.count
       );
 
     const requiredDailyCount =
@@ -430,9 +541,10 @@ module.exports = async function handler(req, res) {
     const goalRate =
       goal > 0
         ? (
-            monthStats.sales /
+            monthStats.count /
             goal
-          ) * 100
+          ) *
+          100
         : 0;
 
 
@@ -473,33 +585,17 @@ module.exports = async function handler(req, res) {
 
     // =====================================================
     // 前日比較
+    //
+    // 「差額」を返す
     // =====================================================
 
     const salesChangeFromYesterday =
-      yesterdayStats.sales > 0
-        ? (
-            (
-              todayStats.sales -
-              yesterdayStats.sales
-            ) /
-            yesterdayStats.sales
-          ) * 100
-        : todayStats.sales > 0
-          ? 100
-          : 0;
+      todayStats.sales -
+      yesterdayStats.sales;
 
     const countChangeFromYesterday =
-      yesterdayStats.count > 0
-        ? (
-            (
-              todayStats.count -
-              yesterdayStats.count
-            ) /
-            yesterdayStats.count
-          ) * 100
-        : todayStats.count > 0
-          ? 100
-          : 0;
+      todayStats.count -
+      yesterdayStats.count;
 
 
     // =====================================================
@@ -519,30 +615,46 @@ module.exports = async function handler(req, res) {
 
     for (const row of daily) {
       const rowCount =
-        Number(row.count || 0);
+        Number(
+          row.count || 0
+        );
 
       const rowSales =
-        Number(row.sales || 0);
+        Number(
+          row.sales || 0
+        );
 
       const rowHours =
-        Number(row.hours || 0);
+        Number(
+          row.hours || 0
+        );
 
       const rowCountPerHour =
         rowHours > 0
-          ? rowCount / rowHours
+          ? rowCount /
+            rowHours
           : 0;
 
       const rowSalesPerHour =
         rowHours > 0
-          ? rowSales / rowHours
+          ? rowSales /
+            rowHours
           : 0;
 
-      if (rowCount > bestCount) {
-        bestCount = rowCount;
+      if (
+        rowCount >
+        bestCount
+      ) {
+        bestCount =
+          rowCount;
       }
 
-      if (rowSales > bestSales) {
-        bestSales = rowSales;
+      if (
+        rowSales >
+        bestSales
+      ) {
+        bestSales =
+          rowSales;
       }
 
       if (
@@ -561,14 +673,24 @@ module.exports = async function handler(req, res) {
           rowSalesPerHour;
       }
 
-      if (rowCount > bestDayCount) {
-        bestDayCount = rowCount;
+      if (
+        rowCount >
+        bestDayCount
+      ) {
+        bestDayCount =
+          rowCount;
+
         bestDayCountDate =
           row.date;
       }
 
-      if (rowSales > bestDaySales) {
-        bestDaySales = rowSales;
+      if (
+        rowSales >
+        bestDaySales
+      ) {
+        bestDaySales =
+          rowSales;
+
         bestDaySalesDate =
           row.date;
       }
@@ -582,29 +704,42 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       ok: true,
 
-      today: todayStats,
+      today:
+        todayStats,
 
-      yesterday: yesterdayStats,
+      yesterday:
+        yesterdayStats,
 
-      week: weekStats,
+      week:
+        weekStats,
 
-      month: monthStats,
+      month:
+        monthStats,
 
       goal,
 
       best: {
-        count: bestCount,
-        sales: bestSales,
+        count:
+          bestCount,
+
+        sales:
+          bestSales,
+
         countPerHour:
           bestCountPerHour,
+
         salesPerHour:
           bestSalesPerHour,
+
         dayCount:
           bestDayCount,
+
         dayCountDate:
           bestDayCountDate,
+
         daySales:
           bestDaySales,
+
         daySalesDate:
           bestDaySalesDate
       },
@@ -612,28 +747,40 @@ module.exports = async function handler(req, res) {
       analysis: {
         averageDailyCount,
         averageDailySales,
+
         currentDailyPace,
+
         projectedMonthCount,
         projectedMonthSales,
+
         remainingDays,
+
         remainingGoalCount,
         requiredDailyCount,
         goalRate,
+
         averageUnitPrice,
+
         salesChangeFromYesterday,
         countChangeFromYesterday,
+
         countPerHour,
         salesPerHour,
+
         todayCountPerHour,
         todaySalesPerHour,
+
         bestCount,
         bestSales,
         bestCountPerHour,
         bestSalesPerHour,
+
         bestDayCount,
         bestDayCountDate,
+
         bestDaySales,
         bestDaySalesDate,
+
         elapsedDays,
         daysInMonth
       },
@@ -649,9 +796,12 @@ module.exports = async function handler(req, res) {
 
     return res.status(500).json({
       ok: false,
-      error: "Analytics failed",
+      error:
+        "Analytics failed",
+
       message:
-        process.env.NODE_ENV === "development"
+        process.env.NODE_ENV ===
+        "development"
           ? error.message
           : undefined
     });
