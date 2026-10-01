@@ -11,16 +11,12 @@ const BOT_TOKEN = process.env.BOT_TOKEN;
 function parseInitData(initData) {
   const raw = String(initData || "");
 
-  if (!raw) {
-    return null;
-  }
+  if (!raw) return null;
 
   const params = new URLSearchParams(raw);
   const hash = params.get("hash");
 
-  if (!hash) {
-    return null;
-  }
+  if (!hash) return null;
 
   const dataCheckString = [...params.entries()]
     .filter(([key]) => key !== "hash")
@@ -29,37 +25,26 @@ function parseInitData(initData) {
     .join("\n");
 
   if (!BOT_TOKEN) {
-    console.error(
-      "[RESULT] BOT_TOKEN is not configured"
-    );
+    console.error("[RESULT] BOT_TOKEN is not configured");
     return null;
   }
 
   try {
     const secretKey = crypto
-      .createHmac(
-        "sha256",
-        "WebAppData"
-      )
+      .createHmac("sha256", "WebAppData")
       .update(BOT_TOKEN)
       .digest();
 
     const calculatedHash = crypto
-      .createHmac(
-        "sha256",
-        secretKey
-      )
+      .createHmac("sha256", secretKey)
       .update(dataCheckString)
       .digest("hex");
 
-    const hashBuffer =
-      Buffer.from(hash, "hex");
-
-    const calculatedBuffer =
-      Buffer.from(
-        calculatedHash,
-        "hex"
-      );
+    const hashBuffer = Buffer.from(hash, "hex");
+    const calculatedBuffer = Buffer.from(
+      calculatedHash,
+      "hex"
+    );
 
     if (
       hashBuffer.length !==
@@ -77,19 +62,16 @@ function parseInitData(initData) {
       return null;
     }
 
-    const authDate =
-      Number(
-        params.get("auth_date") || 0
-      );
+    const authDate = Number(
+      params.get("auth_date") || 0
+    );
 
-    if (!authDate) {
-      return null;
-    }
+    if (!authDate) return null;
 
-    const now =
-      Math.floor(Date.now() / 1000);
+    const now = Math.floor(
+      Date.now() / 1000
+    );
 
-    // 24時間以上古いinitDataは拒否
     if (
       now - authDate > 86400 ||
       authDate - now > 60
@@ -97,19 +79,13 @@ function parseInitData(initData) {
       return null;
     }
 
-    const userRaw =
-      params.get("user");
+    const userRaw = params.get("user");
 
-    if (!userRaw) {
-      return null;
-    }
+    if (!userRaw) return null;
 
-    const user =
-      JSON.parse(userRaw);
+    const user = JSON.parse(userRaw);
 
-    if (!user?.id) {
-      return null;
-    }
+    if (!user?.id) return null;
 
     return user;
   } catch (error) {
@@ -124,9 +100,7 @@ function parseInitData(initData) {
 
 function getTelegramUserId(req) {
   const initData =
-    req.headers[
-      "x-telegram-init-data"
-    ] || "";
+    req.headers["x-telegram-init-data"] || "";
 
   const user =
     parseInitData(initData);
@@ -143,12 +117,9 @@ function getTelegramUserId(req) {
 // =========================================================
 
 function parseInteger(value) {
-  const number =
-    Number(value);
+  const number = Number(value);
 
-  if (
-    !Number.isInteger(number)
-  ) {
+  if (!Number.isInteger(number)) {
     return null;
   }
 
@@ -156,12 +127,9 @@ function parseInteger(value) {
 }
 
 function parseWorkHours(value) {
-  const number =
-    Number(value);
+  const number = Number(value);
 
-  if (
-    !Number.isFinite(number)
-  ) {
+  if (!Number.isFinite(number)) {
     return null;
   }
 
@@ -172,19 +140,13 @@ function parseWorkHours(value) {
 
 function validateResultInput(body) {
   const saleAmount =
-    parseInteger(
-      body?.saleAmount
-    );
+    parseInteger(body?.saleAmount);
 
   const deliveryCount =
-    parseInteger(
-      body?.deliveryCount
-    );
+    parseInteger(body?.deliveryCount);
 
   const workHours =
-    parseWorkHours(
-      body?.workHours
-    );
+    parseWorkHours(body?.workHours);
 
   if (
     saleAmount === null ||
@@ -211,18 +173,14 @@ function validateResultInput(body) {
     };
   }
 
-  if (
-    workHours <= 0
-  ) {
+  if (workHours <= 0) {
     return {
       error:
         "稼働時間は0より大きい値を入力してください。",
     };
   }
 
-  if (
-    workHours > 999.99
-  ) {
+  if (workHours > 999.99) {
     return {
       error:
         "稼働時間が大きすぎます。",
@@ -237,7 +195,7 @@ function validateResultInput(body) {
 }
 
 // =========================================================
-// 期間計算
+// JST日付
 // =========================================================
 
 function getJstTodayParts() {
@@ -247,8 +205,7 @@ function getJstTodayParts() {
     new Intl.DateTimeFormat(
       "en-CA",
       {
-        timeZone:
-          "Asia/Tokyo",
+        timeZone: "Asia/Tokyo",
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
@@ -258,30 +215,26 @@ function getJstTodayParts() {
   return {
     year: Number(
       parts.find(
-        item =>
-          item.type === "year"
+        item => item.type === "year"
       )?.value
     ),
 
     month: Number(
       parts.find(
-        item =>
-          item.type === "month"
+        item => item.type === "month"
       )?.value
     ),
 
     day: Number(
       parts.find(
-        item =>
-          item.type === "day"
+        item => item.type === "day"
       )?.value
     ),
   };
 }
 
 function pad2(value) {
-  return String(value)
-    .padStart(2, "0");
+  return String(value).padStart(2, "0");
 }
 
 function toJstDateString(
@@ -289,9 +242,7 @@ function toJstDateString(
   month,
   day
 ) {
-  return (
-    `${year}-${pad2(month)}-${pad2(day)}`
-  );
+  return `${year}-${pad2(month)}-${pad2(day)}`;
 }
 
 function jstDateToUtc(
@@ -308,6 +259,47 @@ function jstDateToUtc(
   );
 }
 
+/*
+ * PostgreSQLのDATEが環境によって
+ * Dateオブジェクトになる場合にも
+ * YYYY-MM-DDで返す。
+ */
+function normalizeDateValue(value) {
+  if (!value) return "";
+
+  if (
+    typeof value === "string"
+  ) {
+    const match =
+      /^(\d{4})-(\d{2})-(\d{2})/.exec(
+        value
+      );
+
+    if (match) {
+      return `${match[1]}-${match[2]}-${match[3]}`;
+    }
+
+    return value;
+  }
+
+  if (
+    value instanceof Date &&
+    !Number.isNaN(value.getTime())
+  ) {
+    return [
+      value.getUTCFullYear(),
+      pad2(value.getUTCMonth() + 1),
+      pad2(value.getUTCDate()),
+    ].join("-");
+  }
+
+  return String(value);
+}
+
+// =========================================================
+// 期間計算
+// =========================================================
+
 function getPeriodRange(
   period,
   requestedMonth,
@@ -316,16 +308,10 @@ function getPeriodRange(
   const today =
     getJstTodayParts();
 
-  let year =
-    today.year;
+  let year = today.year;
+  let month = today.month;
 
-  let month =
-    today.month;
-
-  // -------------------------------------------------------
   // 指定月
-  // -------------------------------------------------------
-
   if (
     period === "month" &&
     requestedMonth
@@ -342,11 +328,8 @@ function getPeriodRange(
       };
     }
 
-    year =
-      Number(match[1]);
-
-    month =
-      Number(match[2]);
+    year = Number(match[1]);
+    month = Number(match[2]);
 
     if (
       month < 1 ||
@@ -359,10 +342,7 @@ function getPeriodRange(
     }
   }
 
-  // -------------------------------------------------------
   // 指定年
-  // -------------------------------------------------------
-
   if (
     period === "year" &&
     requestedYear
@@ -379,8 +359,7 @@ function getPeriodRange(
       };
     }
 
-    year =
-      Number(match[1]);
+    year = Number(match[1]);
 
     if (
       year < 2000 ||
@@ -393,13 +372,8 @@ function getPeriodRange(
     }
   }
 
-  // -------------------------------------------------------
   // 今日
-  // -------------------------------------------------------
-
-  if (
-    period === "today"
-  ) {
+  if (period === "today") {
     const start =
       jstDateToUtc(
         today.year,
@@ -415,28 +389,18 @@ function getPeriodRange(
     );
 
     return {
-      start:
-        start.toISOString(),
-
-      end:
-        end.toISOString(),
-
-      label:
-        toJstDateString(
-          today.year,
-          today.month,
-          today.day
-        ),
+      start: start.toISOString(),
+      end: end.toISOString(),
+      label: toJstDateString(
+        today.year,
+        today.month,
+        today.day
+      ),
     };
   }
 
-  // -------------------------------------------------------
   // 今週
-  // -------------------------------------------------------
-
-  if (
-    period === "week"
-  ) {
+  if (period === "week") {
     const current =
       jstDateToUtc(
         today.year,
@@ -468,24 +432,14 @@ function getPeriodRange(
     );
 
     return {
-      start:
-        start.toISOString(),
-
-      end:
-        end.toISOString(),
-
-      label:
-        "今週",
+      start: start.toISOString(),
+      end: end.toISOString(),
+      label: "今週",
     };
   }
 
-  // -------------------------------------------------------
   // 月
-  // -------------------------------------------------------
-
-  if (
-    period === "month"
-  ) {
+  if (period === "month") {
     const start =
       jstDateToUtc(
         year,
@@ -507,24 +461,15 @@ function getPeriodRange(
           );
 
     return {
-      start:
-        start.toISOString(),
-
-      end:
-        end.toISOString(),
-
+      start: start.toISOString(),
+      end: end.toISOString(),
       label:
         `${year}-${pad2(month)}`,
     };
   }
 
-  // -------------------------------------------------------
   // 年
-  // -------------------------------------------------------
-
-  if (
-    period === "year"
-  ) {
+  if (period === "year") {
     const start =
       jstDateToUtc(
         year,
@@ -540,14 +485,9 @@ function getPeriodRange(
       );
 
     return {
-      start:
-        start.toISOString(),
-
-      end:
-        end.toISOString(),
-
-      label:
-        `${year}年`,
+      start: start.toISOString(),
+      end: end.toISOString(),
+      label: `${year}年`,
     };
   }
 
@@ -598,14 +538,10 @@ async function getStats(
     rows[0] || {};
 
   const records =
-    Number(
-      row.records || 0
-    );
+    Number(row.records || 0);
 
   const sales =
-    Number(
-      row.sales || 0
-    );
+    Number(row.sales || 0);
 
   const deliveryCount =
     Number(
@@ -619,23 +555,18 @@ async function getStats(
 
   return {
     records,
-
     sales,
-
     deliveryCount,
-
     workHours,
 
     unitPrice:
       deliveryCount > 0
-        ? sales /
-          deliveryCount
+        ? sales / deliveryCount
         : 0,
 
     hourlySales:
       workHours > 0
-        ? sales /
-          workHours
+        ? sales / workHours
         : 0,
   };
 }
@@ -692,11 +623,9 @@ async function getRecentResults(
       );
 
     return {
-      id:
-        Number(row.id),
+      id: Number(row.id),
 
-      saleAmount:
-        sales,
+      saleAmount: sales,
 
       deliveryCount,
 
@@ -704,14 +633,12 @@ async function getRecentResults(
 
       unitPrice:
         deliveryCount > 0
-          ? sales /
-            deliveryCount
+          ? sales / deliveryCount
           : 0,
 
       hourlySales:
         workHours > 0
-          ? sales /
-            workHours
+          ? sales / workHours
           : 0,
 
       createdAt:
@@ -719,6 +646,7 @@ async function getRecentResults(
     };
   });
 }
+
 // =========================================================
 // 日別集計
 // =========================================================
@@ -731,7 +659,8 @@ async function getDailyResults(
   const rows = await sql`
     SELECT
       (
-        created_at AT TIME ZONE 'Asia/Tokyo'
+        created_at AT TIME ZONE
+        'Asia/Tokyo'
       )::date AS result_date,
 
       COALESCE(
@@ -787,7 +716,9 @@ async function getDailyResults(
 
     return {
       date:
-        String(row.result_date),
+        normalizeDateValue(
+          row.result_date
+        ),
 
       sales,
 
@@ -802,14 +733,12 @@ async function getDailyResults(
 
       unitPrice:
         deliveryCount > 0
-          ? sales /
-            deliveryCount
+          ? sales / deliveryCount
           : 0,
 
       hourlySales:
         workHours > 0
-          ? sales /
-            workHours
+          ? sales / workHours
           : 0,
     };
   });
@@ -826,7 +755,7 @@ function buildMonthlyReport(
   const workingDays =
     daily.filter(
       day =>
-        Number(day.records) > 0
+        Number(day.records || 0) > 0
     ).length;
 
   let bestSalesDay = null;
@@ -834,28 +763,36 @@ function buildMonthlyReport(
   let bestHourlyDay = null;
 
   for (const day of daily) {
+
     if (
       !bestSalesDay ||
-      Number(day.sales) >
-        Number(bestSalesDay.sales)
+      Number(day.sales || 0) >
+        Number(
+          bestSalesDay.sales || 0
+        )
     ) {
       bestSalesDay = day;
     }
 
     if (
       !bestDeliveryDay ||
-      Number(day.deliveryCount) >
+      Number(
+        day.deliveryCount || 0
+      ) >
         Number(
-          bestDeliveryDay.deliveryCount
+          bestDeliveryDay.deliveryCount || 0
         )
     ) {
       bestDeliveryDay = day;
     }
 
     if (
-      Number(day.hourlySales) >
+      !bestHourlyDay ||
+      Number(
+        day.hourlySales || 0
+      ) >
         Number(
-          bestHourlyDay?.hourlySales || 0
+          bestHourlyDay.hourlySales || 0
         )
     ) {
       bestHourlyDay = day;
@@ -864,42 +801,50 @@ function buildMonthlyReport(
 
   return {
     sales:
-      stats.sales,
+      Number(stats.sales || 0),
 
     deliveryCount:
-      stats.deliveryCount,
+      Number(
+        stats.deliveryCount || 0
+      ),
 
     workHours:
-      stats.workHours,
+      Number(
+        stats.workHours || 0
+      ),
 
     records:
-      stats.records,
+      Number(stats.records || 0),
 
     workingDays,
 
     averageDailySales:
       workingDays > 0
-        ? stats.sales /
+        ? Number(stats.sales || 0) /
           workingDays
         : 0,
 
     averageDailyDeliveryCount:
       workingDays > 0
-        ? stats.deliveryCount /
+        ? Number(
+            stats.deliveryCount || 0
+          ) /
           workingDays
         : 0,
 
     averageDailyWorkHours:
       workingDays > 0
-        ? stats.workHours /
+        ? Number(
+            stats.workHours || 0
+          ) /
           workingDays
         : 0,
 
     unitPrice:
-      stats.unitPrice,
+      Number(stats.unitPrice || 0),
 
     hourlySales:
-      stats.hourlySales,
+      Number(stats.hourlySales || 0),
 
     bestSalesDay,
 
@@ -910,68 +855,50 @@ function buildMonthlyReport(
 }
 
 // =========================================================
-// 実績編集
+// 月次レポート用の期間
+// 「今日・今週」でも現在月のレポートを返す
+// 指定月の場合はその月のレポートを返す
 // =========================================================
 
+function getReportRange(
+  period,
+  requestedMonth
+) {
+  if (
+    period === "month"
+  ) {
+    return getPeriodRange(
+      "month",
+      requestedMonth,
+      null
+    );
+  }
+
+  const today =
+    getJstTodayParts();
+
+  return getPeriodRange(
+    "month",
+    `${today.year}-${pad2(today.month)}`,
+    null
+  );
+}
 async function updateResult(
   userId,
   resultId,
-  body
+  saleAmount,
+  deliveryCount,
+  workHours
 ) {
-  const id =
-    parseInteger(resultId);
-
-  if (
-    id === null ||
-    id <= 0
-  ) {
-    return {
-      ok: false,
-      status: 400,
-      error:
-        "実績IDが正しくありません。",
-    };
-  }
-
-  const validation =
-    validateResultInput(body);
-
-  if (
-    validation.error
-  ) {
-    return {
-      ok: false,
-      status: 400,
-      error:
-        validation.error,
-    };
-  }
-
-  const {
-    saleAmount,
-    deliveryCount,
-    workHours,
-  } = validation;
-
   const rows = await sql`
     UPDATE delivery_results
-
     SET
-      sale_amount =
-        ${saleAmount},
-
-      delivery_count =
-        ${deliveryCount},
-
-      work_hours =
-        ${workHours}
-
-    WHERE id =
-      ${id}
-
-      AND telegram_user_id =
-        ${userId}
-
+      sale_amount = ${saleAmount},
+      delivery_count = ${deliveryCount},
+      work_hours = ${workHours}
+    WHERE
+      id = ${resultId}
+      AND telegram_user_id = ${userId}
     RETURNING
       id,
       sale_amount,
@@ -980,107 +907,23 @@ async function updateResult(
       created_at
   `;
 
-  if (
-    rows.length === 0
-  ) {
-    return {
-      ok: false,
-      status: 404,
-      error:
-        "実績が見つかりません。",
-    };
-  }
-
-  const row =
-    rows[0];
-
-  // 監査ログ
-  try {
-    await sql`
-      INSERT INTO audit_logs (
-        telegram_user_id,
-        action,
-        details
-      )
-      VALUES (
-        ${userId},
-        ${"result_update"},
-        ${JSON.stringify({
-          resultId: id,
-          saleAmount,
-          deliveryCount,
-          workHours,
-        })}
-      )
-    `;
-  } catch (error) {
-    console.error(
-      "[RESULT] audit log error:",
-      error?.message
+  if (!rows.length) {
+    const error = new Error(
+      "指定された実績が見つからないか、編集権限がありません。"
     );
+    error.statusCode = 404;
+    throw error;
   }
 
-  return {
-    ok: true,
-    status: 200,
-
-    result: {
-      id:
-        Number(row.id),
-
-      saleAmount:
-        Number(
-          row.sale_amount
-        ),
-
-      deliveryCount:
-        Number(
-          row.delivery_count
-        ),
-
-      workHours:
-        Number(
-          row.work_hours
-        ),
-
-      createdAt:
-        row.created_at,
-    },
-  };
+  return rows[0];
 }
 
-// =========================================================
-// 実績削除
-// =========================================================
-
-async function deleteResult(
-  userId,
-  resultId
-) {
-  const id =
-    parseInteger(resultId);
-
-  if (
-    id === null ||
-    id <= 0
-  ) {
-    return {
-      ok: false,
-      status: 400,
-      error:
-        "実績IDが正しくありません。",
-    };
-  }
-
+async function deleteResult(userId, resultId) {
   const rows = await sql`
     DELETE FROM delivery_results
-
-    WHERE id =
-      ${id}
-
-      AND telegram_user_id =
-        ${userId}
-
+    WHERE
+      id = ${resultId}
+      AND telegram_user_id = ${userId}
     RETURNING
       id,
       sale_amount,
@@ -1089,393 +932,328 @@ async function deleteResult(
       created_at
   `;
 
-  if (
-    rows.length === 0
-  ) {
-    return {
-      ok: false,
-      status: 404,
-      error:
-        "実績が見つかりません。",
-    };
-  }
-
-  const row =
-    rows[0];
-
-  // 監査ログ
-  try {
-    await sql`
-      INSERT INTO audit_logs (
-        telegram_user_id,
-        action,
-        details
-      )
-      VALUES (
-        ${userId},
-        ${"result_delete"},
-        ${JSON.stringify({
-          resultId: id,
-          saleAmount:
-            Number(
-              row.sale_amount
-            ),
-          deliveryCount:
-            Number(
-              row.delivery_count
-            ),
-          workHours:
-            Number(
-              row.work_hours
-            ),
-          createdAt:
-            row.created_at,
-        })}
-      )
-    `;
-  } catch (error) {
-    console.error(
-      "[RESULT] audit log error:",
-      error?.message
+  if (!rows.length) {
+    const error = new Error(
+      "指定された実績が見つからないか、削除権限がありません。"
     );
+    error.statusCode = 404;
+    throw error;
   }
 
-  return {
-    ok: true,
-    status: 200,
-
-    deleted: {
-      id:
-        Number(row.id),
-
-      saleAmount:
-        Number(
-          row.sale_amount
-        ),
-
-      deliveryCount:
-        Number(
-          row.delivery_count
-        ),
-
-      workHours:
-        Number(
-          row.work_hours
-        ),
-
-      createdAt:
-        row.created_at,
-    },
-  };
+  return rows[0];
 }
 
-// =========================================================
-// メソッド別処理
-// =========================================================
-
-async function handleGet(
-  req,
-  userId
-) {
-  const query =
-    req.query || {};
-
-  const period =
-    String(
-      query.period || "month"
-    ).toLowerCase();
-
-  if (
-    ![
-      "today",
-      "week",
-      "month",
-      "year",
-    ].includes(period)
-  ) {
-    return {
-      status: 400,
-      body: {
-        ok: false,
-        error:
-          "periodが正しくありません。",
-      },
-    };
-  }
+async function handleGet(req, res, userId) {
+  const period = String(
+    req.query.period || "today"
+  ).toLowerCase();
 
   const requestedMonth =
-    query.month
-      ? String(query.month)
+    req.query.month
+      ? String(req.query.month)
       : null;
 
   const requestedYear =
-    query.year
-      ? String(query.year)
+    req.query.year
+      ? String(req.query.year)
       : null;
 
-  const range =
-    getPeriodRange(
-      period,
-      requestedMonth,
-      requestedYear
-    );
+  const allowedPeriods = [
+    "today",
+    "week",
+    "month",
+    "year"
+  ];
 
-  if (
-    range?.error
-  ) {
-    return {
-      status: 400,
-      body: {
-        ok: false,
-        error:
-          range.error,
-      },
-    };
+  if (!allowedPeriods.includes(period)) {
+    return res.status(400).json({
+      ok: false,
+      error: "period が不正です。"
+    });
   }
 
-  if (!range) {
-    return {
-      status: 400,
-      body: {
-        ok: false,
-        error:
-          "期間指定が正しくありません。",
-      },
-    };
-  }
+  const range = getPeriodRange(
+    period,
+    requestedMonth,
+    requestedYear
+  );
 
   const [
     stats,
     recentResults,
-    daily,
+    daily
   ] = await Promise.all([
     getStats(
       userId,
       range.start,
       range.end
     ),
-
     getRecentResults(
       userId,
       range.start,
       range.end
     ),
-
     getDailyResults(
       userId,
       range.start,
       range.end
-    ),
+    )
   ]);
 
-  const monthlyReport =
-    period === "month"
-      ? buildMonthlyReport(
-          stats,
-          daily
-        )
-      : null;
-
-  return {
-    status: 200,
-
-    body: {
-      ok: true,
-
+  const reportRange =
+    getReportRange(
       period,
+      requestedMonth
+    );
 
-      requestedMonth,
+  let reportStats;
+  let reportDaily;
 
-      requestedYear,
-
-      label:
-        range.label,
-
-      range: {
-        start:
-          range.start,
-
-        end:
-          range.end,
-      },
-
-      stats,
-
-      monthlyReport,
-
-      recentResults,
-
-      daily,
-    },
-  };
-}
-
-async function handlePut(
-  req,
-  userId
-) {
-  const body =
-    req.body || {};
-
-  const resultId =
-    body.id ??
-    req.query?.id;
-
-  return await updateResult(
-    userId,
-    resultId,
-    body
-  );
-}
-
-async function handleDelete(
-  req,
-  userId
-) {
-  const resultId =
-    req.query?.id ??
-    req.body?.id;
-
-  return await deleteResult(
-    userId,
-    resultId
-  );
-}
-
-// =========================================================
-// Vercel API
-// =========================================================
-
-module.exports =
-  async function handler(
-    req,
-    res
+  if (
+    reportRange.start === range.start &&
+    reportRange.end === range.end
   ) {
-    try {
-      console.log(
-        "[RESULT] request:",
-        {
-          method:
-            req.method,
+    reportStats = stats;
+    reportDaily = daily;
+  } else {
+    [
+      reportStats,
+      reportDaily
+    ] = await Promise.all([
+      getStats(
+        userId,
+        reportRange.start,
+        reportRange.end
+      ),
+      getDailyResults(
+        userId,
+        reportRange.start,
+        reportRange.end
+      )
+    ]);
+  }
 
-          url:
-            req.url,
-        }
-      );
+  const monthlyReport =
+    buildMonthlyReport(
+      reportStats,
+      reportDaily
+    );
 
-      // ---------------------------------------------------
-      // Telegramユーザー認証
-      // ---------------------------------------------------
+  return res.status(200).json({
+    ok: true,
 
-      const userId =
-        getTelegramUserId(req);
+    period,
 
-      if (!userId) {
-        return res
-          .status(401)
-          .json({
-            ok: false,
-            error:
-              "Telegram認証が確認できません。",
-          });
-      }
+    requestedMonth:
+      requestedMonth || null,
 
-      // ---------------------------------------------------
-      // GET
-      // ---------------------------------------------------
+    requestedYear:
+      requestedYear || null,
 
-      if (
-        req.method === "GET"
-      ) {
-        const result =
-          await handleGet(
-            req,
-            userId
-          );
+    label:
+      range.label,
 
-        return res
-          .status(result.status)
-          .json(result.body);
-      }
+    range: {
+      start: range.start,
+      end: range.end
+    },
 
-      // ---------------------------------------------------
-      // PUT
-      // ---------------------------------------------------
+    stats,
 
-      if (
-        req.method === "PUT"
-      ) {
-        const result =
-          await handlePut(
-            req,
-            userId
-          );
+    monthlyReport,
 
-        return res
-          .status(result.status)
-          .json(result);
-      }
+    monthlyReportRange: {
+      start: reportRange.start,
+      end: reportRange.end
+    },
 
-      // ---------------------------------------------------
-      // PATCHもPUTと同じ扱い
-      // ---------------------------------------------------
+    recentResults,
 
-      if (
-        req.method === "PATCH"
-      ) {
-        const result =
-          await handlePut(
-            req,
-            userId
-          );
+    daily
+  });
+}
 
-        return res
-          .status(result.status)
-          .json(result);
-      }
+async function handlePut(req, res, userId) {
+  const resultId =
+    parseInteger(
+      req.body?.id,
+      "id"
+    );
 
-      // ---------------------------------------------------
-      // DELETE
-      // ---------------------------------------------------
+  const saleAmount =
+    parseInteger(
+      req.body?.saleAmount,
+      "saleAmount"
+    );
 
-      if (
-        req.method === "DELETE"
-      ) {
-        const result =
-          await handleDelete(
-            req,
-            userId
-          );
+  const deliveryCount =
+    parseInteger(
+      req.body?.deliveryCount,
+      "deliveryCount"
+    );
 
-        return res
-          .status(result.status)
-          .json(result);
-      }
+  const workHours =
+    parseWorkHours(
+      req.body?.workHours
+    );
 
-      // ---------------------------------------------------
-      // その他
-      // ---------------------------------------------------
+  validateResultInput(
+    saleAmount,
+    deliveryCount,
+    workHours
+  );
 
-      return res
-        .status(405)
-        .json({
-          ok: false,
-          error:
-            "Method Not Allowed",
-        });
+  const updated =
+    await updateResult(
+      userId,
+      resultId,
+      saleAmount,
+      deliveryCount,
+      workHours
+    );
 
-    } catch (error) {
-      console.error(
-        "[RESULT] API error:",
-        error
-      );
-
-      return res
-        .status(500)
-        .json({
-          ok: false,
-          error:
-            "サーバーエラーが発生しました。",
-        });
+  await writeAuditLog(
+    userId,
+    null,
+    "update_result",
+    {
+      resultId,
+      saleAmount,
+      deliveryCount,
+      workHours
     }
-  };
+  );
+
+  return res.status(200).json({
+    ok: true,
+    result: {
+      id: Number(updated.id),
+      saleAmount: Number(
+        updated.sale_amount
+      ),
+      deliveryCount: Number(
+        updated.delivery_count
+      ),
+      workHours: Number(
+        updated.work_hours
+      ),
+      createdAt:
+        normalizeDateValue(
+          updated.created_at
+        )
+    }
+  });
+}
+
+async function handleDelete(req, res, userId) {
+  const resultId =
+    parseInteger(
+      req.body?.id ??
+        req.query?.id,
+      "id"
+    );
+
+  const deleted =
+    await deleteResult(
+      userId,
+      resultId
+    );
+
+  await writeAuditLog(
+    userId,
+    null,
+    "delete_result",
+    {
+      resultId
+    }
+  );
+
+  return res.status(200).json({
+    ok: true,
+    result: {
+      id: Number(deleted.id)
+    }
+  });
+}
+
+module.exports = async function handler(
+  req,
+  res
+) {
+  try {
+    if (
+      !process.env.DATABASE_URL
+    ) {
+      return res.status(500).json({
+        ok: false,
+        error:
+          "DATABASE_URL が設定されていません。"
+      });
+    }
+
+    const userId =
+      getTelegramUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({
+        ok: false,
+        error:
+          "Telegram認証に失敗しました。Telegramのミニアプリから開いてください。"
+      });
+    }
+
+    if (req.method === "GET") {
+      return await handleGet(
+        req,
+        res,
+        userId
+      );
+    }
+
+    if (
+      req.method === "PUT" ||
+      req.method === "PATCH"
+    ) {
+      return await handlePut(
+        req,
+        res,
+        userId
+      );
+    }
+
+    if (req.method === "DELETE") {
+      return await handleDelete(
+        req,
+        res,
+        userId
+      );
+    }
+
+    res.setHeader(
+      "Allow",
+      "GET, PUT, PATCH, DELETE"
+    );
+
+    return res.status(405).json({
+      ok: false,
+      error:
+        "Method Not Allowed"
+    });
+  } catch (error) {
+    console.error(
+      "[RESULT API] error:",
+      error
+    );
+
+    const statusCode =
+      Number(error?.statusCode) || 500;
+
+    return res.status(statusCode).json({
+      ok: false,
+      error:
+        statusCode === 500
+          ? "サーバーエラーが発生しました。"
+          : error.message
+    });
+  }
+};
