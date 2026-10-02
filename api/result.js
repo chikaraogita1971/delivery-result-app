@@ -30,12 +30,10 @@ function getTelegramUserFromInitData(initData) {
 
   const now = Math.floor(Date.now() / 1000);
 
-  // 24時間以上古い認証情報は拒否
   if (now - authTimestamp > 60 * 60 * 24) {
     return null;
   }
 
-  // 未来時刻の不正な認証情報も拒否
   if (authTimestamp > now + 60) {
     return null;
   }
@@ -109,7 +107,9 @@ function parseWorkHours(value) {
   }
 
   if (number < 0 || number > 999.99) {
-    throw new Error("稼働時間は0〜999.99時間で入力してください");
+    throw new Error(
+      "稼働時間は0〜999.99時間で入力してください"
+    );
   }
 
   return Math.round(number * 100) / 100;
@@ -163,8 +163,6 @@ function parseStartedAt(value) {
 
   const stringValue = String(value).trim();
 
-  // Mini Appの <input type="time"> などから
-  // "16:30" のような時刻だけが送られた場合
   if (/^\d{1,2}:\d{2}$/.test(stringValue)) {
     const [hour, minute] = stringValue.split(":").map(Number);
 
@@ -195,7 +193,6 @@ function parseStartedAt(value) {
     return date.toISOString();
   }
 
-  // ISO日時など、完全な日時が送られた場合
   const date = new Date(stringValue);
 
   if (Number.isNaN(date.getTime())) {
@@ -207,14 +204,21 @@ function parseStartedAt(value) {
 
 function validateResultInput(body) {
   const saleAmount = parseInteger(body.saleAmount, "売上");
-  const deliveryCount = parseInteger(body.deliveryCount, "配達数");
+  const deliveryCount = parseInteger(
+    body.deliveryCount,
+    "配達数"
+  );
 
   if (saleAmount < 0 || saleAmount > 100000000) {
-    throw new Error("売上は0〜100,000,000円で入力してください");
+    throw new Error(
+      "売上は0〜100,000,000円で入力してください"
+    );
   }
 
   if (deliveryCount <= 0 || deliveryCount > 100000) {
-    throw new Error("配達数は1〜100,000件で入力してください");
+    throw new Error(
+      "配達数は1〜100,000件で入力してください"
+    );
   }
 
   const workHours = parseWorkHours(body.workHours);
@@ -225,7 +229,9 @@ function validateResultInput(body) {
     999999.99
   );
 
-  const workStartedAt = parseStartedAt(body.workStartedAt);
+  const workStartedAt = parseStartedAt(
+    body.workStartedAt
+  );
 
   return {
     saleAmount,
@@ -284,7 +290,8 @@ function getPeriodRange(period) {
   if (period === "month") {
     const parts = getJstTodayParts();
 
-    const start = `${parts.year}-${parts.month}-01T00:00:00+09:00`;
+    const start =
+      `${parts.year}-${parts.month}-01T00:00:00+09:00`;
 
     const year = Number(parts.year);
     const month = Number(parts.month);
@@ -304,8 +311,18 @@ function getPeriodRange(period) {
     const parts = getJstTodayParts();
 
     return {
-      start: `${parts.year}-01-01T00:00:00+09:00`,
-      end: `${Number(parts.year) + 1}-01-01T00:00:00+09:00`,
+      start:
+        `${parts.year}-01-01T00:00:00+09:00`,
+      end:
+        `${Number(parts.year) + 1}-01-01T00:00:00+09:00`,
+    };
+  }
+
+  // 全期間
+  if (period === "all") {
+    return {
+      start: "1970-01-01T00:00:00+09:00",
+      end: "2999-12-31T23:59:59.999+09:00",
     };
   }
 
@@ -328,7 +345,9 @@ async function getStats(userId, start, end) {
   const row = rows[0];
 
   const saleAmount = Number(row.sale_amount || 0);
-  const deliveryCount = Number(row.delivery_count || 0);
+  const deliveryCount = Number(
+    row.delivery_count || 0
+  );
   const workHours = Number(row.work_hours || 0);
 
   return {
@@ -425,7 +444,9 @@ async function getDailyResults(userId, start, end) {
   return rows.map((row) => ({
     date: row.date,
     saleAmount: Number(row.sale_amount || 0),
-    deliveryCount: Number(row.delivery_count || 0),
+    deliveryCount: Number(
+      row.delivery_count || 0
+    ),
     workHours: Number(row.work_hours || 0),
   }));
 }
@@ -453,7 +474,9 @@ async function getMonthlyReport(userId) {
   return rows.map((row) => ({
     date: row.date,
     saleAmount: Number(row.sale_amount || 0),
-    deliveryCount: Number(row.delivery_count || 0),
+    deliveryCount: Number(
+      row.delivery_count || 0
+    ),
     workHours: Number(row.work_hours || 0),
   }));
 }
@@ -479,7 +502,9 @@ async function createResult(userId, body) {
     expense = parseInteger(expenseValue, "経費");
 
     if (expense < 0 || expense > 100000000) {
-      throw new Error("経費は0〜100,000,000円で入力してください");
+      throw new Error(
+        "経費は0〜100,000,000円で入力してください"
+      );
     }
   }
 
@@ -568,7 +593,9 @@ async function updateResult(userId, id, body) {
     expense = parseInteger(body.expense, "経費");
 
     if (expense < 0 || expense > 100000000) {
-      throw new Error("経費は0〜100,000,000円で入力してください");
+      throw new Error(
+        "経費は0〜100,000,000円で入力してください"
+      );
     }
   }
 
@@ -659,7 +686,8 @@ export default async function handler(req, res) {
       req.headers["x-telegram-web-app-data"] ||
       req.body?.initData;
 
-    const telegramUser = getTelegramUserFromInitData(initData);
+    const telegramUser =
+      getTelegramUserFromInitData(initData);
 
     if (!telegramUser) {
       return json(res, 401, {
@@ -673,30 +701,40 @@ export default async function handler(req, res) {
     if (req.method === "GET") {
       const period = req.query?.period || "today";
 
-      const { start, end } = getPeriodRange(period);
+      const { start, end } =
+        getPeriodRange(period);
 
-      const [stats, expense, recentResults, dailyResults, monthlyReport] =
-        await Promise.all([
-          getStats(userId, start, end),
-          getExpenseTotal(userId, start, end),
-          getRecentResults(userId),
-          getDailyResults(userId, start, end),
-          getMonthlyReport(userId),
-        ]);
+      const [
+        stats,
+        expense,
+        recentResults,
+        dailyResults,
+        monthlyReport,
+      ] = await Promise.all([
+        getStats(userId, start, end),
+        getExpenseTotal(userId, start, end),
+        getRecentResults(userId),
+        getDailyResults(userId, start, end),
+        getMonthlyReport(userId),
+      ]);
 
       return json(res, 200, {
         ok: true,
         user: {
           id: userId,
-          firstName: telegramUser.first_name || "",
-          lastName: telegramUser.last_name || "",
-          username: telegramUser.username || "",
+          firstName:
+            telegramUser.first_name || "",
+          lastName:
+            telegramUser.last_name || "",
+          username:
+            telegramUser.username || "",
         },
         period,
         stats: {
           ...stats,
           expense,
-          profit: stats.saleAmount - expense,
+          profit:
+            stats.saleAmount - expense,
         },
         recentResults,
         dailyResults,
@@ -716,7 +754,10 @@ export default async function handler(req, res) {
       });
     }
 
-    if (req.method === "PUT" || req.method === "PATCH") {
+    if (
+      req.method === "PUT" ||
+      req.method === "PATCH"
+    ) {
       const id =
         req.query?.id ??
         req.body?.id;
@@ -757,7 +798,8 @@ export default async function handler(req, res) {
         });
       }
 
-      const deleted = await deleteResult(userId, id);
+      const deleted =
+        await deleteResult(userId, id);
 
       if (!deleted) {
         return json(res, 404, {
@@ -771,14 +813,20 @@ export default async function handler(req, res) {
       });
     }
 
-    res.setHeader("Allow", "GET, POST, PUT, PATCH, DELETE");
+    res.setHeader(
+      "Allow",
+      "GET, POST, PUT, PATCH, DELETE"
+    );
 
     return json(res, 405, {
       ok: false,
       error: "Method Not Allowed",
     });
   } catch (error) {
-    console.error("result API error:", error);
+    console.error(
+      "result API error:",
+      error
+    );
 
     return json(res, 500, {
       ok: false,
