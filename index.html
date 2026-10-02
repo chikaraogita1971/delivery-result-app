@@ -744,7 +744,7 @@
 
   <!-- =========================================
        Personal
-  ========================================== -->
+  ========================================= -->
 
   <section
     id="personalSection"
@@ -995,9 +995,7 @@
     </div>
 
   </section>
-
-
-  <!-- =========================================
+    <!-- =========================================
        Analytics
   ========================================== -->
 
@@ -1014,6 +1012,28 @@
 
       <div
         id="analyticsSummary"
+        class="analysis-grid"
+      >
+        <div class="loading">
+          読み込み中...
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- =========================================
+         追加：効率分析
+    ========================================== -->
+
+    <div class="card">
+
+      <div class="card-title">
+        📊 効率分析
+      </div>
+
+      <div
+        id="efficiencyAnalysis"
         class="analysis-grid"
       >
         <div class="loading">
@@ -2375,9 +2395,7 @@
         `)
         .join("");
   }
-
-
-  // =========================================================
+    // =========================================================
   // Analytics
   // =========================================================
 
@@ -2388,6 +2406,14 @@
       );
 
     summary.innerHTML = `
+      <div class="loading">
+        読み込み中...
+      </div>
+    `;
+
+    document.getElementById(
+      "efficiencyAnalysis"
+    ).innerHTML = `
       <div class="loading">
         読み込み中...
       </div>
@@ -2414,6 +2440,10 @@
         daily
       );
 
+      renderEfficiencyAnalysis(
+        stats
+      );
+
       renderAnalyticsBest(
         daily
       );
@@ -2427,7 +2457,7 @@
         error
       );
 
-      summary.innerHTML = `
+      const errorHtml = `
         <div class="error">
           ${escapeHtml(
             error.message ||
@@ -2435,6 +2465,14 @@
           )}
         </div>
       `;
+
+      summary.innerHTML =
+        errorHtml;
+
+      document.getElementById(
+        "efficiencyAnalysis"
+      ).innerHTML =
+        errorHtml;
 
       document.getElementById(
         "analyticsBest"
@@ -2446,6 +2484,10 @@
     }
   }
 
+
+  // =========================================================
+  // Analytics Summary
+  // =========================================================
 
   function renderAnalyticsSummary(
     stats,
@@ -2575,6 +2617,150 @@
     `;
   }
 
+
+  // =========================================================
+  // Efficiency Analysis
+  // =========================================================
+
+  function renderEfficiencyAnalysis(
+    stats
+  ) {
+    const container =
+      document.getElementById(
+        "efficiencyAnalysis"
+      );
+
+    if (!container) {
+      return;
+    }
+
+    const sales =
+      Number(
+        stats.sales || 0
+      );
+
+    const deliveryCount =
+      Number(
+        stats.deliveryCount || 0
+      );
+
+    const workHours =
+      Number(
+        stats.workHours || 0
+      );
+
+    /*
+     * 1時間あたり配達
+     *
+     * 配達数 ÷ 稼働時間
+     */
+    const deliveriesPerHour =
+      workHours > 0
+        ? deliveryCount /
+          workHours
+        : 0;
+
+    /*
+     * 1件あたり稼働時間
+     *
+     * 稼働時間 × 60 ÷ 配達数
+     */
+    const minutesPerDelivery =
+      deliveryCount > 0
+        ? (
+            workHours * 60
+          ) /
+          deliveryCount
+        : 0;
+
+    /*
+     * 1件あたり売上
+     *
+     * 売上 ÷ 配達数
+     */
+    const unitPrice =
+      deliveryCount > 0
+        ? sales /
+          deliveryCount
+        : 0;
+
+    /*
+     * 1時間あたり売上
+     *
+     * 売上 ÷ 稼働時間
+     */
+    const hourlySales =
+      workHours > 0
+        ? sales /
+          workHours
+        : 0;
+
+    container.innerHTML = `
+      <div class="analysis-item">
+
+        <div class="analysis-label">
+          1時間あたり配達
+        </div>
+
+        <div class="analysis-value">
+          ${formatDecimal(
+            deliveriesPerHour
+          )}件/h
+        </div>
+
+      </div>
+
+
+      <div class="analysis-item">
+
+        <div class="analysis-label">
+          1件あたり稼働
+        </div>
+
+        <div class="analysis-value">
+          ${formatDecimal(
+            minutesPerDelivery
+          )}分/件
+        </div>
+
+      </div>
+
+
+      <div class="analysis-item">
+
+        <div class="analysis-label">
+          1件あたり売上
+        </div>
+
+        <div class="analysis-value">
+          ${formatYen(
+            unitPrice
+          )}
+        </div>
+
+      </div>
+
+
+      <div class="analysis-item">
+
+        <div class="analysis-label">
+          1時間あたり売上
+        </div>
+
+        <div class="analysis-value">
+          ${formatYen(
+            hourlySales
+          )}/h
+        </div>
+
+      </div>
+    `;
+  }
+
+
+  // =========================================================
+  // Analytics Best
+  // =========================================================
 
   function renderAnalyticsBest(
     daily
