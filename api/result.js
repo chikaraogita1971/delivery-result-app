@@ -498,6 +498,172 @@ function getPeriodRange(
 // =========================================================
 // 月次レポート用期間
 // 今日・今週・年の場合は現在月
+// =========================================================
+
+function getReportMonthRange() {
+  const today = getJstTodayParts();
+
+  const start = jstDateToUtc(
+    today.year,
+    today.month,
+    1
+  );
+
+  const end =
+    today.month === 12
+      ? jstDateToUtc(
+          today.year + 1,
+          1,
+          1
+        )
+      : jstDateToUtc(
+          today.year,
+          today.month + 1,
+          1
+        );
+
+  return {
+    start,
+    end,
+    year: today.year,
+    month: today.month,
+  };
+}
+
+// =========================================================
+// 日付表示
+// =========================================================
+
+function formatJstDateTime(value) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat(
+    "ja-JP",
+    {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }
+  ).format(date);
+}
+
+function formatJstDate(value) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat(
+    "ja-JP",
+    {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }
+  ).format(date);
+}
+
+// =========================================================
+// 統計
+// =========================================================
+
+async function getStats(
+  userId,
+  start,
+  end
+) {
+  const rows = await sql`
+    SELECT
+      COUNT(*) AS records,
+
+      COALESCE(
+        SUM(sale_amount),
+        0
+      ) AS sales,
+
+      COALESCE(
+        SUM(delivery_count),
+        0
+      ) AS delivery_count,
+
+      COALESCE(
+        SUM(work_hours),
+        0
+      ) AS work_hours
+
+    FROM delivery_results
+
+    WHERE telegram_user_id =
+      ${userId}
+
+      AND created_at >=
+        ${start}
+
+      AND created_at <
+        ${end}
+  `;
+
+  const row = rows[0] || {};
+
+  const records = Number(
+    row.records || 0
+  );
+
+  const sales = Number(
+    row.sales || 0
+  );
+
+  const deliveryCount =
+    Number(
+      row.delivery_count || 0
+    );
+
+  const workHours = Number(
+    row.work_hours || 0
+  );
+
+  return {
+    records,
+    sales,
+    deliveryCount,
+    workHours,
+
+    unitPrice:
+      deliveryCount > 0
+        ? sales / deliveryCount
+        : 0,
+
+    hourlySales:
+      workHours > 0
+        ? sales / workHours
+        : 0,
+
+    deliveriesPerHour:
+      workHours > 0
+        ? deliveryCount / workHours
+        : 0,
+  };
+}
+// =========================================================
+// 月次レポート用期間
+// 今日・今週・年の場合は現在月
 // 月指定の場合は指定月
 // =========================================================
 
@@ -599,6 +765,12 @@ async function getStats(
       workHours > 0
         ? sales / workHours
         : 0,
+
+    // 📊 効率分析
+    deliveriesPerHour:
+      workHours > 0
+        ? deliveryCount / workHours
+        : 0,
   };
 }
 
@@ -668,6 +840,12 @@ async function getRecentResults(
       hourlySales:
         workHours > 0
           ? sales / workHours
+          : 0,
+
+      // 📊 効率分析
+      deliveriesPerHour:
+        workHours > 0
+          ? deliveryCount / workHours
           : 0,
 
       createdAt:
@@ -763,6 +941,12 @@ async function getDailyResults(
         workHours > 0
           ? sales / workHours
           : 0,
+
+      // 📊 効率分析
+      deliveriesPerHour:
+        workHours > 0
+          ? deliveryCount / workHours
+          : 0,
     };
   });
 }
@@ -851,6 +1035,10 @@ function buildMonthlyReport(
 
     hourlySales:
       stats.hourlySales,
+
+    // 📊 効率分析
+    deliveriesPerHour:
+      stats.deliveriesPerHour,
 
     bestSalesDay,
 
@@ -990,6 +1178,14 @@ async function updateResult(
 }
 
 // =========================================================
+// 実績削除
+// =========================================================
+
+async function deleteResult(
+  userId,
+  resultId
+) {
+  // =========================================================
 // 実績削除
 // =========================================================
 
