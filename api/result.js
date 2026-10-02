@@ -500,34 +500,28 @@ function getPeriodRange(
 // 今日・今週・年の場合は現在月
 // =========================================================
 
-function getReportMonthRange() {
-  const today = getJstTodayParts();
+function getMonthlyReportRange(
+  period,
+  requestedMonth
+) {
+  if (
+    period === "month"
+  ) {
+    return getPeriodRange(
+      "month",
+      requestedMonth,
+      null
+    );
+  }
 
-  const start = jstDateToUtc(
-    today.year,
-    today.month,
-    1
+  const today =
+    getJstTodayParts();
+
+  return getPeriodRange(
+    "month",
+    `${today.year}-${pad2(today.month)}`,
+    null
   );
-
-  const end =
-    today.month === 12
-      ? jstDateToUtc(
-          today.year + 1,
-          1,
-          1
-        )
-      : jstDateToUtc(
-          today.year,
-          today.month + 1,
-          1
-        );
-
-  return {
-    start,
-    end,
-    year: today.year,
-    month: today.month,
-  };
 }
 
 // =========================================================
@@ -578,117 +572,6 @@ function formatJstDate(value) {
       day: "2-digit",
     }
   ).format(date);
-}
-
-// =========================================================
-// 統計
-// =========================================================
-
-async function getStats(
-  userId,
-  start,
-  end
-) {
-  const rows = await sql`
-    SELECT
-      COUNT(*) AS records,
-
-      COALESCE(
-        SUM(sale_amount),
-        0
-      ) AS sales,
-
-      COALESCE(
-        SUM(delivery_count),
-        0
-      ) AS delivery_count,
-
-      COALESCE(
-        SUM(work_hours),
-        0
-      ) AS work_hours
-
-    FROM delivery_results
-
-    WHERE telegram_user_id =
-      ${userId}
-
-      AND created_at >=
-        ${start}
-
-      AND created_at <
-        ${end}
-  `;
-
-  const row = rows[0] || {};
-
-  const records = Number(
-    row.records || 0
-  );
-
-  const sales = Number(
-    row.sales || 0
-  );
-
-  const deliveryCount =
-    Number(
-      row.delivery_count || 0
-    );
-
-  const workHours = Number(
-    row.work_hours || 0
-  );
-
-  return {
-    records,
-    sales,
-    deliveryCount,
-    workHours,
-
-    unitPrice:
-      deliveryCount > 0
-        ? sales / deliveryCount
-        : 0,
-
-    hourlySales:
-      workHours > 0
-        ? sales / workHours
-        : 0,
-
-    deliveriesPerHour:
-      workHours > 0
-        ? deliveryCount / workHours
-        : 0,
-  };
-}
-// =========================================================
-// 月次レポート用期間
-// 今日・今週・年の場合は現在月
-// 月指定の場合は指定月
-// =========================================================
-
-function getMonthlyReportRange(
-  period,
-  requestedMonth
-) {
-  if (
-    period === "month"
-  ) {
-    return getPeriodRange(
-      "month",
-      requestedMonth,
-      null
-    );
-  }
-
-  const today =
-    getJstTodayParts();
-
-  return getPeriodRange(
-    "month",
-    `${today.year}-${pad2(today.month)}`,
-    null
-  );
 }
 
 // =========================================================
@@ -766,14 +649,12 @@ async function getStats(
         ? sales / workHours
         : 0,
 
-    // 📊 効率分析
     deliveriesPerHour:
       workHours > 0
         ? deliveryCount / workHours
         : 0,
   };
 }
-
 // =========================================================
 // 実績履歴
 // =========================================================
@@ -842,7 +723,6 @@ async function getRecentResults(
           ? sales / workHours
           : 0,
 
-      // 📊 効率分析
       deliveriesPerHour:
         workHours > 0
           ? deliveryCount / workHours
@@ -942,7 +822,6 @@ async function getDailyResults(
           ? sales / workHours
           : 0,
 
-      // 📊 効率分析
       deliveriesPerHour:
         workHours > 0
           ? deliveryCount / workHours
@@ -1036,7 +915,6 @@ function buildMonthlyReport(
     hourlySales:
       stats.hourlySales,
 
-    // 📊 効率分析
     deliveriesPerHour:
       stats.deliveriesPerHour,
 
@@ -1185,14 +1063,6 @@ async function deleteResult(
   userId,
   resultId
 ) {
-  // =========================================================
-// 実績削除
-// =========================================================
-
-async function deleteResult(
-  userId,
-  resultId
-) {
   const id = parseInteger(
     resultId
   );
@@ -1296,7 +1166,6 @@ async function deleteResult(
     },
   };
 }
-
 // =========================================================
 // GET
 // =========================================================
