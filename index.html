@@ -54,30 +54,21 @@
       padding: 12px;
     }
 
-    /* =========================================
-       Header
-    ========================================= */
-
     .header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-
       padding: 16px;
       margin-bottom: 12px;
-
       background: #ffffff;
       border: 1px solid #e5e7eb;
       border-radius: 18px;
-
-      box-shadow:
-        0 4px 14px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
     }
 
     .header-title {
       margin: 0;
-
       font-size: 20px;
       font-weight: 900;
       letter-spacing: -0.02em;
@@ -85,10 +76,8 @@
 
     .user-name {
       margin-top: 5px;
-
       color: #6b7280;
       font-size: 13px;
-
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -97,15 +86,11 @@
     .refresh-btn {
       width: 42px;
       height: 42px;
-
       flex-shrink: 0;
-
       border: 0;
       border-radius: 12px;
-
       background: #f3f4f6;
       color: #374151;
-
       font-size: 18px;
     }
 
@@ -113,27 +98,19 @@
       transform: scale(0.96);
     }
 
-    /* =========================================
-       Main tabs
-    ========================================= */
-
     .main-tabs {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
-
       margin-bottom: 12px;
     }
 
     .main-tab {
       min-height: 44px;
-
       border: 1px solid #e5e7eb;
       border-radius: 13px;
-
       background: #ffffff;
       color: #6b7280;
-
       font-size: 14px;
       font-weight: 800;
     }
@@ -144,10 +121,6 @@
       border-color: #111827;
     }
 
-    /* =========================================
-       Sections
-    ========================================= */
-
     .section {
       display: none;
     }
@@ -156,27 +129,19 @@
       display: block;
     }
 
-    /* =========================================
-       Period
-    ========================================= */
-
     .period-tabs {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 6px;
-
       margin-bottom: 12px;
     }
 
     .period-tab {
       min-height: 42px;
-
       border: 1px solid #e5e7eb;
       border-radius: 12px;
-
       background: #ffffff;
       color: #6b7280;
-
       font-size: 13px;
       font-weight: 800;
     }
@@ -187,25 +152,17 @@
       border-color: #2563eb;
     }
 
-    /* =========================================
-       Add result
-    ========================================= */
-
     .add-result-card {
       padding: 16px;
       margin-bottom: 12px;
-
       background: #ffffff;
       border: 1px solid #e5e7eb;
       border-radius: 18px;
-
-      box-shadow:
-        0 4px 14px rgba(0, 0, 0, 0.035);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.035);
     }
 
     .add-result-title {
       margin-bottom: 14px;
-
       font-size: 15px;
       font-weight: 900;
     }
@@ -216,9 +173,7 @@
 
     .form-label {
       display: block;
-
       margin-bottom: 6px;
-
       color: #374151;
       font-size: 12px;
       font-weight: 800;
@@ -226,7 +181,6 @@
 
     .required {
       margin-left: 4px;
-
       color: #dc2626;
       font-size: 10px;
     }
@@ -240,28 +194,22 @@
     .result-input {
       width: 100%;
       min-height: 44px;
-
       padding: 0 12px;
-
       border: 1px solid #d1d5db;
       border-radius: 11px;
-
       background: #ffffff;
       color: #111827;
-
       outline: none;
     }
 
     .result-input:focus {
       border-color: #2563eb;
-      box-shadow:
-        0 0 0 3px rgba(37, 99, 235, 0.10);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
     }
 
     .input-prefix,
     .input-suffix {
       flex-shrink: 0;
-
       color: #6b7280;
       font-size: 12px;
       font-weight: 700;
@@ -269,25 +217,18 @@
 
     .details-toggle {
       width: 100%;
-
       display: flex;
       align-items: center;
       justify-content: space-between;
-
       min-height: 44px;
-
       margin-top: 2px;
       padding: 0 12px;
-
       border: 1px solid #e5e7eb;
       border-radius: 11px;
-
       background: #f9fafb;
       color: #374151;
-
       font-size: 12px;
       font-weight: 800;
-
       text-align: left;
     }
 
@@ -299,17 +240,14 @@
       transition: transform 0.2s ease;
     }
 
-    .details-toggle.open
-      .details-toggle-icon {
+    .details-toggle.open .details-toggle-icon {
       transform: rotate(180deg);
     }
 
     .optional-details {
       display: none;
-
       margin-top: 10px;
       padding: 12px;
-
       background: #f9fafb;
       border-radius: 14px;
     }
@@ -321,15 +259,11 @@
     .add-result-submit {
       width: 100%;
       min-height: 48px;
-
       margin-top: 4px;
-
       border: 0;
       border-radius: 13px;
-
       background: #2563eb;
       color: #ffffff;
-
       font-size: 14px;
       font-weight: 900;
     }
@@ -338,31 +272,28 @@
       transform: scale(0.98);
     }
 
+    .add-result-submit:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
     .add-result-note {
       margin-top: 8px;
-
       color: #9ca3af;
       font-size: 10px;
       line-height: 1.5;
     }
 
-    /* =========================================
-       History selector
-    ========================================= */
-
     .history-card {
       padding: 14px;
-
       background: #ffffff;
       border: 1px solid #e5e7eb;
       border-radius: 16px;
-
       margin-bottom: 12px;
     }
 
     .history-title {
       margin-bottom: 10px;
-
       font-size: 13px;
       font-weight: 900;
     }
@@ -376,35 +307,24 @@
     .history-select {
       width: 100%;
       height: 42px;
-
       padding: 0 10px;
-
       border: 1px solid #d1d5db;
       border-radius: 11px;
-
       background: #ffffff;
       color: #111827;
     }
 
-    /* =========================================
-       Cards
-    ========================================= */
-
     .card {
       padding: 16px;
       margin-bottom: 12px;
-
       background: #ffffff;
       border: 1px solid #e5e7eb;
       border-radius: 18px;
-
-      box-shadow:
-        0 4px 14px rgba(0, 0, 0, 0.035);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.035);
     }
 
     .card-title {
       margin-bottom: 14px;
-
       font-size: 15px;
       font-weight: 900;
     }
@@ -415,27 +335,19 @@
       font-weight: 700;
     }
 
-    /* =========================================
-       Hero
-    ========================================= */
-
     .hero-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
-
       margin-bottom: 12px;
     }
 
     .hero-card {
       padding: 16px;
-
       background: #ffffff;
       border: 1px solid #e5e7eb;
       border-radius: 18px;
-
-      box-shadow:
-        0 4px 14px rgba(0, 0, 0, 0.035);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.035);
     }
 
     .hero-label {
@@ -446,7 +358,6 @@
 
     .hero-value {
       margin-top: 7px;
-
       font-size: 27px;
       line-height: 1.1;
       font-weight: 900;
@@ -455,15 +366,10 @@
 
     .hero-unit {
       margin-left: 3px;
-
       color: #6b7280;
       font-size: 12px;
       font-weight: 700;
     }
-
-    /* =========================================
-       Stats
-    ========================================= */
 
     .stats-grid {
       display: grid;
@@ -473,7 +379,6 @@
 
     .stat-box {
       padding: 13px;
-
       background: #f9fafb;
       border-radius: 14px;
     }
@@ -486,14 +391,9 @@
 
     .stat-value {
       margin-top: 5px;
-
       font-size: 18px;
       font-weight: 900;
     }
-
-    /* =========================================
-       Analysis
-    ========================================= */
 
     .analysis-grid {
       display: grid;
@@ -503,7 +403,6 @@
 
     .analysis-item {
       padding: 14px;
-
       background: #f9fafb;
       border-radius: 14px;
     }
@@ -516,21 +415,15 @@
 
     .analysis-value {
       margin-top: 5px;
-
       font-size: 19px;
       font-weight: 900;
     }
 
     .analysis-sub {
       margin-top: 3px;
-
       color: #9ca3af;
       font-size: 10px;
     }
-
-    /* =========================================
-       Best
-    ========================================= */
 
     .best-list {
       display: grid;
@@ -542,9 +435,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-
       padding: 13px;
-
       background: #f9fafb;
       border-radius: 14px;
     }
@@ -557,30 +448,21 @@
 
     .best-date {
       margin-top: 3px;
-
       font-size: 13px;
       font-weight: 800;
     }
 
     .best-value {
       text-align: right;
-
       font-size: 18px;
       font-weight: 900;
     }
 
-    /* =========================================
-       Streak
-    ========================================= */
-
     .streak-box {
       padding: 18px;
-
       background: #111827;
       color: #ffffff;
-
       border-radius: 16px;
-
       text-align: center;
     }
 
@@ -592,15 +474,10 @@
 
     .streak-unit {
       margin-top: 7px;
-
       color: rgba(255, 255, 255, 0.7);
       font-size: 12px;
       font-weight: 700;
     }
-
-    /* =========================================
-       Monthly report
-    ========================================= */
 
     .report-grid {
       display: grid;
@@ -610,7 +487,6 @@
 
     .report-item {
       padding: 13px;
-
       background: #f9fafb;
       border-radius: 14px;
     }
@@ -623,207 +499,131 @@
 
     .report-value {
       margin-top: 5px;
-
       font-size: 18px;
       font-weight: 900;
     }
 
     .report-best {
       margin-top: 14px;
-
       color: #374151;
       font-size: 12px;
       font-weight: 700;
     }
 
-    /* =========================================
-       Daily chart
-    ========================================= */
-
     .chart {
       display: flex;
       align-items: flex-end;
       gap: 6px;
-
       min-height: 180px;
-
       padding: 12px 4px;
-
       overflow-x: auto;
     }
 
     .chart-column {
       min-width: 34px;
-
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-end;
-
       height: 155px;
     }
 
     .chart-value {
       margin-bottom: 4px;
-
       font-size: 8px;
       color: #6b7280;
-
       white-space: nowrap;
     }
 
     .chart-bar-wrap {
       width: 24px;
       height: 115px;
-
       display: flex;
       align-items: flex-end;
     }
 
     .chart-bar {
       width: 100%;
-
       min-height: 2px;
-
       background: #2563eb;
       border-radius: 6px 6px 2px 2px;
     }
 
     .chart-date {
       margin-top: 5px;
-
       color: #6b7280;
       font-size: 8px;
-
       white-space: nowrap;
     }
 
-    /* =========================================
-       Daily list
-    ========================================= */
-
-    .daily-list {
-      display: grid;
-      gap: 8px;
-    }
-
-    .daily-item {
-      padding: 13px;
-
-      background: #f9fafb;
-      border-radius: 14px;
-    }
-
-    .daily-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .daily-date {
-      font-size: 13px;
-      font-weight: 900;
-    }
-
-    .daily-sales {
-      font-size: 15px;
-      font-weight: 900;
-    }
-
-    .daily-detail {
-      margin-top: 5px;
-
-      color: #6b7280;
-      font-size: 11px;
-    }
-
-    /* =========================================
-       Records
-    ========================================= */
-
+    .daily-list,
     .record-list {
       display: grid;
       gap: 8px;
     }
 
+    .daily-item,
     .record-item {
       padding: 13px;
-
       background: #f9fafb;
       border-radius: 14px;
     }
 
+    .daily-top,
     .record-top {
       display: flex;
       justify-content: space-between;
       gap: 8px;
     }
 
+    .daily-date,
     .record-date {
       color: #6b7280;
       font-size: 11px;
       font-weight: 700;
     }
 
+    .daily-sales,
     .record-sales {
       font-size: 15px;
       font-weight: 900;
     }
 
+    .daily-detail,
     .record-detail {
       margin-top: 5px;
-
       color: #6b7280;
       font-size: 11px;
     }
 
-    /* =========================================
-       Loading / Empty / Error
-    ========================================= */
-
     .loading,
     .empty {
       padding: 24px 10px;
-
       text-align: center;
-
       color: #6b7280;
       font-size: 13px;
     }
 
     .error {
       padding: 14px;
-
       background: #fef2f2;
       border: 1px solid #fecaca;
       border-radius: 14px;
-
       color: #b91c1c;
       font-size: 13px;
       font-weight: 700;
     }
 
-    /* =========================================
-       Buttons
-    ========================================= */
-
     .danger-btn {
       width: 100%;
       min-height: 46px;
-
       border: 1px solid #fecaca;
       border-radius: 13px;
-
       background: #fff1f2;
       color: #be123c;
-
       font-size: 13px;
       font-weight: 800;
     }
-
-    /* =========================================
-       Responsive
-    ========================================= */
 
     @media (max-width: 420px) {
       .app {
@@ -845,10 +645,6 @@
 <body>
 
 <div class="app">
-
-  <!-- =========================================
-       Header
-  ========================================== -->
 
   <header class="header">
 
@@ -876,10 +672,6 @@
   </header>
 
 
-  <!-- =========================================
-       Main tabs
-  ========================================== -->
-
   <nav class="main-tabs">
 
     <button
@@ -901,18 +693,10 @@
   </nav>
 
 
-  <!-- =========================================
-       Personal
-  ========================================= -->
-
   <section
     id="personalSection"
     class="section active"
   >
-
-    <!-- =========================================
-         Add result
-    ========================================== -->
 
     <div class="add-result-card">
 
@@ -969,7 +753,7 @@
               class="result-input"
               type="number"
               inputmode="numeric"
-              min="0"
+              min="1"
               step="1"
               placeholder="5"
               required
@@ -1134,2745 +918,1371 @@
       </form>
 
     </div>
-
-
-    <!-- Period -->
-
-    <div class="period-tabs">
-
-      <button
-        class="period-tab active"
-        data-period="today"
-        type="button"
-      >
-        今日
-      </button>
-
-      <button
-        class="period-tab"
-        data-period="week"
-        type="button"
-      >
-        今週
-      </button>
-
-      <button
-        class="period-tab"
-        data-period="month"
-        type="button"
-      >
-        今月
-      </button>
-
-      <button
-        class="period-tab"
-        data-period="year"
-        type="button"
-      >
-        年間
-      </button>
-
+    <body>
+  <header class="app-header">
+    <div>
+      <h1>配達売上・件数・効率</h1>
+      <p id="userStatus">Telegram認証確認中...</p>
     </div>
+    <button id="refreshBtn" class="secondary-btn">更新</button>
+  </header>
 
+  <main class="container">
 
-    <!-- Historical selection -->
-
-    <div class="history-card">
-
-      <div class="history-title">
-        📅 過去の実績を確認
-      </div>
-
-      <div class="history-row">
-
-        <select
-          id="monthSelect"
-          class="history-select"
-        >
-          <option value="">
-            月を選択
-          </option>
-        </select>
-
-        <select
-          id="yearSelect"
-          class="history-select"
-        >
-          <option value="">
-            年を選択
-          </option>
-        </select>
-
-      </div>
-
-    </div>
-
-
-    <!-- Hero -->
-
-    <div
-      id="hero"
-      class="hero-grid"
-    >
-      <div class="loading">
-        読み込み中...
-      </div>
-    </div>
-
-
-    <!-- Basic analysis -->
-
-    <div class="card">
-
-      <div class="card-title">
-        基本分析
-      </div>
-
-      <div
-        id="basicStats"
-        class="stats-grid"
-      >
-        <div class="loading">
-          読み込み中...
+    <section id="personalSection" class="section active-section">
+      <div class="section-title-row">
+        <div>
+          <h2>個人データ</h2>
+          <p>あなた自身の配達実績だけを表示します。</p>
         </div>
       </div>
 
-    </div>
-
-
-    <!-- Pace -->
-
-    <div class="card">
-
-      <div class="card-title">
-        ペース
+      <div class="period-tabs">
+        <button class="period-btn active" data-period="today">今日</button>
+        <button class="period-btn" data-period="week">今週</button>
+        <button class="period-btn" data-period="month">今月</button>
+        <button class="period-btn" data-period="year">今年</button>
       </div>
 
-      <div
-        id="paceStats"
-        class="analysis-grid"
-      >
-        <div class="loading">
-          読み込み中...
+      <div class="summary-grid">
+        <div class="summary-card">
+          <span>売上</span>
+          <strong id="summarySales">¥0</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>配達件数</span>
+          <strong id="summaryDeliveries">0件</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>稼働時間</span>
+          <strong id="summaryHours">0.00h</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>時給</span>
+          <strong id="summaryHourly">¥0</strong>
+        </div>
+
+        <div class="summary-card">
+          <span>1件単価</span>
+          <strong id="summaryUnitPrice">¥0</strong>
         </div>
       </div>
 
-    </div>
+      <div class="card">
+        <h3>実績を追加</h3>
 
+        <form id="addResultForm">
+          <div class="form-grid">
 
-    <!-- Best -->
+            <label>
+              売上
+              <input
+                id="saleAmount"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                placeholder="例：5000"
+                required
+              >
+            </label>
 
-    <div class="card">
+            <label>
+              配達件数
+              <input
+                id="deliveryCount"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                placeholder="例：5"
+                required
+              >
+            </label>
 
-      <div class="card-title">
-        自己ベスト
+            <label>
+              稼働開始時刻（任意）
+              <input
+                id="workStartedAt"
+                type="time"
+              >
+            </label>
+
+            <label>
+              稼働時間（任意）
+              <input
+                id="workHours"
+                type="number"
+                min="0"
+                step="0.25"
+                inputmode="decimal"
+                placeholder="例：2.5"
+              >
+            </label>
+
+            <label>
+              走行距離 km（任意）
+              <input
+                id="distanceKm"
+                type="number"
+                min="0"
+                step="0.1"
+                inputmode="decimal"
+                placeholder="例：35.5"
+              >
+            </label>
+
+            <label>
+              経費（任意）
+              <input
+                id="expenseAmount"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                placeholder="例：500"
+              >
+            </label>
+
+          </div>
+
+          <button type="submit" class="primary-btn">
+            実績を保存
+          </button>
+        </form>
       </div>
 
-      <div
-        id="bestStats"
-        class="best-list"
-      >
-        <div class="loading">
-          読み込み中...
+      <div class="card">
+        <h3>最近の実績</h3>
+        <div id="recordList" class="record-list">
+          <div class="empty-state">データを読み込み中...</div>
         </div>
       </div>
 
-    </div>
+      <div class="card danger-card">
+        <h3>データ管理</h3>
+        <p>
+          あなた自身の実績データを削除します。
+          この操作は元に戻せません。
+        </p>
 
-
-    <!-- Monthly report -->
-
-    <div class="card">
-
-      <div class="card-title">
-        月次レポート
+        <button id="resetDataBtn" class="danger-btn">
+          自分のデータを全削除
+        </button>
       </div>
+    </section>
 
-      <div
-        id="monthlyReport"
-        class="report-grid"
-      >
-        <div class="loading">
-          読み込み中...
+    <section id="analyticsSection" class="section">
+      <div class="section-title-row">
+        <div>
+          <h2>分析</h2>
+          <p>あなた自身の配達実績を分析します。</p>
         </div>
       </div>
 
-      <div
-        id="monthlyBestText"
-        class="report-best"
-      ></div>
+      <div class="analytics-tabs">
+        <button class="analytics-tab active" data-analytics="summary">
+          概要
+        </button>
 
-    </div>
+        <button class="analytics-tab" data-analytics="daily">
+          日別
+        </button>
 
+        <button class="analytics-tab" data-analytics="monthly">
+          月別
+        </button>
 
-    <!-- Daily chart -->
+        <button class="analytics-tab" data-analytics="weekday">
+          曜日別
+        </button>
 
-    <div class="card">
+        <button class="analytics-tab" data-analytics="hour">
+          時間帯別
+        </button>
 
-      <div class="card-title">
-        日別売上
+        <button class="analytics-tab" data-analytics="efficiency">
+          効率
+        </button>
+
+        <button class="analytics-tab" data-analytics="streak">
+          継続
+        </button>
       </div>
 
-      <div
-        id="dailyChart"
-        class="chart"
-      >
-        <div class="empty">
-          データなし
+      <div id="analyticsContent">
+
+        <div id="analyticsSummary" class="analytics-panel active">
+          <div class="summary-grid">
+
+            <div class="summary-card">
+              <span>年間売上</span>
+              <strong id="analyticsYearSales">¥0</strong>
+            </div>
+
+            <div class="summary-card">
+              <span>年間配達件数</span>
+              <strong id="analyticsYearDeliveries">0件</strong>
+            </div>
+
+            <div class="summary-card">
+              <span>平均日売上</span>
+              <strong id="analyticsAverageDailySales">¥0</strong>
+            </div>
+
+            <div class="summary-card">
+              <span>平均日件数</span>
+              <strong id="analyticsAverageDailyDeliveries">0件</strong>
+            </div>
+
+            <div class="summary-card">
+              <span>平均時給</span>
+              <strong id="analyticsAverageHourly">¥0</strong>
+            </div>
+
+          </div>
         </div>
-      </div>
 
-    </div>
+        <div id="analyticsDaily" class="analytics-panel">
+          <div class="card">
+            <h3>日別実績</h3>
 
+            <div class="history-controls">
+              <label>
+                年
+                <select id="historyYear"></select>
+              </label>
 
-    <!-- Daily list -->
+              <label>
+                月
+                <select id="historyMonth"></select>
+              </label>
+            </div>
 
-    <div class="card">
-
-      <div class="card-title">
-        日別実績
-      </div>
-
-      <div
-        id="dailyList"
-        class="daily-list"
-      >
-        <div class="empty">
-          データなし
+            <div id="dailyList" class="analytics-list">
+              <div class="empty-state">データを読み込み中...</div>
+            </div>
+          </div>
         </div>
-      </div>
 
-    </div>
+        <div id="analyticsMonthly" class="analytics-panel">
+          <div class="card">
+            <h3>月別実績</h3>
 
-
-    <!-- Records -->
-
-    <div class="card">
-
-      <div class="card-title">
-        実績履歴
-      </div>
-
-      <div
-        id="recordList"
-        class="record-list"
-      >
-        <div class="empty">
-          データなし
+            <div id="monthlyList" class="analytics-list">
+              <div class="empty-state">データを読み込み中...</div>
+            </div>
+          </div>
         </div>
-      </div>
 
-    </div>
+        <div id="analyticsWeekday" class="analytics-panel">
+          <div class="card">
+            <h3>曜日別実績</h3>
 
-
-    <!-- Reset -->
-
-    <div class="card">
-
-      <button
-        id="resetBtn"
-        class="danger-btn"
-        type="button"
-      >
-        自分の実績をすべて削除
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- =========================================
-       Analytics
-  ========================================== -->
-
-  <section
-    id="analyticsSection"
-    class="section"
-  >
-
-    <div class="card">
-
-      <div class="card-title">
-        個人実績分析
-      </div>
-
-      <div
-        id="analyticsSummary"
-        class="analysis-grid"
-      >
-        <div class="loading">
-          読み込み中...
+            <div id="weekdayList" class="analytics-list">
+              <div class="empty-state">データを読み込み中...</div>
+            </div>
+          </div>
         </div>
-      </div>
 
-    </div>
+        <div id="analyticsHour" class="analytics-panel">
+          <div class="card">
+            <h3>時間帯別実績</h3>
 
-
-    <!-- =========================================
-         追加：効率分析
-    ========================================== -->
-
-    <div class="card">
-
-      <div class="card-title">
-        📊 効率分析
-      </div>
-
-      <div
-        id="efficiencyAnalysis"
-        class="analysis-grid"
-      >
-        <div class="loading">
-          読み込み中...
+            <div id="hourList" class="analytics-list">
+              <div class="empty-state">データを読み込み中...</div>
+            </div>
+          </div>
         </div>
-      </div>
 
-    </div>
+        <div id="analyticsEfficiency" class="analytics-panel">
+          <div class="card">
+            <h3>効率分析</h3>
 
-
-    <div class="card">
-
-      <div class="card-title">
-        自己ベスト
-      </div>
-
-      <div
-        id="analyticsBest"
-        class="best-list"
-      >
-        <div class="loading">
-          読み込み中...
+            <div id="efficiencyContent">
+              <div class="empty-state">データを読み込み中...</div>
+            </div>
+          </div>
         </div>
-      </div>
 
-    </div>
+        <div id="analyticsStreak" class="analytics-panel">
+          <div class="card">
+            <h3>継続状況</h3>
 
-
-    <div class="card">
-
-      <div class="card-title">
-        継続日数
-      </div>
-
-      <div
-        id="streak"
-        class="streak-box"
-      >
-        <div class="loading">
-          読み込み中...
+            <div id="streakContent">
+              <div class="empty-state">データを読み込み中...</div>
+            </div>
+          </div>
         </div>
+
       </div>
+    </section>
 
-    </div>
+  </main>
 
-  </section>
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-section="personal">
+      <span>📊</span>
+      <span>個人</span>
+    </button>
 
-</div>
+    <button class="nav-btn" data-section="analytics">
+      <span>📈</span>
+      <span>分析</span>
+    </button>
+  </nav>
 
+  <div id="toast" class="toast"></div>
+    <script>
+    const tg = window.Telegram?.WebApp;
 
-<script>
-  // =========================================================
-  // Telegram
-  // =========================================================
-
-  const tg =
-    window.Telegram?.WebApp || null;
-
-  const JST =
-    "Asia/Tokyo";
-
-  let activeSection =
-    "personal";
-
-  let activePeriod =
-    "today";
-
-  let currentData =
-    null;
-
-
-  // =========================================================
-  // Telegram初期化
-  // =========================================================
-
-  function initTelegram() {
-    if (!tg) {
-      return;
-    }
-
-    try {
+    if (tg) {
       tg.ready();
       tg.expand();
+    }
 
-      if (tg.setHeaderColor) {
-        tg.setHeaderColor("#f5f7fb");
+    const JST = 'Asia/Tokyo';
+
+    let activeSection = 'personal';
+    let activePeriod = 'today';
+    let currentData = null;
+
+    function escapeHtml(value) {
+      if (value === null || value === undefined) return '';
+
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function formatYen(value) {
+      return `¥${Number(value || 0).toLocaleString('ja-JP')}`;
+    }
+
+    function formatHours(value) {
+      return `${Number(value || 0).toFixed(2)}h`;
+    }
+
+    function formatDate(value) {
+      if (!value) return '-';
+
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return '-';
       }
 
-      if (tg.setBackgroundColor) {
-        tg.setBackgroundColor("#f5f7fb");
-      }
-    } catch (error) {
-      console.error(
-        "Telegram init error:",
-        error
-      );
-    }
-  }
-
-
-  // =========================================================
-  // API
-  // =========================================================
-
-  async function apiFetch(
-    url,
-    options = {}
-  ) {
-    const headers = {
-      ...(options.headers || {}),
-    };
-
-    if (tg?.initData) {
-      headers[
-        "X-Telegram-Init-Data"
-      ] = tg.initData;
-    }
-
-    const response =
-      await fetch(url, {
-        ...options,
-        headers,
-      });
-
-    let data = null;
-
-    try {
-      data =
-        await response.json();
-    } catch (error) {
-      throw new Error(
-        "APIレスポンスを読み込めませんでした。"
-      );
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-        `APIエラー: ${response.status}`
-      );
-    }
-
-    return data;
-  }
-
-
-  // =========================================================
-  // Format
-  // =========================================================
-
-  function formatNumber(value) {
-    return Number(
-      value || 0
-    ).toLocaleString("ja-JP");
-  }
-
-
-  function formatYen(value) {
-    return (
-      "¥" +
-      Number(
-        value || 0
-      ).toLocaleString("ja-JP", {
-        maximumFractionDigits: 0,
-      })
-    );
-  }
-
-
-  function formatHours(value) {
-    return Number(
-      value || 0
-    ).toFixed(2);
-  }
-
-
-  function formatDecimal(value) {
-    return Number(
-      value || 0
-    ).toFixed(1);
-  }
-
-
-  function formatDate(value) {
-    if (!value) {
-      return "-";
-    }
-
-    const text =
-      String(value);
-
-    if (
-      /^\d{4}-\d{2}-\d{2}$/.test(
-        text
-      )
-    ) {
-      return text;
-    }
-
-    const date =
-      new Date(value);
-
-    if (
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
-      return text;
-    }
-
-    const parts =
-      new Intl.DateTimeFormat(
-        "en-CA",
-        {
-          timeZone: JST,
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        }
-      ).formatToParts(date);
-
-    const year =
-      parts.find(
-        p => p.type === "year"
-      )?.value;
-
-    const month =
-      parts.find(
-        p => p.type === "month"
-      )?.value;
-
-    const day =
-      parts.find(
-        p => p.type === "day"
-      )?.value;
-
-    if (
-      !year ||
-      !month ||
-      !day
-    ) {
-      return text;
-    }
-
-    return `${year}-${month}-${day}`;
-  }
-
-
-  function formatDateTime(value) {
-    if (!value) {
-      return "-";
-    }
-
-    const date =
-      new Date(value);
-
-    if (
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
-      return formatDate(value);
-    }
-
-    return new Intl.DateTimeFormat(
-      "ja-JP",
-      {
+      return date.toLocaleString('ja-JP', {
         timeZone: JST,
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function showToast(message, type = 'normal') {
+      const toast = document.getElementById('toast');
+
+      toast.textContent = message;
+      toast.className = `toast ${type}`;
+      toast.classList.add('show');
+
+      window.setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    async function apiFetch(url, options = {}) {
+      const headers = new Headers(options.headers || {});
+
+      if (tg?.initData) {
+        headers.set('X-Telegram-Init-Data', tg.initData);
       }
-    ).format(date);
-  }
 
-
-  // =========================================================
-  // User
-  // =========================================================
-
-  function renderUserName() {
-    const element =
-      document.getElementById(
-        "userName"
-      );
-
-    const user =
-      tg?.initDataUnsafe?.user;
-
-    if (!user) {
-      element.textContent =
-        "個人ダッシュボード";
-
-      return;
-    }
-
-    const name = [
-      user.first_name,
-      user.last_name,
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    if (name) {
-      element.textContent =
-        `${name}さん`;
-      return;
-    }
-
-    if (user.username) {
-      element.textContent =
-        `@${user.username}`;
-      return;
-    }
-
-    element.textContent =
-      "個人ダッシュボード";
-  }
-
-
-  // =========================================================
-  // Section
-  // =========================================================
-
-  function showSection(
-    section
-  ) {
-    activeSection =
-      section;
-
-    document
-      .querySelectorAll(
-        ".main-tab"
-      )
-      .forEach(button => {
-        button.classList.toggle(
-          "active",
-          button.dataset.section ===
-            section
-        );
+      const response = await fetch(url, {
+        ...options,
+        headers
       });
 
-    document
-      .getElementById(
-        "personalSection"
-      )
-      .classList.toggle(
-        "active",
-        section === "personal"
-      );
+      let data = null;
 
-    document
-      .getElementById(
-        "analyticsSection"
-      )
-      .classList.toggle(
-        "active",
-        section === "analytics"
-      );
+      try {
+        data = await response.json();
+      } catch {
+        data = null;
+      }
 
-    if (
-      section === "personal"
-    ) {
-      loadPersonal(
-        activePeriod
-      );
-    }
-
-    if (
-      section === "analytics"
-    ) {
-      loadAnalytics();
-    }
-  }
-
-
-  // =========================================================
-  // Period
-  // =========================================================
-
-  function updatePeriodTabs() {
-    document
-      .querySelectorAll(
-        ".period-tab"
-      )
-      .forEach(button => {
-        button.classList.toggle(
-          "active",
-          button.dataset.period ===
-            activePeriod
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+          `APIエラー (${response.status})`
         );
-      });
-  }
-
-
-  // =========================================================
-  // Load personal
-  // =========================================================
-
-  async function loadPersonal(
-    period = "today",
-    params = {}
-  ) {
-    activePeriod =
-      period;
-
-    updatePeriodTabs();
-
-    const query =
-      new URLSearchParams();
-
-    query.set(
-      "period",
-      period
-    );
-
-    if (params.month) {
-      query.set(
-        "month",
-        params.month
-      );
-    }
-
-    if (params.year) {
-      query.set(
-        "year",
-        params.year
-      );
-    }
-
-    setLoading();
-
-    try {
-      const data =
-        await apiFetch(
-          `/api/result?${query.toString()}`
-        );
-
-      currentData =
-        data;
-
-      renderDashboard(
-        data
-      );
-    } catch (error) {
-      console.error(
-        "loadPersonal error:",
-        error
-      );
-
-      renderError(
-        error.message ||
-          "実績の取得に失敗しました。"
-      );
-    }
-  }
-
-
-  // =========================================================
-  // Loading
-  // =========================================================
-
-  function setLoading() {
-    document.getElementById(
-      "hero"
-    ).innerHTML = `
-      <div class="loading">
-        読み込み中...
-      </div>
-    `;
-
-    document.getElementById(
-      "basicStats"
-    ).innerHTML = `
-      <div class="loading">
-        読み込み中...
-      </div>
-    `;
-
-    document.getElementById(
-      "paceStats"
-    ).innerHTML = `
-      <div class="loading">
-        読み込み中...
-      </div>
-    `;
-
-    document.getElementById(
-      "bestStats"
-    ).innerHTML = `
-      <div class="loading">
-        読み込み中...
-      </div>
-    `;
-
-    document.getElementById(
-      "monthlyReport"
-    ).innerHTML = `
-      <div class="loading">
-        読み込み中...
-      </div>
-    `;
-
-    document.getElementById(
-      "monthlyBestText"
-    ).textContent = "";
-
-    document.getElementById(
-      "dailyChart"
-    ).innerHTML = `
-      <div class="empty">
-        読み込み中...
-      </div>
-    `;
-
-    document.getElementById(
-      "dailyList"
-    ).innerHTML = `
-      <div class="empty">
-        読み込み中...
-      </div>
-    `;
-
-    document.getElementById(
-      "recordList"
-    ).innerHTML = `
-      <div class="empty">
-        読み込み中...
-      </div>
-    `;
-  }
-
-
-  // =========================================================
-  // Error
-  // =========================================================
-
-  function renderError(
-    message
-  ) {
-    const html = `
-      <div class="error">
-        ${escapeHtml(message)}
-      </div>
-    `;
-
-    document.getElementById(
-      "hero"
-    ).innerHTML = html;
-
-    document.getElementById(
-      "basicStats"
-    ).innerHTML = html;
-
-    document.getElementById(
-      "paceStats"
-    ).innerHTML = html;
-
-    document.getElementById(
-      "bestStats"
-    ).innerHTML = html;
-
-    document.getElementById(
-      "monthlyReport"
-    ).innerHTML = html;
-
-    document.getElementById(
-      "dailyChart"
-    ).innerHTML = html;
-
-    document.getElementById(
-      "dailyList"
-    ).innerHTML = html;
-
-    document.getElementById(
-      "recordList"
-    ).innerHTML = html;
-  }
-
-
-  // =========================================================
-  // Dashboard
-  // =========================================================
-
-  function renderDashboard(
-    data
-  ) {
-    const stats =
-      data?.stats || {};
-
-    const report =
-      data?.monthlyReport || {};
-
-    const daily =
-      Array.isArray(
-        data?.daily
-      )
-        ? data.daily
-        : [];
-
-    const records =
-      Array.isArray(
-        data?.recentResults
-      )
-        ? data.recentResults
-        : [];
-
-    renderHero(
-      stats,
-      data
-    );
-
-    renderBasicStats(
-      stats,
-      daily
-    );
-
-    renderPace(
-      report
-    );
-
-    renderBest(
-      daily
-    );
-
-    renderMonthlyReport(
-      report
-    );
-
-    renderDailyChart(
-      daily
-    );
-
-    renderDailyList(
-      daily
-    );
-
-    renderRecords(
-      records
-    );
-  }
-
-
-  // =========================================================
-  // Hero
-  // =========================================================
-
-  function renderHero(
-    stats,
-    data
-  ) {
-    const sales =
-      Number(
-        stats.sales || 0
-      );
-
-    const count =
-      Number(
-        stats.deliveryCount || 0
-      );
-
-    const hours =
-      Number(
-        stats.workHours || 0
-      );
-
-    const hourly =
-      Number(
-        stats.hourlySales || 0
-      );
-
-    const label =
-      data?.label ||
-      "実績";
-
-    document.getElementById(
-      "hero"
-    ).innerHTML = `
-      <div class="hero-card">
-        <div class="hero-label">
-          売上
-        </div>
-
-        <div class="hero-value">
-          ${formatYen(sales)}
-        </div>
-
-        <div class="card-subtitle">
-          ${escapeHtml(label)}
-        </div>
-      </div>
-
-      <div class="hero-card">
-        <div class="hero-label">
-          配達数
-        </div>
-
-        <div class="hero-value">
-          ${formatNumber(count)}
-          <span class="hero-unit">件</span>
-        </div>
-      </div>
-
-      <div class="hero-card">
-        <div class="hero-label">
-          稼働時間
-        </div>
-
-        <div class="hero-value">
-          ${formatHours(hours)}
-          <span class="hero-unit">h</span>
-        </div>
-      </div>
-
-      <div class="hero-card">
-        <div class="hero-label">
-          時給換算
-        </div>
-
-        <div class="hero-value">
-          ${formatYen(hourly)}
-          <span class="hero-unit">/h</span>
-        </div>
-      </div>
-    `;
-  }
-
-
-  // =========================================================
-  // Basic
-  // =========================================================
-
-  function renderBasicStats(
-    stats,
-    daily
-  ) {
-    const sales =
-      Number(
-        stats.sales || 0
-      );
-
-    const count =
-      Number(
-        stats.deliveryCount || 0
-      );
-
-    const hours =
-      Number(
-        stats.workHours || 0
-      );
-
-    const unitPrice =
-      Number(
-        stats.unitPrice || 0
-      );
-
-    const hourly =
-      Number(
-        stats.hourlySales || 0
-      );
-
-    const workingDays =
-      daily.filter(
-        day =>
-          Number(
-            day.records || 0
-          ) > 0
-      ).length;
-
-    document.getElementById(
-      "basicStats"
-    ).innerHTML = `
-      <div class="stat-box">
-        <div class="stat-label">
-          売上
-        </div>
-        <div class="stat-value">
-          ${formatYen(sales)}
-        </div>
-      </div>
-
-      <div class="stat-box">
-        <div class="stat-label">
-          配達数
-        </div>
-        <div class="stat-value">
-          ${formatNumber(count)}件
-        </div>
-      </div>
-
-      <div class="stat-box">
-        <div class="stat-label">
-          稼働時間
-        </div>
-        <div class="stat-value">
-          ${formatHours(hours)}h
-        </div>
-      </div>
-
-      <div class="stat-box">
-        <div class="stat-label">
-          平均単価
-        </div>
-        <div class="stat-value">
-          ${formatYen(unitPrice)}
-        </div>
-      </div>
-
-      <div class="stat-box">
-        <div class="stat-label">
-          時給換算
-        </div>
-        <div class="stat-value">
-          ${formatYen(hourly)}/h
-        </div>
-      </div>
-
-      <div class="stat-box">
-        <div class="stat-label">
-          稼働日数
-        </div>
-        <div class="stat-value">
-          ${workingDays}日
-        </div>
-      </div>
-    `;
-  }
-
-
-  // =========================================================
-  // Pace
-  // =========================================================
-
-  function renderPace(
-    report
-  ) {
-    const sales =
-      Number(
-        report.averageDailySales ||
-          0
-      );
-
-    const count =
-      Number(
-        report.averageDailyDeliveryCount ||
-          0
-      );
-
-    const hours =
-      Number(
-        report.averageDailyWorkHours ||
-          0
-      );
-
-    document.getElementById(
-      "paceStats"
-    ).innerHTML = `
-      <div class="analysis-item">
-        <div class="analysis-label">
-          1日平均売上
-        </div>
-        <div class="analysis-value">
-          ${formatYen(sales)}
-        </div>
-      </div>
-
-      <div class="analysis-item">
-        <div class="analysis-label">
-          1日平均配達
-        </div>
-        <div class="analysis-value">
-          ${formatDecimal(count)}件
-        </div>
-      </div>
-
-      <div class="analysis-item">
-        <div class="analysis-label">
-          1日平均稼働
-        </div>
-        <div class="analysis-value">
-          ${formatHours(hours)}h
-        </div>
-      </div>
-    `;
-  }
-
-
-  // =========================================================
-  // Best
-  // =========================================================
-
-  function renderBest(
-    daily
-  ) {
-    if (!daily.length) {
-      document.getElementById(
-        "bestStats"
-      ).innerHTML = `
-        <div class="empty">
-          実績がありません。
-        </div>
-      `;
-
-      return;
-    }
-
-    let bestSales =
-      daily[0];
-
-    let bestDelivery =
-      daily[0];
-
-    let bestHourly =
-      daily[0];
-
-    for (
-      const day of daily
-    ) {
-      if (
-        Number(day.sales || 0) >
-        Number(
-          bestSales.sales || 0
-        )
-      ) {
-        bestSales = day;
       }
 
-      if (
-        Number(
-          day.deliveryCount || 0
-        ) >
-        Number(
-          bestDelivery.deliveryCount ||
-            0
-        )
-      ) {
-        bestDelivery = day;
+      return data;
+    }
+
+    function setUserStatus(user) {
+      const element = document.getElementById('userStatus');
+
+      if (!element) return;
+
+      if (!user) {
+        element.textContent = 'Telegram認証情報を確認できません';
+        return;
       }
 
-      if (
-        Number(
-          day.hourlySales || 0
-        ) >
-        Number(
-          bestHourly.hourlySales ||
-            0
-        )
-      ) {
-        bestHourly = day;
+      const name =
+        user.first_name ||
+        user.username ||
+        `User ${user.id}`;
+
+      element.textContent = `${name} さん`;
+    }
+
+    function activateSection(section) {
+      activeSection = section;
+
+      document
+        .querySelectorAll('.section')
+        .forEach(element => {
+          element.classList.toggle(
+            'active-section',
+            element.id === `${section}Section`
+          );
+        });
+
+      document
+        .querySelectorAll('.nav-btn')
+        .forEach(button => {
+          button.classList.toggle(
+            'active',
+            button.dataset.section === section
+          );
+        });
+    }
+
+    function activateAnalyticsTab(name) {
+      document
+        .querySelectorAll('.analytics-tab')
+        .forEach(button => {
+          button.classList.toggle(
+            'active',
+            button.dataset.analytics === name
+          );
+        });
+
+      document
+        .querySelectorAll('.analytics-panel')
+        .forEach(panel => {
+          panel.classList.toggle(
+            'active',
+            panel.id === `analytics${
+              name.charAt(0).toUpperCase() + name.slice(1)
+            }`
+          );
+        });
+    }
+
+    function activatePeriod(period) {
+      activePeriod = period;
+
+      document
+        .querySelectorAll('.period-btn')
+        .forEach(button => {
+          button.classList.toggle(
+            'active',
+            button.dataset.period === period
+          );
+        });
+    }
+
+    async function loadPersonal() {
+      const data = await apiFetch(
+        `/api/result?period=${encodeURIComponent(activePeriod)}`
+      );
+
+      currentData = data;
+
+      const summary = data.summary || {};
+
+      document.getElementById('summarySales').textContent =
+        formatYen(summary.saleAmount);
+
+      document.getElementById('summaryDeliveries').textContent =
+        `${Number(summary.deliveryCount || 0).toLocaleString('ja-JP')}件`;
+
+      document.getElementById('summaryHours').textContent =
+        formatHours(summary.workHours);
+
+      document.getElementById('summaryHourly').textContent =
+        formatYen(summary.hourlyWage);
+
+      document.getElementById('summaryUnitPrice').textContent =
+        formatYen(summary.unitPrice);
+
+      renderRecords(data.records || []);
+    }
+
+    function renderRecords(records) {
+      const container = document.getElementById('recordList');
+
+      if (!records.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            この期間の実績はありません。
+          </div>
+        `;
+        return;
       }
-    }
 
-    document.getElementById(
-      "bestStats"
-    ).innerHTML = `
-      <div class="best-item">
-        <div>
-          <div class="best-label">
-            最高売上日
-          </div>
-          <div class="best-date">
-            ${escapeHtml(
-              formatDate(
-                bestSales.date
-              )
-            )}
-          </div>
-        </div>
+      container.innerHTML = records.map(record => {
+        const saleAmount = Number(record.sale_amount || 0);
+        const deliveryCount = Number(record.delivery_count || 0);
+        const workHours = Number(record.work_hours || 0);
+        const distanceKm = Number(record.distance_km || 0);
 
-        <div class="best-value">
-          ${formatYen(
-            bestSales.sales
-          )}
-        </div>
-      </div>
+        const unitPrice =
+          deliveryCount > 0
+            ? saleAmount / deliveryCount
+            : 0;
 
-      <div class="best-item">
-        <div>
-          <div class="best-label">
-            最高配達
-          </div>
-          <div class="best-date">
-            ${escapeHtml(
-              formatDate(
-                bestDelivery.date
-              )
-            )}
-          </div>
-        </div>
+        const hourly =
+          workHours > 0
+            ? saleAmount / workHours
+            : 0;
 
-        <div class="best-value">
-          ${formatNumber(
-            bestDelivery.deliveryCount
-          )}件
-        </div>
-      </div>
-
-      <div class="best-item">
-        <div>
-          <div class="best-label">
-            最高時給
-          </div>
-          <div class="best-date">
-            ${escapeHtml(
-              formatDate(
-                bestHourly.date
-              )
-            )}
-          </div>
-        </div>
-
-        <div class="best-value">
-          ${formatYen(
-            bestHourly.hourlySales
-          )}/h
-        </div>
-      </div>
-    `;
-  }
-
-
-  // =========================================================
-  // Monthly report
-  // =========================================================
-
-  function renderMonthlyReport(
-    report
-  ) {
-    const sales =
-      Number(
-        report.sales || 0
-      );
-
-    const count =
-      Number(
-        report.deliveryCount || 0
-      );
-
-    const hours =
-      Number(
-        report.workHours || 0
-      );
-
-    const workingDays =
-      Number(
-        report.workingDays || 0
-      );
-
-    const averageSales =
-      Number(
-        report.averageDailySales ||
-          0
-      );
-
-    const hourly =
-      Number(
-        report.hourlySales || 0
-      );
-
-    document.getElementById(
-      "monthlyReport"
-    ).innerHTML = `
-      <div class="report-item">
-        <div class="report-label">
-          総売上
-        </div>
-        <div class="report-value">
-          ${formatYen(sales)}
-        </div>
-      </div>
-
-      <div class="report-item">
-        <div class="report-label">
-          配達数
-        </div>
-        <div class="report-value">
-          ${formatNumber(count)}件
-        </div>
-      </div>
-
-      <div class="report-item">
-        <div class="report-label">
-          稼働時間
-        </div>
-        <div class="report-value">
-          ${formatHours(hours)}h
-        </div>
-      </div>
-
-      <div class="report-item">
-        <div class="report-label">
-          稼働日数
-        </div>
-        <div class="report-value">
-          ${workingDays}日
-        </div>
-      </div>
-
-      <div class="report-item">
-        <div class="report-label">
-          1日平均売上
-        </div>
-        <div class="report-value">
-          ${formatYen(averageSales)}
-        </div>
-      </div>
-
-      <div class="report-item">
-        <div class="report-label">
-          時給換算
-        </div>
-        <div class="report-value">
-          ${formatYen(hourly)}/h
-        </div>
-      </div>
-    `;
-
-    const best =
-      report.bestSalesDay;
-
-    document.getElementById(
-      "monthlyBestText"
-    ).textContent =
-      best
-        ? `最高売上日：${formatDate(
-            best.date
-          )} / ${formatYen(
-            best.sales
-          )}`
-        : "最高売上日はありません。";
-  }
-
-
-  // =========================================================
-  // Daily chart
-  // =========================================================
-
-  function renderDailyChart(
-    daily
-  ) {
-    const container =
-      document.getElementById(
-        "dailyChart"
-      );
-
-    if (!daily.length) {
-      container.innerHTML = `
-        <div class="empty">
-          データがありません。
-        </div>
-      `;
-
-      return;
-    }
-
-    const maxSales =
-      Math.max(
-        ...daily.map(
-          day =>
-            Number(
-              day.sales || 0
-            )
-        ),
-        1
-      );
-
-    container.innerHTML =
-      daily
-        .map(day => {
-          const sales =
-            Number(
-              day.sales || 0
-            );
-
-          const height =
-            Math.max(
-              2,
-              Math.round(
-                (sales /
-                  maxSales) *
-                  115
-              )
-            );
-
-          const date =
-            formatDate(
-              day.date
-            );
-
-          return `
-            <div class="chart-column">
-
-              <div class="chart-value">
-                ${formatYen(
-                  sales
-                )}
-              </div>
-
-              <div class="chart-bar-wrap">
-                <div
-                  class="chart-bar"
-                  style="height:${height}px"
-                ></div>
-              </div>
-
-              <div class="chart-date">
-                ${escapeHtml(
-                  date.slice(5)
-                )}
-              </div>
-
-            </div>
-          `;
-        })
-        .join("");
-  }
-
-
-  // =========================================================
-  // Daily list
-  // =========================================================
-
-  function renderDailyList(
-    daily
-  ) {
-    const container =
-      document.getElementById(
-        "dailyList"
-      );
-
-    if (!daily.length) {
-      container.innerHTML = `
-        <div class="empty">
-          データがありません。
-        </div>
-      `;
-
-      return;
-    }
-
-    container.innerHTML =
-      daily
-        .slice()
-        .reverse()
-        .map(day => `
-          <div class="daily-item">
-
-            <div class="daily-top">
-
-              <div class="daily-date">
-                ${escapeHtml(
-                  formatDate(
-                    day.date
-                  )
-                )}
-              </div>
-
-              <div class="daily-sales">
-                ${formatYen(
-                  day.sales
-                )}
-              </div>
-
-            </div>
-
-            <div class="daily-detail">
-              配達
-              ${formatNumber(
-                day.deliveryCount
-              )}件
-              ／
-              稼働
-              ${formatHours(
-                day.workHours
-              )}h
-              ／
-              時給
-              ${formatYen(
-                day.hourlySales
-              )}/h
-            </div>
-
-          </div>
-        `)
-        .join("");
-  }
-
-
-  // =========================================================
-  // Records
-  // =========================================================
-
-  function renderRecords(
-    records
-  ) {
-    const container =
-      document.getElementById(
-        "recordList"
-      );
-
-    if (!records.length) {
-      container.innerHTML = `
-        <div class="empty">
-          実績がありません。
-        </div>
-      `;
-
-      return;
-    }
-
-    container.innerHTML =
-      records
-        .map(record => `
+        return `
           <div class="record-item">
 
-            <div class="record-top">
-
+            <div class="record-main">
               <div class="record-date">
-                ${escapeHtml(
-                  formatDateTime(
-                    record.createdAt
-                  )
-                )}
+                ${escapeHtml(formatDate(record.created_at))}
               </div>
 
-              <div class="record-sales">
-                ${formatYen(
-                  record.saleAmount
-                )}
-              </div>
+              <div class="record-values">
+                <span>
+                  売上 ${escapeHtml(formatYen(saleAmount))}
+                </span>
 
+                <span>
+                  ${escapeHtml(deliveryCount)}件
+                </span>
+
+                <span>
+                  ${escapeHtml(formatHours(workHours))}
+                </span>
+              </div>
             </div>
 
             <div class="record-detail">
-              配達
-              ${formatNumber(
-                record.deliveryCount
-              )}件
-              ／
-              稼働
-              ${formatHours(
-                record.workHours
-              )}h
-              ／
-              時給
-              ${formatYen(
-                record.hourlySales
-              )}/h
+              <span>
+                1件 ${escapeHtml(formatYen(unitPrice))}
+              </span>
+
+              <span>
+                時給 ${escapeHtml(formatYen(hourly))}
+              </span>
+
+              ${
+                distanceKm > 0
+                  ? `
+                    <span>
+                      ${escapeHtml(distanceKm.toFixed(1))}km
+                    </span>
+                  `
+                  : ''
+              }
             </div>
 
           </div>
-        `)
-        .join("");
-  }
-
-
-  // =========================================================
-  // Analytics
-  // =========================================================
-
-  async function loadAnalytics() {
-    const summary =
-      document.getElementById(
-        "analyticsSummary"
-      );
-
-    summary.innerHTML = `
-      <div class="loading">
-        読み込み中...
-      </div>
-    `;
-
-    document.getElementById(
-      "efficiencyAnalysis"
-    ).innerHTML = `
-      <div class="loading">
-        読み込み中...
-      </div>
-    `;
-
-    try {
-      const data =
-        await apiFetch(
-          "/api/result?period=year"
-        );
-
-      const stats =
-        data?.stats || {};
-
-      const daily =
-        Array.isArray(
-          data?.daily
-        )
-          ? data.daily
-          : [];
-
-      renderAnalyticsSummary(
-        stats,
-        daily
-      );
-
-      renderEfficiencyAnalysis(
-        stats
-      );
-
-      renderAnalyticsBest(
-        daily
-      );
-
-      renderStreak(
-        daily
-      );
-    } catch (error) {
-      console.error(
-        "analytics error:",
-        error
-      );
-
-      const errorHtml = `
-        <div class="error">
-          ${escapeHtml(
-            error.message ||
-              "分析データを取得できませんでした。"
-          )}
-        </div>
-      `;
-
-      summary.innerHTML =
-        errorHtml;
-
-      document.getElementById(
-        "efficiencyAnalysis"
-      ).innerHTML =
-        errorHtml;
-
-      document.getElementById(
-        "analyticsBest"
-      ).innerHTML = "";
-
-      document.getElementById(
-        "streak"
-      ).innerHTML = "";
+        `;
+      }).join('');
     }
-  }
 
+    async function loadAnalytics() {
+      const data = await apiFetch('/api/result?period=year');
 
-  // =========================================================
-  // Analytics Summary
-  // =========================================================
+      renderAnalyticsSummary(data);
+      renderDailyList(data);
+      renderMonthlyList(data);
+      renderWeekdayList(data);
+      renderHourList(data);
+      renderEfficiencyAnalysis(data);
+      renderStreak(data);
+    }
 
-  function renderAnalyticsSummary(
-    stats,
-    daily
-  ) {
-    const workingDays =
-      daily.filter(
-        day =>
-          Number(
-            day.records || 0
-          ) > 0
+    function renderAnalyticsSummary(data) {
+      const summary = data.summary || {};
+      const daily = data.daily || [];
+
+      const yearSales = Number(summary.saleAmount || 0);
+      const yearDeliveries = Number(summary.deliveryCount || 0);
+
+      const activeDays = daily.filter(day =>
+        Number(day.sale_amount || 0) > 0 ||
+        Number(day.delivery_count || 0) > 0
       ).length;
 
-    const averageSales =
-      workingDays > 0
-        ? Number(
-            stats.sales || 0
-          ) /
-          workingDays
-        : 0;
+      const averageDailySales =
+        activeDays > 0
+          ? yearSales / activeDays
+          : 0;
 
-    const averageCount =
-      workingDays > 0
-        ? Number(
-            stats.deliveryCount ||
-              0
-          ) /
-          workingDays
-        : 0;
+      const averageDailyDeliveries =
+        activeDays > 0
+          ? yearDeliveries / activeDays
+          : 0;
 
-    const averageHours =
-      workingDays > 0
-        ? Number(
-            stats.workHours || 0
-          ) /
-          workingDays
-        : 0;
+      document.getElementById('analyticsYearSales').textContent =
+        formatYen(yearSales);
 
-    document.getElementById(
-      "analyticsSummary"
-    ).innerHTML = `
-      <div class="analysis-item">
-        <div class="analysis-label">
-          年間売上
-        </div>
-        <div class="analysis-value">
-          ${formatYen(
-            stats.sales
-          )}
-        </div>
-      </div>
+      document.getElementById('analyticsYearDeliveries').textContent =
+        `${yearDeliveries.toLocaleString('ja-JP')}件`;
 
-      <div class="analysis-item">
-        <div class="analysis-label">
-          年間配達
-        </div>
-        <div class="analysis-value">
-          ${formatNumber(
-            stats.deliveryCount
-          )}件
-        </div>
-      </div>
+      document.getElementById('analyticsAverageDailySales').textContent =
+        formatYen(averageDailySales);
 
-      <div class="analysis-item">
-        <div class="analysis-label">
-          年間稼働
-        </div>
-        <div class="analysis-value">
-          ${formatHours(
-            stats.workHours
-          )}h
-        </div>
-      </div>
+      document.getElementById('analyticsAverageDailyDeliveries').textContent =
+        `${averageDailyDeliveries.toFixed(1)}件`;
 
-      <div class="analysis-item">
-        <div class="analysis-label">
-          稼働日数
-        </div>
-        <div class="analysis-value">
-          ${workingDays}日
-        </div>
-      </div>
-
-      <div class="analysis-item">
-        <div class="analysis-label">
-          1日平均売上
-        </div>
-        <div class="analysis-value">
-          ${formatYen(
-            averageSales
-          )}
-        </div>
-      </div>
-
-      <div class="analysis-item">
-        <div class="analysis-label">
-          1日平均配達
-        </div>
-        <div class="analysis-value">
-          ${formatDecimal(
-            averageCount
-          )}件
-        </div>
-      </div>
-
-      <div class="analysis-item">
-        <div class="analysis-label">
-          1日平均稼働
-        </div>
-        <div class="analysis-value">
-          ${formatHours(
-            averageHours
-          )}h
-        </div>
-      </div>
-
-      <div class="analysis-item">
-        <div class="analysis-label">
-          時給換算
-        </div>
-        <div class="analysis-value">
-          ${formatYen(
-            stats.hourlySales
-          )}/h
-        </div>
-      </div>
-    `;
-  }
-
-
-  // =========================================================
-  // Efficiency Analysis
-  // =========================================================
-
-  function renderEfficiencyAnalysis(
-    stats
-  ) {
-    const container =
-      document.getElementById(
-        "efficiencyAnalysis"
-      );
-
-    if (!container) {
-      return;
+      document.getElementById('analyticsAverageHourly').textContent =
+        formatYen(summary.hourlyWage);
     }
 
-    const sales =
-      Number(
-        stats.sales || 0
-      );
+    function renderDailyList(data) {
+      const container = document.getElementById('dailyList');
+      const daily = data.daily || [];
 
-    const deliveryCount =
-      Number(
-        stats.deliveryCount || 0
-      );
-
-    const workHours =
-      Number(
-        stats.workHours || 0
-      );
-
-    const deliveriesPerHour =
-      workHours > 0
-        ? deliveryCount /
-          workHours
-        : 0;
-
-    const minutesPerDelivery =
-      deliveryCount > 0
-        ? (
-            workHours * 60
-          ) /
-          deliveryCount
-        : 0;
-
-    const unitPrice =
-      deliveryCount > 0
-        ? sales /
-          deliveryCount
-        : 0;
-
-    const hourlySales =
-      workHours > 0
-        ? sales /
-          workHours
-        : 0;
-
-    container.innerHTML = `
-      <div class="analysis-item">
-
-        <div class="analysis-label">
-          1時間あたり配達
-        </div>
-
-        <div class="analysis-value">
-          ${formatDecimal(
-            deliveriesPerHour
-          )}件/h
-        </div>
-
-      </div>
-
-
-      <div class="analysis-item">
-
-        <div class="analysis-label">
-          1件あたり稼働
-        </div>
-
-        <div class="analysis-value">
-          ${formatDecimal(
-            minutesPerDelivery
-          )}分/件
-        </div>
-
-      </div>
-
-
-      <div class="analysis-item">
-
-        <div class="analysis-label">
-          1件あたり売上
-        </div>
-
-        <div class="analysis-value">
-          ${formatYen(
-            unitPrice
-          )}
-        </div>
-
-      </div>
-
-
-      <div class="analysis-item">
-
-        <div class="analysis-label">
-          1時間あたり売上
-        </div>
-
-        <div class="analysis-value">
-          ${formatYen(
-            hourlySales
-          )}/h
-        </div>
-
-      </div>
-    `;
-  }
-
-
-  // =========================================================
-  // Analytics Best
-  // =========================================================
-
-  function renderAnalyticsBest(
-    daily
-  ) {
-    const container =
-      document.getElementById(
-        "analyticsBest"
-      );
-
-    if (!daily.length) {
-      container.innerHTML = `
-        <div class="empty">
-          実績がありません。
-        </div>
-      `;
-
-      return;
-    }
-
-    let sales =
-      daily[0];
-
-    let count =
-      daily[0];
-
-    let hourly =
-      daily[0];
-
-    for (
-      const day of daily
-    ) {
-      if (
-        Number(day.sales || 0) >
-        Number(sales.sales || 0)
-      ) {
-        sales = day;
+      if (!daily.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            データがありません。
+          </div>
+        `;
+        return;
       }
 
-      if (
-        Number(
-          day.deliveryCount || 0
-        ) >
-        Number(
-          count.deliveryCount ||
-            0
-        )
-      ) {
-        count = day;
-      }
+      const selectedYear =
+        Number(document.getElementById('historyYear').value) ||
+        new Date().getFullYear();
 
-      if (
-        Number(
-          day.hourlySales || 0
-        ) >
-        Number(
-          hourly.hourlySales ||
-            0
-        )
-      ) {
-        hourly = day;
-      }
-    }
+      const selectedMonth =
+        Number(document.getElementById('historyMonth').value) ||
+        new Date().getMonth() + 1;
 
-    container.innerHTML = `
-      <div class="best-item">
+      const filtered = daily.filter(item => {
+        const date = new Date(`${item.date}T00:00:00+09:00`);
 
-        <div>
-          <div class="best-label">
-            最高売上日
-          </div>
-
-          <div class="best-date">
-            ${escapeHtml(
-              formatDate(
-                sales.date
-              )
-            )}
-          </div>
-        </div>
-
-        <div class="best-value">
-          ${formatYen(
-            sales.sales
-          )}
-        </div>
-
-      </div>
-
-      <div class="best-item">
-
-        <div>
-          <div class="best-label">
-            最高配達
-          </div>
-
-          <div class="best-date">
-            ${escapeHtml(
-              formatDate(
-                count.date
-              )
-            )}
-          </div>
-        </div>
-
-        <div class="best-value">
-          ${formatNumber(
-            count.deliveryCount
-          )}件
-        </div>
-
-      </div>
-
-      <div class="best-item">
-
-        <div>
-          <div class="best-label">
-            最高時給
-          </div>
-
-          <div class="best-date">
-            ${escapeHtml(
-              formatDate(
-                hourly.date
-              )
-            )}
-          </div>
-        </div>
-
-        <div class="best-value">
-          ${formatYen(
-            hourly.hourlySales
-          )}/h
-        </div>
-
-      </div>
-    `;
-  }
-
-
-  // =========================================================
-  // Streak
-  // =========================================================
-
-  function renderStreak(
-    daily
-  ) {
-    const container =
-      document.getElementById(
-        "streak"
-      );
-
-    if (!daily.length) {
-      container.innerHTML = `
-        <div class="streak-number">
-          0
-        </div>
-
-        <div class="streak-unit">
-          連続稼働日
-        </div>
-      `;
-
-      return;
-    }
-
-    const activeDates =
-      new Set(
-        daily
-          .filter(
-            day =>
-              Number(
-                day.records || 0
-              ) > 0
-          )
-          .map(
-            day =>
-              formatDate(
-                day.date
-              )
-          )
-      );
-
-    const today =
-      getTodayJst();
-
-    let streak = 0;
-
-    let cursor =
-      new Date(
-        `${today}T00:00:00+09:00`
-      );
-
-    while (true) {
-      const key =
-        formatDate(
-          cursor
+        return (
+          date.getFullYear() === selectedYear &&
+          date.getMonth() + 1 === selectedMonth
         );
+      });
 
-      if (
-        activeDates.has(key)
-      ) {
-        streak++;
+      if (!filtered.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            選択した月のデータがありません。
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        const sales = Number(item.sale_amount || 0);
+        const deliveries = Number(item.delivery_count || 0);
+        const hours = Number(item.work_hours || 0);
+
+        const hourly =
+          hours > 0
+            ? sales / hours
+            : 0;
+
+        return `
+          <div class="analytics-row">
+            <div>
+              <strong>
+                ${escapeHtml(item.date)}
+              </strong>
+
+              <small>
+                ${deliveries}件 / ${hours.toFixed(2)}h
+              </small>
+            </div>
+
+            <div class="analytics-row-value">
+              <strong>${escapeHtml(formatYen(sales))}</strong>
+
+              <small>
+                時給 ${escapeHtml(formatYen(hourly))}
+              </small>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+          function renderMonthlyList(data) {
+      const container = document.getElementById('monthlyList');
+      const monthly = data.monthly || [];
+
+      if (!monthly.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            データがありません。
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = monthly.map(item => {
+        const sales = Number(item.sale_amount || 0);
+        const deliveries = Number(item.delivery_count || 0);
+        const hours = Number(item.work_hours || 0);
+
+        const unitPrice =
+          deliveries > 0
+            ? sales / deliveries
+            : 0;
+
+        const hourly =
+          hours > 0
+            ? sales / hours
+            : 0;
+
+        return `
+          <div class="analytics-row">
+            <div>
+              <strong>
+                ${escapeHtml(item.month)}
+              </strong>
+
+              <small>
+                ${deliveries}件 / ${hours.toFixed(2)}h
+              </small>
+            </div>
+
+            <div class="analytics-row-value">
+              <strong>
+                ${escapeHtml(formatYen(sales))}
+              </strong>
+
+              <small>
+                1件 ${escapeHtml(formatYen(unitPrice))}
+                /
+                時給 ${escapeHtml(formatYen(hourly))}
+              </small>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderWeekdayList(data) {
+      const container = document.getElementById('weekdayList');
+      const weekday = data.weekday || [];
+
+      if (!weekday.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            データがありません。
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = weekday.map(item => {
+        const sales = Number(item.sale_amount || 0);
+        const deliveries = Number(item.delivery_count || 0);
+        const hours = Number(item.work_hours || 0);
+
+        const hourly =
+          hours > 0
+            ? sales / hours
+            : 0;
+
+        return `
+          <div class="analytics-row">
+            <div>
+              <strong>
+                ${escapeHtml(item.weekday)}
+              </strong>
+
+              <small>
+                ${deliveries}件 / ${hours.toFixed(2)}h
+              </small>
+            </div>
+
+            <div class="analytics-row-value">
+              <strong>
+                ${escapeHtml(formatYen(sales))}
+              </strong>
+
+              <small>
+                時給 ${escapeHtml(formatYen(hourly))}
+              </small>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderHourList(data) {
+      const container = document.getElementById('hourList');
+      const hour = data.hour || [];
+
+      if (!hour.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            データがありません。
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = hour.map(item => {
+        const sales = Number(item.sale_amount || 0);
+        const deliveries = Number(item.delivery_count || 0);
+        const hours = Number(item.work_hours || 0);
+
+        const unitPrice =
+          deliveries > 0
+            ? sales / deliveries
+            : 0;
+
+        const hourly =
+          hours > 0
+            ? sales / hours
+            : 0;
+
+        return `
+          <div class="analytics-row">
+            <div>
+              <strong>
+                ${escapeHtml(item.hour)}時台
+              </strong>
+
+              <small>
+                ${deliveries}件 / ${hours.toFixed(2)}h
+              </small>
+            </div>
+
+            <div class="analytics-row-value">
+              <strong>
+                ${escapeHtml(formatYen(sales))}
+              </strong>
+
+              <small>
+                1件 ${escapeHtml(formatYen(unitPrice))}
+                /
+                時給 ${escapeHtml(formatYen(hourly))}
+              </small>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderEfficiencyAnalysis(data) {
+      const container =
+        document.getElementById('efficiencyContent');
+
+      const summary = data.summary || {};
+
+      const sales = Number(summary.saleAmount || 0);
+      const deliveries = Number(summary.deliveryCount || 0);
+      const hours = Number(summary.workHours || 0);
+      const distance = Number(summary.distanceKm || 0);
+
+      const unitPrice =
+        deliveries > 0
+          ? sales / deliveries
+          : 0;
+
+      const hourly =
+        hours > 0
+          ? sales / hours
+          : 0;
+
+      const salesPerKm =
+        distance > 0
+          ? sales / distance
+          : 0;
+
+      const deliveriesPerHour =
+        hours > 0
+          ? deliveries / hours
+          : 0;
+
+      container.innerHTML = `
+        <div class="efficiency-grid">
+
+          <div class="efficiency-item">
+            <span>1件単価</span>
+            <strong>
+              ${escapeHtml(formatYen(unitPrice))}
+            </strong>
+          </div>
+
+          <div class="efficiency-item">
+            <span>時給換算</span>
+            <strong>
+              ${escapeHtml(formatYen(hourly))}
+            </strong>
+          </div>
+
+          <div class="efficiency-item">
+            <span>1時間あたり件数</span>
+            <strong>
+              ${deliveriesPerHour.toFixed(2)}件
+            </strong>
+          </div>
+
+          <div class="efficiency-item">
+            <span>1kmあたり売上</span>
+            <strong>
+              ${
+                distance > 0
+                  ? escapeHtml(formatYen(salesPerKm))
+                  : '-'
+              }
+            </strong>
+          </div>
+
+        </div>
+      `;
+    }
+
+    function renderStreak(data) {
+      const container =
+        document.getElementById('streakContent');
+
+      const daily = data.daily || [];
+
+      if (!daily.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            データがありません。
+          </div>
+        `;
+        return;
+      }
+
+      const activeDates = new Set(
+        daily
+          .filter(item =>
+            Number(item.delivery_count || 0) > 0
+          )
+          .map(item => item.date)
+      );
+
+      let currentStreak = 0;
+      let longestStreak = 0;
+
+      let cursor = new Date();
+
+      for (let i = 0; i < 366; i++) {
+        const year = cursor.getUTCFullYear();
+        const month = String(
+          cursor.getUTCMonth() + 1
+        ).padStart(2, '0');
+        const day = String(
+          cursor.getUTCDate()
+        ).padStart(2, '0');
+
+        const key = `${year}-${month}-${day}`;
+
+        if (activeDates.has(key)) {
+          currentStreak++;
+        } else {
+          break;
+        }
 
         cursor.setUTCDate(
           cursor.getUTCDate() - 1
         );
-      } else {
-        break;
       }
 
-      if (streak > 3650) {
-        break;
-      }
-    }
+      let running = 0;
 
-    container.innerHTML = `
-      <div class="streak-number">
-        ${streak}
-      </div>
+      const sortedDates =
+        Array.from(activeDates).sort();
 
-      <div class="streak-unit">
-        連続稼働日
-      </div>
-    `;
-  }
+      let previousDate = null;
 
+      for (const dateString of sortedDates) {
+        const date = new Date(
+          `${dateString}T00:00:00+09:00`
+        );
 
-  function getTodayJst() {
-    const parts =
-      new Intl.DateTimeFormat(
-        "en-CA",
-        {
-          timeZone: JST,
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
+        if (
+          previousDate &&
+          (
+            date.getTime() -
+            previousDate.getTime()
+          ) === 86400000
+        ) {
+          running++;
+        } else {
+          running = 1;
         }
-      ).formatToParts(
-        new Date()
-      );
 
-    const year =
-      parts.find(
-        p => p.type === "year"
-      )?.value;
+        longestStreak =
+          Math.max(longestStreak, running);
 
-    const month =
-      parts.find(
-        p => p.type === "month"
-      )?.value;
-
-    const day =
-      parts.find(
-        p => p.type === "day"
-      )?.value;
-
-    return `${year}-${month}-${day}`;
-  }
-
-
-  // =========================================================
-  // History selectors
-  // =========================================================
-
-  function populateHistorySelectors() {
-    const monthSelect =
-      document.getElementById(
-        "monthSelect"
-      );
-
-    const yearSelect =
-      document.getElementById(
-        "yearSelect"
-      );
-
-    const today =
-      new Date();
-
-    const parts =
-      new Intl.DateTimeFormat(
-        "en-CA",
-        {
-          timeZone: JST,
-          year: "numeric",
-          month: "2-digit",
-        }
-      ).formatToParts(
-        today
-      );
-
-    const currentYear =
-      Number(
-        parts.find(
-          p => p.type === "year"
-        )?.value
-      );
-
-    const currentMonth =
-      Number(
-        parts.find(
-          p => p.type === "month"
-        )?.value
-      );
-
-    monthSelect.innerHTML = `
-      <option value="">
-        月を選択
-      </option>
-    `;
-
-    for (
-      let i = 0;
-      i < 24;
-      i++
-    ) {
-      const date =
-        new Date(
-          currentYear,
-          currentMonth - 1 - i,
-          1
-        );
-
-      const year =
-        date.getFullYear();
-
-      const month =
-        date.getMonth() + 1;
-
-      const value =
-        `${year}-${String(
-          month
-        ).padStart(2, "0")}`;
-
-      const option =
-        document.createElement(
-          "option"
-        );
-
-      option.value =
-        value;
-
-      option.textContent =
-        value;
-
-      monthSelect.appendChild(
-        option
-      );
-    }
-
-    yearSelect.innerHTML = `
-      <option value="">
-        年を選択
-      </option>
-    `;
-
-    for (
-      let i = 0;
-      i < 5;
-      i++
-    ) {
-      const year =
-        currentYear - i;
-
-      const option =
-        document.createElement(
-          "option"
-        );
-
-      option.value =
-        String(year);
-
-      option.textContent =
-        `${year}年`;
-
-      yearSelect.appendChild(
-        option
-      );
-    }
-  }
-
-
-  // =========================================================
-  // Add result UI
-  // =========================================================
-
-  function setupAddResultForm() {
-    const form =
-      document.getElementById(
-        "addResultForm"
-      );
-
-    const toggle =
-      document.getElementById(
-        "detailsToggle"
-      );
-
-    const details =
-      document.getElementById(
-        "optionalDetails"
-      );
-
-    if (!form || !toggle || !details) {
-      return;
-    }
-
-    toggle.addEventListener(
-      "click",
-      () => {
-        const isOpen =
-          details.classList.toggle(
-            "open"
-          );
-
-        toggle.classList.toggle(
-          "open",
-          isOpen
-        );
-
-        toggle.setAttribute(
-          "aria-expanded",
-          String(isOpen)
-        );
+        previousDate = date;
       }
-    );
 
-    form.addEventListener(
-      "submit",
-      event => {
+      container.innerHTML = `
+        <div class="streak-grid">
+
+          <div class="streak-item">
+            <span>現在の連続稼働日数</span>
+            <strong>
+              ${currentStreak}日
+            </strong>
+          </div>
+
+          <div class="streak-item">
+            <span>最長連続稼働日数</span>
+            <strong>
+              ${longestStreak}日
+            </strong>
+          </div>
+
+        </div>
+      `;
+    }
+
+    function getTodayJst() {
+      const formatter =
+        new Intl.DateTimeFormat('en-CA', {
+          timeZone: JST,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        });
+
+      return formatter.format(new Date());
+    }
+
+    function populateHistorySelectors() {
+      const yearSelect =
+        document.getElementById('historyYear');
+
+      const monthSelect =
+        document.getElementById('historyMonth');
+
+      const now = new Date();
+
+      const currentYear =
+        now.getFullYear();
+
+      yearSelect.innerHTML = '';
+
+      for (
+        let year = currentYear - 2;
+        year <= currentYear;
+        year++
+      ) {
+        const option =
+          document.createElement('option');
+
+        option.value = year;
+        option.textContent = `${year}年`;
+
+        if (year === currentYear) {
+          option.selected = true;
+        }
+
+        yearSelect.appendChild(option);
+      }
+
+      monthSelect.innerHTML = '';
+
+      for (let month = 1; month <= 12; month++) {
+        const option =
+          document.createElement('option');
+
+        option.value = month;
+        option.textContent = `${month}月`;
+
+        if (month === now.getMonth() + 1) {
+          option.selected = true;
+        }
+
+        monthSelect.appendChild(option);
+      }
+    }
+          async function setupAddResultForm() {
+      const form = document.getElementById('addResultForm');
+
+      form.addEventListener('submit', async event => {
         event.preventDefault();
 
         const saleAmount =
           Number(
-            document.getElementById(
-              "saleAmountInput"
-            ).value
+            document.getElementById('saleAmount').value
           );
 
         const deliveryCount =
           Number(
-            document.getElementById(
-              "deliveryCountInput"
-            ).value
+            document.getElementById('deliveryCount').value
           );
 
-        if (
-          !Number.isFinite(
-            saleAmount
-          ) ||
-          saleAmount < 0
-        ) {
-          alert(
-            "売上を正しく入力してください。"
-          );
+        if (!Number.isFinite(saleAmount) || saleAmount < 0) {
+          showToast('売上を正しく入力してください', 'error');
           return;
         }
 
         if (
-          !Number.isInteger(
-            deliveryCount
-          ) ||
+          !Number.isFinite(deliveryCount) ||
           deliveryCount < 0
         ) {
-          alert(
-            "配達数を正しく入力してください。"
-          );
+          showToast('配達件数を正しく入力してください', 'error');
           return;
         }
 
-        /*
-         * 現段階では保存API・DB側の準備前。
-         *
-         * 入力UIだけ先に作り、
-         * DB/API変更後にここから
-         * /api/result へ登録する。
-         */
-        alert(
-          "入力内容を確認しました。\n\n" +
-          `売上：¥${saleAmount.toLocaleString("ja-JP")}\n` +
-          `配達：${deliveryCount.toLocaleString("ja-JP")}件\n\n` +
-          "保存処理は次の段階で接続します。"
-        );
-      }
-    );
-  }
-
-
-  // =========================================================
-  // Events
-  // =========================================================
-
-  function setupEvents() {
-
-    // Main tabs
-    document
-      .querySelectorAll(
-        ".main-tab"
-      )
-      .forEach(button => {
-        button.addEventListener(
-          "click",
-          () => {
-            showSection(
-              button.dataset.section
-            );
-          }
+        showToast(
+          '保存処理は次の段階で接続します。',
+          'normal'
         );
       });
+    }
 
+    function setupNavigation() {
+      document
+        .querySelectorAll('.nav-btn')
+        .forEach(button => {
+          button.addEventListener('click', async () => {
+            const section =
+              button.dataset.section;
 
-    // Period tabs
-    document
-      .querySelectorAll(
-        ".period-tab"
-      )
-      .forEach(button => {
-        button.addEventListener(
-          "click",
-          () => {
-            const period =
-              button.dataset.period;
+            activateSection(section);
 
-            loadPersonal(
-              period
+            if (section === 'personal') {
+              try {
+                await loadPersonal();
+              } catch (error) {
+                console.error(error);
+                showToast(
+                  error.message ||
+                  'データ取得に失敗しました',
+                  'error'
+                );
+              }
+            }
+
+            if (section === 'analytics') {
+              try {
+                await loadAnalytics();
+              } catch (error) {
+                console.error(error);
+                showToast(
+                  error.message ||
+                  '分析データ取得に失敗しました',
+                  'error'
+                );
+              }
+            }
+          });
+        });
+    }
+
+    function setupPeriodTabs() {
+      document
+        .querySelectorAll('.period-btn')
+        .forEach(button => {
+          button.addEventListener('click', async () => {
+            activatePeriod(
+              button.dataset.period
+            );
+
+            try {
+              await loadPersonal();
+            } catch (error) {
+              console.error(error);
+
+              showToast(
+                error.message ||
+                'データ取得に失敗しました',
+                'error'
+              );
+            }
+          });
+        });
+    }
+
+    function setupAnalyticsTabs() {
+      document
+        .querySelectorAll('.analytics-tab')
+        .forEach(button => {
+          button.addEventListener('click', () => {
+            activateAnalyticsTab(
+              button.dataset.analytics
+            );
+          });
+        });
+    }
+
+    function setupHistorySelectors() {
+      document
+        .getElementById('historyYear')
+        .addEventListener('change', async () => {
+          try {
+            const data =
+              await apiFetch('/api/result?period=year');
+
+            renderDailyList(data);
+          } catch (error) {
+            console.error(error);
+
+            showToast(
+              error.message ||
+              'データ取得に失敗しました',
+              'error'
             );
           }
-        );
-      });
+        });
 
+      document
+        .getElementById('historyMonth')
+        .addEventListener('change', async () => {
+          try {
+            const data =
+              await apiFetch('/api/result?period=year');
 
-    // Month
-    document
-      .getElementById(
-        "monthSelect"
-      )
-      .addEventListener(
-        "change",
-        event => {
-          const month =
-            event.target.value;
+            renderDailyList(data);
+          } catch (error) {
+            console.error(error);
 
-          if (!month) {
+            showToast(
+              error.message ||
+              'データ取得に失敗しました',
+              'error'
+            );
+          }
+        });
+    }
+
+    function setupRefresh() {
+      document
+        .getElementById('refreshBtn')
+        .addEventListener('click', async () => {
+          try {
+            if (activeSection === 'personal') {
+              await loadPersonal();
+            } else {
+              await loadAnalytics();
+            }
+
+            showToast('更新しました');
+          } catch (error) {
+            console.error(error);
+
+            showToast(
+              error.message ||
+              '更新に失敗しました',
+              'error'
+            );
+          }
+        });
+    }
+
+    function setupReset() {
+      document
+        .getElementById('resetDataBtn')
+        .addEventListener('click', async () => {
+
+          const confirmed =
+            window.confirm(
+              'あなた自身のデータをすべて削除します。\n\nこの操作は元に戻せません。'
+            );
+
+          if (!confirmed) {
             return;
           }
 
-          document
-            .getElementById(
-              "yearSelect"
-            )
-            .value = "";
+          try {
+            await apiFetch('/api/reset', {
+              method: 'POST'
+            });
 
-          loadPersonal(
-            "month",
-            {
-              month,
-            }
-          );
-        }
-      );
+            showToast('データを削除しました');
 
+            await loadPersonal();
+            await loadAnalytics();
 
-    // Year
-    document
-      .getElementById(
-        "yearSelect"
-      )
-      .addEventListener(
-        "change",
-        event => {
-          const year =
-            event.target.value;
+          } catch (error) {
+            console.error(error);
 
-          if (!year) {
-            return;
-          }
-
-          document
-            .getElementById(
-              "monthSelect"
-            )
-            .value = "";
-
-          loadPersonal(
-            "year",
-            {
-              year,
-            }
-          );
-        }
-      );
-
-
-    // Refresh
-    document
-      .getElementById(
-        "refreshBtn"
-      )
-      .addEventListener(
-        "click",
-        () => {
-          if (
-            activeSection ===
-            "personal"
-          ) {
-            loadPersonal(
-              activePeriod
+            showToast(
+              error.message ||
+              'データ削除に失敗しました',
+              'error'
             );
-          } else {
-            loadAnalytics();
           }
+        });
+    }
+
+    async function initializeApp() {
+      try {
+        if (!tg?.initData) {
+          setUserStatus(null);
+
+          showToast(
+            'Telegramアプリ内から開いてください',
+            'error'
+          );
+
+          return;
         }
-      );
 
+        const initResponse =
+          await apiFetch('/api/result?period=today');
 
-    // Reset
-    document
-      .getElementById(
-        "resetBtn"
-      )
-      .addEventListener(
-        "click",
-        resetData
-      );
-
-  }
-
-
-  // =========================================================
-  // Reset
-  // =========================================================
-
-  async function resetData() {
-    const first =
-      confirm(
-        "自分の配達実績をすべて削除します。\n\n本当に実行しますか？"
-      );
-
-    if (!first) {
-      return;
-    }
-
-    const second =
-      confirm(
-        "この操作は元に戻せません。\n\n本当に全削除しますか？"
-      );
-
-    if (!second) {
-      return;
-    }
-
-    try {
-      const data =
-        await apiFetch(
-          "/api/reset",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body:
-              JSON.stringify({}),
-          }
+        setUserStatus(
+          initResponse.user || null
         );
 
-      if (!data?.ok) {
-        throw new Error(
-          data?.error ||
-            "リセットに失敗しました。"
+        populateHistorySelectors();
+
+        setupNavigation();
+        setupPeriodTabs();
+        setupAnalyticsTabs();
+        setupHistorySelectors();
+        setupRefresh();
+        setupReset();
+        await setupAddResultForm();
+
+        activateSection('personal');
+        activatePeriod('today');
+        activateAnalyticsTab('summary');
+
+        await loadPersonal();
+
+      } catch (error) {
+        console.error(error);
+
+        setUserStatus(null);
+
+        showToast(
+          error.message ||
+          '初期化に失敗しました',
+          'error'
         );
       }
-
-      alert(
-        "自分の実績を削除しました。"
-      );
-
-      await loadPersonal(
-        "today"
-      );
-
-    } catch (error) {
-      console.error(
-        "reset error:",
-        error
-      );
-
-      alert(
-        error.message ||
-          "リセットに失敗しました。"
-      );
     }
-  }
 
-
-  // =========================================================
-  // Escape
-  // =========================================================
-
-  function escapeHtml(
-    value
-  ) {
-    return String(
-      value ?? ""
-    )
-      .replace(
-        /&/g,
-        "&amp;"
-      )
-      .replace(
-        /</g,
-        "&lt;"
-      )
-      .replace(
-        />/g,
-        "&gt;"
-      )
-      .replace(
-        /"/g,
-        "&quot;"
-      )
-      .replace(
-        /'/g,
-        "&#039;"
-      );
-  }
-
-
-  // =========================================================
-  // Initialize
-  // =========================================================
-
-  async function init() {
-    initTelegram();
-
-    renderUserName();
-
-    populateHistorySelectors();
-
-    setupEvents();
-
-    setupAddResultForm();
-
-    await loadPersonal(
-      "today"
-    );
-  }
-
-  init();
-</script>
-
+    initializeApp();
+  </script>
 </body>
 </html>
