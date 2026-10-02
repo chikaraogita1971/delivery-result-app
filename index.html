@@ -188,6 +188,165 @@
     }
 
     /* =========================================
+       Add result
+    ========================================= */
+
+    .add-result-card {
+      padding: 16px;
+      margin-bottom: 12px;
+
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+
+      box-shadow:
+        0 4px 14px rgba(0, 0, 0, 0.035);
+    }
+
+    .add-result-title {
+      margin-bottom: 14px;
+
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      display: block;
+
+      margin-bottom: 6px;
+
+      color: #374151;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .required {
+      margin-left: 4px;
+
+      color: #dc2626;
+      font-size: 10px;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .result-input {
+      width: 100%;
+      min-height: 44px;
+
+      padding: 0 12px;
+
+      border: 1px solid #d1d5db;
+      border-radius: 11px;
+
+      background: #ffffff;
+      color: #111827;
+
+      outline: none;
+    }
+
+    .result-input:focus {
+      border-color: #2563eb;
+      box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10);
+    }
+
+    .input-prefix,
+    .input-suffix {
+      flex-shrink: 0;
+
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .details-toggle {
+      width: 100%;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      min-height: 44px;
+
+      margin-top: 2px;
+      padding: 0 12px;
+
+      border: 1px solid #e5e7eb;
+      border-radius: 11px;
+
+      background: #f9fafb;
+      color: #374151;
+
+      font-size: 12px;
+      font-weight: 800;
+
+      text-align: left;
+    }
+
+    .details-toggle:active {
+      transform: scale(0.99);
+    }
+
+    .details-toggle-icon {
+      transition: transform 0.2s ease;
+    }
+
+    .details-toggle.open
+      .details-toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .optional-details {
+      display: none;
+
+      margin-top: 10px;
+      padding: 12px;
+
+      background: #f9fafb;
+      border-radius: 14px;
+    }
+
+    .optional-details.open {
+      display: block;
+    }
+
+    .add-result-submit {
+      width: 100%;
+      min-height: 48px;
+
+      margin-top: 4px;
+
+      border: 0;
+      border-radius: 13px;
+
+      background: #2563eb;
+      color: #ffffff;
+
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .add-result-submit:active {
+      transform: scale(0.98);
+    }
+
+    .add-result-note {
+      margin-top: 8px;
+
+      color: #9ca3af;
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    /* =========================================
        History selector
     ========================================= */
 
@@ -751,6 +910,232 @@
     class="section active"
   >
 
+    <!-- =========================================
+         Add result
+    ========================================== -->
+
+    <div class="add-result-card">
+
+      <div class="add-result-title">
+        実績を追加
+      </div>
+
+      <form id="addResultForm">
+
+        <div class="form-group">
+
+          <label
+            class="form-label"
+            for="saleAmountInput"
+          >
+            売上<span class="required">必須</span>
+          </label>
+
+          <div class="input-row">
+
+            <span class="input-prefix">
+              ¥
+            </span>
+
+            <input
+              id="saleAmountInput"
+              class="result-input"
+              type="number"
+              inputmode="numeric"
+              min="0"
+              step="1"
+              placeholder="5000"
+              required
+            />
+
+          </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label
+            class="form-label"
+            for="deliveryCountInput"
+          >
+            配達数<span class="required">必須</span>
+          </label>
+
+          <div class="input-row">
+
+            <input
+              id="deliveryCountInput"
+              class="result-input"
+              type="number"
+              inputmode="numeric"
+              min="0"
+              step="1"
+              placeholder="5"
+              required
+            />
+
+            <span class="input-suffix">
+              件
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <button
+          id="detailsToggle"
+          class="details-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="optionalDetails"
+        >
+          <span>
+            詳細設定（任意）
+          </span>
+
+          <span class="details-toggle-icon">
+            ▼
+          </span>
+        </button>
+
+
+        <div
+          id="optionalDetails"
+          class="optional-details"
+        >
+
+          <div class="form-group">
+
+            <label
+              class="form-label"
+              for="workStartTimeInput"
+            >
+              開始時間
+            </label>
+
+            <div class="input-row">
+
+              <input
+                id="workStartTimeInput"
+                class="result-input"
+                type="time"
+              />
+
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label
+              class="form-label"
+              for="workHoursInput"
+            >
+              稼働時間
+            </label>
+
+            <div class="input-row">
+
+              <input
+                id="workHoursInput"
+                class="result-input"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="0.01"
+                placeholder="2"
+              />
+
+              <span class="input-suffix">
+                時間
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label
+              class="form-label"
+              for="distanceInput"
+            >
+              距離
+            </label>
+
+            <div class="input-row">
+
+              <input
+                id="distanceInput"
+                class="result-input"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="0.01"
+                placeholder="12.5"
+              />
+
+              <span class="input-suffix">
+                km
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label
+              class="form-label"
+              for="expenseInput"
+            >
+              経費
+            </label>
+
+            <div class="input-row">
+
+              <span class="input-prefix">
+                ¥
+              </span>
+
+              <input
+                id="expenseInput"
+                class="result-input"
+                type="number"
+                inputmode="numeric"
+                min="0"
+                step="1"
+                placeholder="1200"
+              />
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <button
+          class="add-result-submit"
+          type="submit"
+        >
+          登録
+        </button>
+
+        <div class="add-result-note">
+          売上と配達数は必須です。詳細項目は必要な場合だけ入力できます。
+        </div>
+
+      </form>
+
+    </div>
+
+
     <!-- Period -->
 
     <div class="period-tabs">
@@ -995,7 +1380,9 @@
     </div>
 
   </section>
-    <!-- =========================================
+
+
+  <!-- =========================================
        Analytics
   ========================================== -->
 
@@ -1702,11 +2089,6 @@
         stats.workHours || 0
       );
 
-    const unitPrice =
-      Number(
-        stats.unitPrice || 0
-      );
-
     const hourly =
       Number(
         stats.hourlySales || 0
@@ -2395,7 +2777,9 @@
         `)
         .join("");
   }
-    // =========================================================
+
+
+  // =========================================================
   // Analytics
   // =========================================================
 
@@ -2649,22 +3033,12 @@
         stats.workHours || 0
       );
 
-    /*
-     * 1時間あたり配達
-     *
-     * 配達数 ÷ 稼働時間
-     */
     const deliveriesPerHour =
       workHours > 0
         ? deliveryCount /
           workHours
         : 0;
 
-    /*
-     * 1件あたり稼働時間
-     *
-     * 稼働時間 × 60 ÷ 配達数
-     */
     const minutesPerDelivery =
       deliveryCount > 0
         ? (
@@ -2673,22 +3047,12 @@
           deliveryCount
         : 0;
 
-    /*
-     * 1件あたり売上
-     *
-     * 売上 ÷ 配達数
-     */
     const unitPrice =
       deliveryCount > 0
         ? sales /
           deliveryCount
         : 0;
 
-    /*
-     * 1時間あたり売上
-     *
-     * 売上 ÷ 稼働時間
-     */
     const hourlySales =
       workHours > 0
         ? sales /
@@ -3065,7 +3429,6 @@
         )?.value
       );
 
-    // 過去24か月
     monthSelect.innerHTML = `
       <option value="">
         月を選択
@@ -3111,7 +3474,6 @@
       );
     }
 
-    // 過去5年
     yearSelect.innerHTML = `
       <option value="">
         年を選択
@@ -3141,6 +3503,111 @@
         option
       );
     }
+  }
+
+
+  // =========================================================
+  // Add result UI
+  // =========================================================
+
+  function setupAddResultForm() {
+    const form =
+      document.getElementById(
+        "addResultForm"
+      );
+
+    const toggle =
+      document.getElementById(
+        "detailsToggle"
+      );
+
+    const details =
+      document.getElementById(
+        "optionalDetails"
+      );
+
+    if (!form || !toggle || !details) {
+      return;
+    }
+
+    toggle.addEventListener(
+      "click",
+      () => {
+        const isOpen =
+          details.classList.toggle(
+            "open"
+          );
+
+        toggle.classList.toggle(
+          "open",
+          isOpen
+        );
+
+        toggle.setAttribute(
+          "aria-expanded",
+          String(isOpen)
+        );
+      }
+    );
+
+    form.addEventListener(
+      "submit",
+      event => {
+        event.preventDefault();
+
+        const saleAmount =
+          Number(
+            document.getElementById(
+              "saleAmountInput"
+            ).value
+          );
+
+        const deliveryCount =
+          Number(
+            document.getElementById(
+              "deliveryCountInput"
+            ).value
+          );
+
+        if (
+          !Number.isFinite(
+            saleAmount
+          ) ||
+          saleAmount < 0
+        ) {
+          alert(
+            "売上を正しく入力してください。"
+          );
+          return;
+        }
+
+        if (
+          !Number.isInteger(
+            deliveryCount
+          ) ||
+          deliveryCount < 0
+        ) {
+          alert(
+            "配達数を正しく入力してください。"
+          );
+          return;
+        }
+
+        /*
+         * 現段階では保存API・DB側の準備前。
+         *
+         * 入力UIだけ先に作り、
+         * DB/API変更後にここから
+         * /api/result へ登録する。
+         */
+        alert(
+          "入力内容を確認しました。\n\n" +
+          `売上：¥${saleAmount.toLocaleString("ja-JP")}\n` +
+          `配達：${deliveryCount.toLocaleString("ja-JP")}件\n\n` +
+          "保存処理は次の段階で接続します。"
+        );
+      }
+    );
   }
 
 
@@ -3280,6 +3747,7 @@
         "click",
         resetData
       );
+
   }
 
 
@@ -3395,6 +3863,8 @@
     populateHistorySelectors();
 
     setupEvents();
+
+    setupAddResultForm();
 
     await loadPersonal(
       "today"
