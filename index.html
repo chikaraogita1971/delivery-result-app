@@ -2,7 +2,6 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
@@ -10,7 +9,6 @@
 
   <title>個人テレグラムリザルト</title>
 
-  <!-- Telegram Mini App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
@@ -26,7 +24,6 @@
       --border: #e5e9f0;
       --primary: #229ed9;
       --primary-dark: #1686bd;
-      --success: #18a66a;
       --danger: #e05252;
       --shadow: 0 4px 18px rgba(23, 32, 51, .07);
       --radius: 16px;
@@ -97,46 +94,11 @@
       font-size: 18px;
     }
 
-    .main-tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4px;
-      margin: 14px 16px 0;
-      padding: 4px;
-      background: #e9edf3;
-      border-radius: 14px;
-    }
-
-    .main-tab {
-      border: 0;
-      border-radius: 11px;
-      padding: 10px;
-      background: transparent;
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .main-tab.active {
-      background: #fff;
-      color: var(--text);
-      box-shadow: 0 2px 7px rgba(0,0,0,.06);
-    }
-
-    .section {
-      display: none;
-      padding: 16px;
-    }
-
-    .section.active {
-      display: block;
-    }
-
     .period-tabs {
       display: flex;
       gap: 7px;
       overflow-x: auto;
-      padding-bottom: 2px;
-      margin-bottom: 14px;
+      padding: 14px 16px 2px;
     }
 
     .period-tab {
@@ -154,6 +116,10 @@
       border-color: var(--primary);
       background: var(--primary);
       color: #fff;
+    }
+
+    .section {
+      padding: 16px;
     }
 
     .card {
@@ -306,110 +272,6 @@
       font-weight: 850;
     }
 
-    .best-list,
-    .record-list,
-    .daily-list {
-      display: grid;
-      gap: 9px;
-    }
-
-    .best-item,
-    .record-item,
-    .daily-item {
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: #fff;
-    }
-
-    .record-item {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .record-main {
-      min-width: 0;
-    }
-
-    .record-date {
-      color: var(--muted);
-      font-size: 11px;
-    }
-
-    .record-title {
-      margin-top: 3px;
-      font-size: 14px;
-      font-weight: 800;
-    }
-
-    .record-sub {
-      margin-top: 3px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .record-amount {
-      white-space: nowrap;
-      font-size: 16px;
-      font-weight: 850;
-    }
-
-    .streak-box {
-      padding: 16px;
-      border-radius: 15px;
-      background: #fff;
-      border: 1px solid var(--border);
-      text-align: center;
-    }
-
-    .streak-number {
-      font-size: 34px;
-      font-weight: 900;
-    }
-
-    .streak-label {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .chart {
-      min-height: 120px;
-      display: flex;
-      align-items: flex-end;
-      gap: 6px;
-      padding: 12px 4px 4px;
-      overflow-x: auto;
-    }
-
-    .chart-bar-wrap {
-      min-width: 28px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .chart-bar-area {
-      height: 90px;
-      width: 24px;
-      display: flex;
-      align-items: flex-end;
-    }
-
-    .chart-bar {
-      width: 100%;
-      min-height: 2px;
-      border-radius: 5px 5px 2px 2px;
-      background: var(--primary);
-    }
-
-    .chart-label {
-      color: var(--muted);
-      font-size: 9px;
-      white-space: nowrap;
-    }
-
     .empty {
       padding: 24px 10px;
       color: var(--muted);
@@ -452,16 +314,16 @@
         padding-right: calc((100% - 760px) / 2 + 16px);
       }
 
-      .main-tabs {
-        max-width: 728px;
-        margin-left: auto;
-        margin-right: auto;
+      .period-tabs {
+        max-width: 760px;
+        margin: 0 auto;
       }
     }
   </style>
 </head>
 
 <body>
+
   <div class="app">
 
     <header class="header">
@@ -485,65 +347,50 @@
       </button>
     </header>
 
-    <nav class="main-tabs">
+    <div class="period-tabs">
+
       <button
-        class="main-tab active"
+        class="period-tab active"
         type="button"
-        data-section="personal"
+        data-period="today"
       >
-        個人実績
+        今日
       </button>
 
       <button
-        class="main-tab"
+        class="period-tab"
         type="button"
-        data-section="analytics"
+        data-period="week"
       >
-        分析
+        今週
       </button>
-    </nav>
 
-    <section
-      id="personalSection"
-      class="section active"
-    >
+      <button
+        class="period-tab"
+        type="button"
+        data-period="month"
+      >
+        今月
+      </button>
 
-      <div class="period-tabs">
-        <button
-          class="period-tab active"
-          type="button"
-          data-period="today"
-        >
-          今日
-        </button>
+      <button
+        class="period-tab"
+        type="button"
+        data-period="all"
+      >
+        全期間
+      </button>
 
-        <button
-          class="period-tab"
-          type="button"
-          data-period="week"
-        >
-          今週
-        </button>
+    </div>
 
-        <button
-          class="period-tab"
-          type="button"
-          data-period="month"
-        >
-          今月
-        </button>
+    <section class="section">
 
-        <button
-          class="period-tab"
-          type="button"
-          data-period="all"
-        >
-          全期間
-        </button>
-      </div>
-
+      <!-- 実績入力 -->
       <div class="add-result-card">
-        <h2 class="card-title">実績を追加</h2>
+
+        <h2 class="card-title">
+          実績を追加
+        </h2>
 
         <form id="addResultForm">
 
@@ -672,10 +519,14 @@
         </form>
       </div>
 
+      <!-- 集計 -->
       <div class="summary-grid">
 
         <div class="summary-item">
-          <div class="summary-label">売上</div>
+          <div class="summary-label">
+            売上
+          </div>
+
           <div
             id="summarySales"
             class="summary-value"
@@ -685,7 +536,10 @@
         </div>
 
         <div class="summary-item">
-          <div class="summary-label">配達件数</div>
+          <div class="summary-label">
+            配達件数
+          </div>
+
           <div
             id="summaryDeliveries"
             class="summary-value"
@@ -695,7 +549,10 @@
         </div>
 
         <div class="summary-item">
-          <div class="summary-label">稼働時間</div>
+          <div class="summary-label">
+            稼働時間
+          </div>
+
           <div
             id="summaryHours"
             class="summary-value small"
@@ -705,7 +562,10 @@
         </div>
 
         <div class="summary-item">
-          <div class="summary-label">時給</div>
+          <div class="summary-label">
+            時給
+          </div>
+
           <div
             id="summaryHourly"
             class="summary-value small"
@@ -715,7 +575,10 @@
         </div>
 
         <div class="summary-item">
-          <div class="summary-label">平均単価</div>
+          <div class="summary-label">
+            平均単価
+          </div>
+
           <div
             id="summaryUnitPrice"
             class="summary-value small"
@@ -726,12 +589,17 @@
 
       </div>
 
+      <!-- 📊 効率分析 -->
       <div class="card">
-        <h2 class="card-title">効率分析</h2>
+
+        <h2 class="card-title">
+          📊 効率分析
+        </h2>
 
         <div class="analysis-grid">
 
           <div class="analysis-card">
+
             <div class="analysis-label">
               1件あたり売上
             </div>
@@ -742,9 +610,11 @@
             >
               ¥0
             </div>
+
           </div>
 
           <div class="analysis-card">
+
             <div class="analysis-label">
               1時間あたり件数
             </div>
@@ -755,9 +625,11 @@
             >
               0件
             </div>
+
           </div>
 
           <div class="analysis-card">
+
             <div class="analysis-label">
               1kmあたり売上
             </div>
@@ -768,9 +640,11 @@
             >
               —
             </div>
+
           </div>
 
           <div class="analysis-card">
+
             <div class="analysis-label">
               経費
             </div>
@@ -781,125 +655,19 @@
             >
               ¥0
             </div>
+
           </div>
 
         </div>
-      </div>
-
-      <div class="card">
-        <h2 class="card-title">継続状況</h2>
-
-        <div class="streak-box">
-          <div
-            id="streakNumber"
-            class="streak-number"
-          >
-            0
-          </div>
-
-          <div class="streak-label">
-            連続稼働日
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2 class="card-title">実績履歴</h2>
-
-        <div
-          id="recordList"
-          class="record-list"
-        >
-          <div class="empty">
-            読み込み中…
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-    <section
-      id="analyticsSection"
-      class="section"
-    >
-
-      <div class="period-tabs">
-
-        <button
-          class="period-tab active"
-          type="button"
-          data-analytics-period="week"
-        >
-          週間
-        </button>
-
-        <button
-          class="period-tab"
-          type="button"
-          data-analytics-period="month"
-        >
-          月間
-        </button>
-
-        <button
-          class="period-tab"
-          type="button"
-          data-analytics-period="all"
-        >
-          全期間
-        </button>
 
       </div>
 
-      <div class="card">
-        <h2 class="card-title">売上推移</h2>
-
-        <div
-          id="salesChart"
-          class="chart"
-        >
-          <div class="empty">
-            データがありません
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2 class="card-title">日別実績</h2>
-
-        <div
-          id="dailyList"
-          class="daily-list"
-        >
-          <div class="empty">
-            データがありません
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2 class="card-title">曜日別</h2>
-
-        <div
-          id="weekdayList"
-          class="best-list"
-        >
-          <div class="empty">
-            データがありません
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2 class="card-title">時間帯別</h2>
-
-        <div
-          id="hourList"
-          class="best-list"
-        >
-          <div class="empty">
-            データがありません
-          </div>
+      <div
+        id="recordList"
+        class="card"
+      >
+        <div class="empty">
+          読み込み中…
         </div>
       </div>
 
@@ -913,38 +681,49 @@
     role="status"
     aria-live="polite"
   ></div>
-    <script>
-    const tg = window.Telegram?.WebApp || null;
+
+  <script>
+    const tg =
+      window.Telegram?.WebApp || null;
 
     let currentPeriod = 'today';
-    let currentAnalyticsPeriod = 'week';
     let currentData = null;
 
     function formatYen(value) {
       const number = Number(value || 0);
+
       return `¥${Math.round(number).toLocaleString('ja-JP')}`;
     }
 
     function formatHours(value) {
       const number = Number(value || 0);
 
-      if (!Number.isFinite(number) || number <= 0) {
+      if (
+        !Number.isFinite(number) ||
+        number <= 0
+      ) {
         return '0時間';
       }
 
       return `${number.toFixed(1)}時間`;
     }
 
-    function formatNumber(value, digits = 1) {
+    function formatNumber(
+      value,
+      digits = 1
+    ) {
       const number = Number(value || 0);
 
       if (!Number.isFinite(number)) {
         return '0';
       }
 
-      return number.toLocaleString('ja-JP', {
-        maximumFractionDigits: digits
-      });
+      return number.toLocaleString(
+        'ja-JP',
+        {
+          maximumFractionDigits: digits
+        }
+      );
     }
 
     function escapeHtml(value) {
@@ -956,21 +735,32 @@
         .replace(/'/g, '&#039;');
     }
 
-    function showToast(message, type = 'normal') {
-      const toast = document.getElementById('toast');
+    function showToast(
+      message,
+      type = 'normal'
+    ) {
+      const toast =
+        document.getElementById('toast');
 
       if (!toast) {
         return;
       }
 
       toast.textContent = message;
-      toast.className = `toast show ${type === 'error' ? 'error' : ''}`;
+
+      toast.className =
+        `toast show ${
+          type === 'error'
+            ? 'error'
+            : ''
+        }`;
 
       clearTimeout(showToast.timer);
 
-      showToast.timer = setTimeout(() => {
-        toast.className = 'toast';
-      }, 3000);
+      showToast.timer =
+        setTimeout(() => {
+          toast.className = 'toast';
+        }, 3000);
     }
 
     function getTelegramUser() {
@@ -978,17 +768,20 @@
     }
 
     function updateUserName() {
-      const element = document.getElementById('userName');
+      const element =
+        document.getElementById('userName');
 
       if (!element) {
         return;
       }
 
-      const user = getTelegramUser();
+      const user =
+        getTelegramUser();
 
       if (!user) {
         element.textContent =
           'Telegram Mini Appとして起動してください';
+
         return;
       }
 
@@ -997,13 +790,23 @@
         user.username ||
         'ユーザー';
 
-      element.textContent = `${name}さん`;
+      element.textContent =
+        `${name}さん`;
     }
 
-    function apiFetch(url, options = {}) {
-      const headers = new Headers(options.headers || {});
+    function apiFetch(
+      url,
+      options = {}
+    ) {
+      const headers =
+        new Headers(
+          options.headers || {}
+        );
 
-      headers.set('Accept', 'application/json');
+      headers.set(
+        'Accept',
+        'application/json'
+      );
 
       if (tg?.initData) {
         headers.set(
@@ -1012,30 +815,38 @@
         );
       }
 
-      return fetch(url, {
-        ...options,
-        headers
-      });
+      return fetch(
+        url,
+        {
+          ...options,
+          headers
+        }
+      );
     }
 
-    async function readApiResponse(response) {
-      const text = await response.text();
+    async function readApiResponse(
+      response
+    ) {
+      const text =
+        await response.text();
 
       let data = null;
 
       try {
-        data = text ? JSON.parse(text) : null;
+        data =
+          text
+            ? JSON.parse(text)
+            : null;
       } catch {
         data = null;
       }
 
       if (!response.ok) {
-        const message =
+        throw new Error(
           data?.error ||
           data?.message ||
-          `通信エラー (${response.status})`;
-
-        throw new Error(message);
+          `通信エラー (${response.status})`
+        );
       }
 
       if (data?.ok === false) {
@@ -1073,7 +884,10 @@
       return [];
     }
 
-    function getRecordValue(record, ...keys) {
+    function getRecordValue(
+      record,
+      ...keys
+    ) {
       for (const key of keys) {
         if (
           record &&
@@ -1111,12 +925,13 @@
     }
 
     function getWorkHours(record) {
-      const value = getRecordValue(
-        record,
-        'workHours',
-        'work_hours',
-        'hours'
-      );
+      const value =
+        getRecordValue(
+          record,
+          'workHours',
+          'work_hours',
+          'hours'
+        );
 
       if (
         value === null ||
@@ -1174,43 +989,9 @@
       );
     }
 
-    function formatDate(value) {
-      if (!value) {
-        return '日付不明';
-      }
-
-      const date = new Date(value);
-
-      if (Number.isNaN(date.getTime())) {
-        return '日付不明';
-      }
-
-      return date.toLocaleDateString('ja-JP', {
-        month: 'numeric',
-        day: 'numeric'
-      });
-    }
-
-    function formatDateTime(value) {
-      if (!value) {
-        return '日時不明';
-      }
-
-      const date = new Date(value);
-
-      if (Number.isNaN(date.getTime())) {
-        return '日時不明';
-      }
-
-      return date.toLocaleString('ja-JP', {
-        month: 'numeric',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-
-    function getSummaryFromRecords(records) {
+    function getSummaryFromRecords(
+      records
+    ) {
       let sales = 0;
       let deliveries = 0;
       let hours = 0;
@@ -1235,85 +1016,108 @@
     }
 
     function getSummaryValues(data) {
-      const records = getRecordsFromData(data);
-      const summary = data?.summary || {};
+      const records =
+        getRecordsFromData(data);
+
+      const summary =
+        data?.summary || {};
 
       const fallback =
         getSummaryFromRecords(records);
 
-      const sales = Number(
-        summary.saleAmount ??
-        summary.sales ??
-        summary.sale_amount ??
-        fallback.sales ??
-        0
-      );
+      const sales =
+        Number(
+          summary.saleAmount ??
+          summary.sales ??
+          summary.sale_amount ??
+          fallback.sales ??
+          0
+        );
 
-      const deliveries = Number(
-        summary.deliveryCount ??
-        summary.deliveries ??
-        summary.delivery_count ??
-        fallback.deliveries ??
-        0
-      );
+      const deliveries =
+        Number(
+          summary.deliveryCount ??
+          summary.deliveries ??
+          summary.delivery_count ??
+          fallback.deliveries ??
+          0
+        );
 
-      const hours = Number(
-        summary.workHours ??
-        summary.hours ??
-        summary.work_hours ??
-        fallback.hours ??
-        0
-      );
+      const hours =
+        Number(
+          summary.workHours ??
+          summary.hours ??
+          summary.work_hours ??
+          fallback.hours ??
+          0
+        );
 
-      const distance = Number(
-        summary.distanceKm ??
-        summary.distance ??
-        summary.distance_km ??
-        fallback.distance ??
-        0
-      );
+      const distance =
+        Number(
+          summary.distanceKm ??
+          summary.distance ??
+          summary.distance_km ??
+          fallback.distance ??
+          0
+        );
 
-      const expense = Number(
-        summary.expenseAmount ??
-        summary.expense ??
-        summary.expense_amount ??
-        fallback.expense ??
-        0
-      );
+      const expense =
+        Number(
+          summary.expenseAmount ??
+          summary.expense ??
+          summary.expense_amount ??
+          fallback.expense ??
+          0
+        );
 
       return {
-        sales: Number.isFinite(sales) ? sales : 0,
-        deliveries: Number.isFinite(deliveries)
-          ? deliveries
-          : 0,
-        hours: Number.isFinite(hours)
-          ? hours
-          : 0,
-        distance: Number.isFinite(distance)
-          ? distance
-          : 0,
-        expense: Number.isFinite(expense)
-          ? expense
-          : 0
+        sales:
+          Number.isFinite(sales)
+            ? sales
+            : 0,
+
+        deliveries:
+          Number.isFinite(deliveries)
+            ? deliveries
+            : 0,
+
+        hours:
+          Number.isFinite(hours)
+            ? hours
+            : 0,
+
+        distance:
+          Number.isFinite(distance)
+            ? distance
+            : 0,
+
+        expense:
+          Number.isFinite(expense)
+            ? expense
+            : 0
       };
     }
 
     function renderSummary(data) {
-      const summary = getSummaryValues(data);
+      const summary =
+        getSummaryValues(data);
 
       const hourly =
         summary.hours > 0
-          ? summary.sales / summary.hours
+          ? summary.sales /
+            summary.hours
           : 0;
 
       const unitPrice =
         summary.deliveries > 0
-          ? summary.sales / summary.deliveries
+          ? summary.sales /
+            summary.deliveries
           : 0;
 
       document.getElementById(
         'summarySales'
-      ).textContent = formatYen(summary.sales);
+      ).textContent =
+        formatYen(summary.sales);
 
       document.getElementById(
         'summaryDeliveries'
@@ -1338,20 +1142,25 @@
       renderEfficiency(summary);
     }
 
-    function renderEfficiency(summary) {
+    function renderEfficiency(
+      summary
+    ) {
       const perDelivery =
         summary.deliveries > 0
-          ? summary.sales / summary.deliveries
+          ? summary.sales /
+            summary.deliveries
           : 0;
 
       const deliveriesPerHour =
         summary.hours > 0
-          ? summary.deliveries / summary.hours
+          ? summary.deliveries /
+            summary.hours
           : 0;
 
       const salesPerKm =
         summary.distance > 0
-          ? summary.sales / summary.distance
+          ? summary.sales /
+            summary.distance
           : 0;
 
       document.getElementById(
@@ -1362,7 +1171,10 @@
       document.getElementById(
         'analysisDeliveriesPerHour'
       ).textContent =
-        `${formatNumber(deliveriesPerHour, 1)}件`;
+        `${formatNumber(
+          deliveriesPerHour,
+          1
+        )}件`;
 
       document.getElementById(
         'analysisSalesPerKm'
@@ -1377,30 +1189,65 @@
         formatYen(summary.expense);
     }
 
-    function getRecordSortTime(record) {
-      const value = getDateValue(record);
+    function getRecordSortTime(
+      record
+    ) {
+      const value =
+        getDateValue(record);
 
       if (!value) {
         return 0;
       }
 
-      const time = new Date(value).getTime();
+      const time =
+        new Date(value).getTime();
 
       return Number.isFinite(time)
         ? time
         : 0;
     }
 
-    function renderRecords(records) {
+    function formatDateTime(value) {
+      if (!value) {
+        return '日時不明';
+      }
+
+      const date =
+        new Date(value);
+
+      if (
+        Number.isNaN(
+          date.getTime()
+        )
+      ) {
+        return '日時不明';
+      }
+
+      return date.toLocaleString(
+        'ja-JP',
+        {
+          month: 'numeric',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }
+      );
+    }
+
+    function renderRecords(
+      records
+    ) {
       const container =
-        document.getElementById('recordList');
+        document.getElementById(
+          'recordList'
+        );
 
       if (!container) {
         return;
       }
 
-      const sorted = [...records]
-        .sort(
+      const sorted =
+        [...records].sort(
           (a, b) =>
             getRecordSortTime(b) -
             getRecordSortTime(a)
@@ -1412,11 +1259,13 @@
             まだ実績がありません
           </div>
         `;
+
         return;
       }
 
-      container.innerHTML = sorted
-        .map(record => {
+      container.innerHTML =
+        sorted.map(record => {
+
           const sales =
             getSaleAmount(record);
 
@@ -1430,17 +1279,39 @@
             getDateValue(record);
 
           return `
-            <div class="record-item">
-              <div class="record-main">
-                <div class="record-date">
-                  ${escapeHtml(formatDateTime(date))}
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              gap:12px;
+              padding:12px;
+              margin-bottom:9px;
+              border:1px solid var(--border);
+              border-radius:12px;
+              background:#fff;
+            ">
+              <div>
+                <div style="
+                  color:var(--muted);
+                  font-size:11px;
+                ">
+                  ${escapeHtml(
+                    formatDateTime(date)
+                  )}
                 </div>
 
-                <div class="record-title">
+                <div style="
+                  margin-top:3px;
+                  font-size:14px;
+                  font-weight:800;
+                ">
                   ${deliveries.toLocaleString('ja-JP')}件
                 </div>
 
-                <div class="record-sub">
+                <div style="
+                  margin-top:3px;
+                  color:var(--muted);
+                  font-size:12px;
+                ">
                   ${formatHours(hours)}
                   ・平均単価
                   ${formatYen(
@@ -1451,415 +1322,20 @@
                 </div>
               </div>
 
-              <div class="record-amount">
+              <div style="
+                white-space:nowrap;
+                font-size:16px;
+                font-weight:850;
+              ">
                 ${formatYen(sales)}
               </div>
             </div>
           `;
-        })
-        .join('');
+
+        }).join('');
     }
 
-    function getLocalDateKey(date) {
-      const year = date.getFullYear();
-      const month =
-        String(date.getMonth() + 1).padStart(2, '0');
-      const day =
-        String(date.getDate()).padStart(2, '0');
-
-      return `${year}-${month}-${day}`;
-    }
-
-    function getWeekdayName(date) {
-      return [
-        '日',
-        '月',
-        '火',
-        '水',
-        '木',
-        '金',
-        '土'
-      ][date.getDay()];
-    }
-
-    function getAnalyticsRecords() {
-      const records =
-        getRecordsFromData(currentData);
-
-      const now = new Date();
-
-      if (currentAnalyticsPeriod === 'all') {
-        return records;
-      }
-
-      let start;
-
-      if (currentAnalyticsPeriod === 'month') {
-        start = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          1
-        );
-      } else {
-        start = new Date(now);
-        start.setDate(
-          now.getDate() - 6
-        );
-        start.setHours(0, 0, 0, 0);
-      }
-
-      return records.filter(record => {
-        const value = getDateValue(record);
-
-        if (!value) {
-          return false;
-        }
-
-        const date = new Date(value);
-
-        return (
-          !Number.isNaN(date.getTime()) &&
-          date >= start
-        );
-      });
-    }
-
-    function renderAnalytics() {
-      const records =
-        getAnalyticsRecords();
-
-      renderSalesChart(records);
-      renderDailyList(records);
-      renderWeekdayList(records);
-      renderHourList(records);
-    }
-
-    function renderSalesChart(records) {
-      const container =
-        document.getElementById('salesChart');
-
-      if (!container) {
-        return;
-      }
-
-      const daily = {};
-
-      for (const record of records) {
-        const value = getDateValue(record);
-
-        if (!value) {
-          continue;
-        }
-
-        const date = new Date(value);
-
-        if (Number.isNaN(date.getTime())) {
-          continue;
-        }
-
-        const key =
-          getLocalDateKey(date);
-
-        daily[key] =
-          (daily[key] || 0) +
-          getSaleAmount(record);
-      }
-
-      const entries =
-        Object.entries(daily)
-          .sort((a, b) =>
-            a[0].localeCompare(b[0])
-          );
-
-      if (entries.length === 0) {
-        container.innerHTML = `
-          <div class="empty">
-            データがありません
-          </div>
-        `;
-        return;
-      }
-
-      const max =
-        Math.max(
-          ...entries.map(item => item[1]),
-          1
-        );
-
-      container.innerHTML =
-        entries
-          .map(([key, value]) => {
-            const date =
-              new Date(`${key}T00:00:00`);
-
-            const height =
-              Math.max(
-                3,
-                Math.round(
-                  (value / max) * 90
-                )
-              );
-
-            return `
-              <div class="chart-bar-wrap">
-                <div
-                  class="chart-bar-area"
-                  title="${escapeHtml(
-                    formatYen(value)
-                  )}"
-                >
-                  <div
-                    class="chart-bar"
-                    style="height:${height}px"
-                  ></div>
-                </div>
-
-                <div class="chart-label">
-                  ${date.getMonth() + 1}/
-                  ${date.getDate()}
-                </div>
-              </div>
-            `;
-          })
-          .join('');
-    }
-
-    function renderDailyList(records) {
-      const container =
-        document.getElementById('dailyList');
-
-      if (!container) {
-        return;
-      }
-
-      const daily = {};
-
-      for (const record of records) {
-        const value = getDateValue(record);
-
-        if (!value) {
-          continue;
-        }
-
-        const date = new Date(value);
-
-        if (Number.isNaN(date.getTime())) {
-          continue;
-        }
-
-        const key =
-          getLocalDateKey(date);
-
-        if (!daily[key]) {
-          daily[key] = {
-            sales: 0,
-            deliveries: 0,
-            hours: 0
-          };
-        }
-
-        daily[key].sales +=
-          getSaleAmount(record);
-
-        daily[key].deliveries +=
-          getDeliveryCount(record);
-
-        daily[key].hours +=
-          getWorkHours(record);
-      }
-
-      const entries =
-        Object.entries(daily)
-          .sort((a, b) =>
-            b[0].localeCompare(a[0])
-          );
-
-      if (entries.length === 0) {
-        container.innerHTML = `
-          <div class="empty">
-            データがありません
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML =
-        entries
-          .map(([key, value]) => `
-            <div class="daily-item">
-              <div class="record-title">
-                ${escapeHtml(key)}
-              </div>
-
-              <div class="record-sub">
-                売上 ${formatYen(value.sales)}
-                ・${value.deliveries.toLocaleString('ja-JP')}件
-                ・${formatHours(value.hours)}
-              </div>
-            </div>
-          `)
-          .join('');
-    }
-
-    function renderWeekdayList(records) {
-      const container =
-        document.getElementById('weekdayList');
-
-      if (!container) {
-        return;
-      }
-
-      const weekday = [
-        {
-          name: '日',
-          sales: 0,
-          deliveries: 0
-        },
-        {
-          name: '月',
-          sales: 0,
-          deliveries: 0
-        },
-        {
-          name: '火',
-          sales: 0,
-          deliveries: 0
-        },
-        {
-          name: '水',
-          sales: 0,
-          deliveries: 0
-        },
-        {
-          name: '木',
-          sales: 0,
-          deliveries: 0
-        },
-        {
-          name: '金',
-          sales: 0,
-          deliveries: 0
-        },
-        {
-          name: '土',
-          sales: 0,
-          deliveries: 0
-        }
-      ];
-
-      for (const record of records) {
-        const value = getDateValue(record);
-
-        if (!value) {
-          continue;
-        }
-
-        const date = new Date(value);
-
-        if (Number.isNaN(date.getTime())) {
-          continue;
-        }
-
-        const index = date.getDay();
-
-        weekday[index].sales +=
-          getSaleAmount(record);
-
-        weekday[index].deliveries +=
-          getDeliveryCount(record);
-      }
-
-      container.innerHTML =
-        weekday
-          .map(item => `
-            <div class="best-item">
-              <div class="record-title">
-                ${item.name}曜日
-              </div>
-
-              <div class="record-sub">
-                売上 ${formatYen(item.sales)}
-                ・${item.deliveries.toLocaleString('ja-JP')}件
-              </div>
-            </div>
-          `)
-          .join('');
-    }
-
-    function renderHourList(records) {
-      const container =
-        document.getElementById('hourList');
-
-      if (!container) {
-        return;
-      }
-
-      const hours = {};
-
-      for (const record of records) {
-        const value =
-          getWorkStartedAt(record) ||
-          getCreatedAt(record);
-
-        if (!value) {
-          continue;
-        }
-
-        const date = new Date(value);
-
-        if (Number.isNaN(date.getTime())) {
-          continue;
-        }
-
-        const hour = date.getHours();
-
-        if (!hours[hour]) {
-          hours[hour] = {
-            sales: 0,
-            deliveries: 0
-          };
-        }
-
-        hours[hour].sales +=
-          getSaleAmount(record);
-
-        hours[hour].deliveries +=
-          getDeliveryCount(record);
-      }
-
-      const entries =
-        Object.entries(hours)
-          .sort((a, b) =>
-            Number(a[0]) -
-            Number(b[0])
-          );
-
-      if (entries.length === 0) {
-        container.innerHTML = `
-          <div class="empty">
-            時間帯データがありません
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML =
-        entries
-          .map(([hour, value]) => `
-            <div class="best-item">
-              <div class="record-title">
-                ${String(hour).padStart(2, '0')}時台
-              </div>
-
-              <div class="record-sub">
-                売上 ${formatYen(value.sales)}
-                ・${value.deliveries.toLocaleString('ja-JP')}件
-              </div>
-            </div>
-          `)
-          .join('');
-    }
-          function getPeriodQuery(period) {
+    function getPeriodQuery(period) {
       switch (period) {
         case 'today':
           return 'today';
@@ -1890,7 +1366,9 @@
 
       try {
         const query =
-          getPeriodQuery(currentPeriod);
+          getPeriodQuery(
+            currentPeriod
+          );
 
         const response =
           await apiFetch(
@@ -1898,7 +1376,9 @@
           );
 
         const data =
-          await readApiResponse(response);
+          await readApiResponse(
+            response
+          );
 
         currentData = data;
 
@@ -1909,8 +1389,6 @@
 
         renderSummary(data);
         renderRecords(records);
-        renderStreak(records);
-        renderAnalytics();
 
       } catch (error) {
         console.error(
@@ -1923,127 +1401,7 @@
           'データの取得に失敗しました',
           'error'
         );
-
-        document.getElementById(
-          'recordList'
-        ).innerHTML = `
-          <div class="empty">
-            データを取得できませんでした
-          </div>
-        `;
       }
-    }
-
-    function renderStreak(records) {
-      const element =
-        document.getElementById(
-          'streakNumber'
-        );
-
-      if (!element) {
-        return;
-      }
-
-      const dateSet = new Set();
-
-      for (const record of records) {
-        const value =
-          getDateValue(record);
-
-        if (!value) {
-          continue;
-        }
-
-        const date = new Date(value);
-
-        if (Number.isNaN(date.getTime())) {
-          continue;
-        }
-
-        dateSet.add(
-          getLocalDateKey(date)
-        );
-      }
-
-      if (dateSet.size === 0) {
-        element.textContent = '0';
-        return;
-      }
-
-      const today = new Date();
-
-      today.setHours(
-        0,
-        0,
-        0,
-        0
-      );
-
-      let streak = 0;
-      let cursor = new Date(today);
-
-      while (
-        dateSet.has(
-          getLocalDateKey(cursor)
-        )
-      ) {
-        streak += 1;
-
-        cursor.setDate(
-          cursor.getDate() - 1
-        );
-      }
-
-      element.textContent =
-        String(streak);
-    }
-
-    function setupNavigation() {
-      const tabs =
-        document.querySelectorAll(
-          '.main-tab'
-        );
-
-      tabs.forEach(tab => {
-        tab.addEventListener(
-          'click',
-          () => {
-            const section =
-              tab.dataset.section;
-
-            tabs.forEach(item => {
-              item.classList.toggle(
-                'active',
-                item === tab
-              );
-            });
-
-            document
-              .getElementById(
-                'personalSection'
-              )
-              ?.classList.toggle(
-                'active',
-                section === 'personal'
-              );
-
-            document
-              .getElementById(
-                'analyticsSection'
-              )
-              ?.classList.toggle(
-                'active',
-                section === 'analytics'
-              );
-
-            if (
-              section === 'analytics'
-            ) {
-              renderAnalytics();
-            }
-          }
-        );
-      });
     }
 
     function setupPeriodTabs() {
@@ -2053,13 +1411,16 @@
         );
 
       tabs.forEach(tab => {
+
         tab.addEventListener(
           'click',
           async () => {
+
             const period =
               tab.dataset.period;
 
-            currentPeriod = period;
+            currentPeriod =
+              period;
 
             tabs.forEach(item => {
               item.classList.toggle(
@@ -2071,30 +1432,7 @@
             await loadPersonal();
           }
         );
-      });
 
-      const analyticsTabs =
-        document.querySelectorAll(
-          '[data-analytics-period]'
-        );
-
-      analyticsTabs.forEach(tab => {
-        tab.addEventListener(
-          'click',
-          () => {
-            currentAnalyticsPeriod =
-              tab.dataset.analyticsPeriod;
-
-            analyticsTabs.forEach(item => {
-              item.classList.toggle(
-                'active',
-                item === tab
-              );
-            });
-
-            renderAnalytics();
-          }
-        );
       });
     }
 
@@ -2124,6 +1462,7 @@
       button.addEventListener(
         'click',
         () => {
+
           const open =
             details.classList.toggle(
               'open'
@@ -2138,6 +1477,7 @@
             icon.textContent =
               open ? '−' : '＋';
           }
+
         }
       );
     }
@@ -2155,14 +1495,21 @@
       button.addEventListener(
         'click',
         async () => {
+
           button.disabled = true;
 
           try {
             await loadPersonal();
-            showToast('更新しました');
+
+            showToast(
+              '更新しました'
+            );
+
           } finally {
-            button.disabled = false;
+            button.disabled =
+              false;
           }
+
         }
       );
     }
@@ -2198,7 +1545,8 @@
         return undefined;
       }
 
-      const now = new Date();
+      const now =
+        new Date();
 
       const year =
         now.getFullYear();
@@ -2214,10 +1562,12 @@
         ).padStart(2, '0');
 
       const hh =
-        String(hour).padStart(2, '0');
+        String(hour)
+          .padStart(2, '0');
 
       const mm =
-        String(minute).padStart(2, '0');
+        String(minute)
+          .padStart(2, '0');
 
       return (
         `${year}-${month}-${day}` +
@@ -2260,9 +1610,7 @@
           'addResultForm'
         );
 
-      if (form) {
-        form.reset();
-      }
+      form?.reset();
 
       const details =
         document.getElementById(
@@ -2293,7 +1641,7 @@
       }
     }
 
-    async function setupAddResultForm() {
+    function setupAddResultForm() {
       const form =
         document.getElementById(
           'addResultForm'
@@ -2306,6 +1654,7 @@
       form.addEventListener(
         'submit',
         async event => {
+
           event.preventDefault();
 
           if (!tg?.initData) {
@@ -2456,7 +1805,8 @@
               workStartedAt;
           }
 
-          submitButton.disabled = true;
+          submitButton.disabled =
+            true;
 
           const originalText =
             submitButton.textContent;
@@ -2465,15 +1815,18 @@
             '保存中…';
 
           try {
+
             const response =
               await apiFetch(
                 '/api/result',
                 {
                   method: 'POST',
+
                   headers: {
                     'Content-Type':
                       'application/json'
                   },
+
                   body:
                     JSON.stringify(body)
                 }
@@ -2492,6 +1845,7 @@
             await loadPersonal();
 
           } catch (error) {
+
             console.error(
               'add result error:',
               error
@@ -2504,6 +1858,7 @@
             );
 
           } finally {
+
             submitButton.disabled =
               false;
 
@@ -2515,14 +1870,11 @@
     }
 
     async function initializeApp() {
+
       /*
-       * UIイベントはTelegram認証の有無に関係なく
-       * 最初に登録する。
-       *
-       * これにより、SDK未読み込み等で認証できない場合でも
-       * 画面全体が固まった状態にならない。
+       * Telegram認証の前に
+       * UIイベントを登録する。
        */
-      setupNavigation();
       setupPeriodTabs();
       setupDetailsToggle();
       setupRefresh();
@@ -2531,6 +1883,7 @@
       updateUserName();
 
       if (!tg?.initData) {
+
         document.getElementById(
           'userName'
         ).textContent =
@@ -2544,10 +1897,6 @@
         return;
       }
 
-      /*
-       * Telegram側へMini Appの準備完了を通知。
-       * SDKが対応している場合のみ実行。
-       */
       try {
         tg.ready();
         tg.expand();
@@ -2561,20 +1910,23 @@
       await loadPersonal();
     }
 
-    /*
-     * DOM構築完了後にアプリを開始。
-     */
     if (
-      document.readyState === 'loading'
+      document.readyState ===
+      'loading'
     ) {
+
       document.addEventListener(
         'DOMContentLoaded',
         initializeApp,
         { once: true }
       );
+
     } else {
+
       initializeApp();
+
     }
   </script>
+
 </body>
 </html>
