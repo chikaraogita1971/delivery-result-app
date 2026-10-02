@@ -192,6 +192,24 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
 
+    .duration-input {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .duration-input input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .duration-unit {
+      flex: 0 0 auto;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
     .details-toggle {
       width: 100%;
       margin-top: 12px;
@@ -486,15 +504,34 @@
           </div>
 
           <div class="form-group">
-            <label for="workHoursInput">稼働時間（時間）</label>
-            <input
-              id="workHoursInput"
-              type="number"
-              inputmode="decimal"
-              min="0"
-              step="0.1"
-              placeholder="5.5"
-            />
+            <label>稼働時間</label>
+
+            <div class="duration-input">
+              <input
+                id="workHoursHourInput"
+                type="number"
+                inputmode="numeric"
+                min="0"
+                step="1"
+                placeholder="8"
+                aria-label="稼働時間の時間"
+              />
+
+              <span class="duration-unit">時間</span>
+
+              <input
+                id="workHoursMinuteInput"
+                type="number"
+                inputmode="numeric"
+                min="0"
+                max="59"
+                step="1"
+                placeholder="17"
+                aria-label="稼働時間の分"
+              />
+
+              <span class="duration-unit">分</span>
+            </div>
           </div>
 
           <div class="form-group">
@@ -565,1076 +602,805 @@
         </div>
       </div>
     </section>
-        <section class="card">
-      <h2 class="card-title">📊 効率分析</h2>
+    <script>
+  const tg = window.Telegram?.WebApp || null;
 
-      <div class="analysis-grid">
-        <div class="analysis-item">
-          <div class="analysis-label">1件あたり売上</div>
-          <div id="analysisPerDelivery" class="analysis-value">¥0</div>
-        </div>
+  const state = {
+    period: "today",
+    loading: false,
+    records: [],
+    summary: {
+      sales: 0,
+      deliveries: 0,
+      hours: 0,
+      hourly: 0,
+      unitPrice: 0
+    }
+  };
 
-        <div class="analysis-item">
-          <div class="analysis-label">1時間あたり件数</div>
-          <div id="analysisDeliveriesPerHour" class="analysis-value">0件</div>
-        </div>
+  function formatNumber(value, digits = 0) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "0";
 
-        <div class="analysis-item">
-          <div class="analysis-label">1kmあたり売上</div>
-          <div id="analysisSalesPerKm" class="analysis-value">—</div>
-        </div>
+    return number.toLocaleString("ja-JP", {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits
+    });
+  }
 
-        <div class="analysis-item">
-          <div class="analysis-label">経費</div>
-          <div id="analysisExpense" class="analysis-value">¥0</div>
-        </div>
-      </div>
-    </section>
+  function formatDuration(hours) {
+    const number = Number(hours);
 
-    <section class="card">
-      <h2 class="card-title">実績一覧</h2>
-
-      <div id="recordList" class="record-list">
-        <div class="loading">読み込み中...</div>
-      </div>
-    </section>
-
-  </div>
-
-  <script>
-    const tg = window.Telegram?.WebApp || null;
-
-    let currentPeriod = "today";
-    let currentData = null;
-
-    function formatYen(value) {
-      const number = Number(value);
-
-      if (!Number.isFinite(number)) {
-        return "¥0";
-      }
-
-      return `¥${Math.round(number).toLocaleString("ja-JP")}`;
+    if (!Number.isFinite(number) || number <= 0) {
+      return "0時間";
     }
 
-    function formatNumber(value, digits = 1) {
-      const number = Number(value);
+    const totalMinutes = Math.round(number * 60);
+    const wholeHours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
 
-      if (!Number.isFinite(number)) {
-        return "0";
-      }
-
-      return number.toLocaleString("ja-JP", {
-        maximumFractionDigits: digits
-      });
+    if (wholeHours === 0) {
+      return `${minutes}分`;
     }
 
-    function showStatus(message, type = "error") {
-      const status = document.getElementById("status");
-
-      if (!status) {
-        return;
-      }
-
-      status.textContent = message;
-      status.className = `status show ${type}`;
+    if (minutes === 0) {
+      return `${wholeHours}時間`;
     }
 
-    function clearStatus() {
-      const status = document.getElementById("status");
+    return `${wholeHours}時間${minutes}分`;
+  }
 
-      if (!status) {
-        return;
-      }
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
 
-      status.textContent = "";
-      status.className = "status";
+  function showStatus(message, type = "") {
+    const element = document.getElementById("statusMessage");
+
+    if (!element) return;
+
+    element.textContent = message || "";
+    element.className = `status-message${type ? ` ${type}` : ""}`;
+  }
+
+  async function readApiResponse(response) {
+    const text = await response.text();
+
+    let data = null;
+
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (error) {
+      throw new Error(
+        `サーバーから不正なレスポンスが返されました (${response.status})`
+      );
     }
 
-    async function readApiResponse(response) {
-      const text = await response.text();
-
-      let data = null;
-
-      try {
-        data = text ? JSON.parse(text) : null;
-      } catch (error) {
-        throw new Error(
-          `APIの応答を読み取れませんでした（HTTP ${response.status}）`
-        );
-      }
-
-      if (!response.ok || data?.ok === false) {
-        throw new Error(
-          data?.error ||
-          data?.message ||
-          `APIエラー（HTTP ${response.status}）`
-        );
-      }
-
-      return data;
+    if (!response.ok || data?.ok === false) {
+      throw new Error(
+        data?.error ||
+        data?.message ||
+        `通信に失敗しました (${response.status})`
+      );
     }
 
-    async function apiFetch(url, options = {}) {
-      const headers = new Headers(options.headers || {});
+    return data;
+  }
 
-      if (tg?.initData) {
-        headers.set("X-Telegram-Init-Data", tg.initData);
-      }
+  async function apiFetch(url, options = {}) {
+    const headers = new Headers(options.headers || {});
 
-      if (
-        options.body &&
-        typeof options.body === "string" &&
-        !headers.has("Content-Type")
-      ) {
-        headers.set("Content-Type", "application/json");
-      }
-
-      return fetch(url, {
-        ...options,
-        headers
-      });
+    if (tg?.initData) {
+      headers.set("X-Telegram-Init-Data", tg.initData);
     }
 
-    function getRecordsFromData(data) {
-      if (!data) {
-        return [];
-      }
-
-      if (Array.isArray(data)) {
-        return data;
-      }
-
-      // API /api/result の正式な実績一覧
-      if (Array.isArray(data.recentResults)) {
-        return data.recentResults;
-      }
-
-      if (Array.isArray(data.records)) {
-        return data.records;
-      }
-
-      if (Array.isArray(data.results)) {
-        return data.results;
-      }
-
-      if (Array.isArray(data.data)) {
-        return data.data;
-      }
-
-      return [];
+    if (
+      options.body &&
+      !headers.has("Content-Type") &&
+      typeof options.body === "string"
+    ) {
+      headers.set("Content-Type", "application/json");
     }
 
-    function getSummaryFromRecords(records) {
-      let sales = 0;
-      let deliveries = 0;
-      let hours = 0;
-      let distance = 0;
-      let expense = 0;
+    return fetch(url, {
+      ...options,
+      headers
+    });
+  }
 
-      for (const record of records) {
-        sales += Number(
-          record.saleAmount ??
-          record.sales ??
-          record.sale_amount ??
-          0
-        );
+  function getRecordsFromData(data) {
+    if (Array.isArray(data?.recentResults)) {
+      return data.recentResults;
+    }
 
-        deliveries += Number(
-          record.deliveryCount ??
-          record.deliveries ??
-          record.delivery_count ??
-          0
-        );
+    if (Array.isArray(data?.records)) {
+      return data.records;
+    }
 
-        hours += Number(
-          record.workHours ??
-          record.hours ??
-          record.work_hours ??
-          0
-        );
+    if (Array.isArray(data?.results)) {
+      return data.results;
+    }
 
-        distance += Number(
-          record.distanceKm ??
-          record.distance ??
-          record.distance_km ??
-          0
-        );
+    if (Array.isArray(data?.data)) {
+      return data.data;
+    }
 
-        expense += Number(
-          record.expense ??
-          record.expenseAmount ??
-          record.expense_amount ??
-          0
-        );
-      }
+    return [];
+  }
 
+  function getSummaryValues(data) {
+    const stats = data?.stats || {};
+
+    if (Object.keys(stats).length > 0) {
       return {
-        sales: Number.isFinite(sales) ? sales : 0,
-        deliveries: Number.isFinite(deliveries) ? deliveries : 0,
-        hours: Number.isFinite(hours) ? hours : 0,
-        distance: Number.isFinite(distance) ? distance : 0,
-        expense: Number.isFinite(expense) ? expense : 0
+        sales: Number(stats.saleAmount ?? 0),
+        deliveries: Number(stats.deliveryCount ?? 0),
+        hours: Number(stats.workHours ?? 0),
+        hourly: Number(stats.hourlyRate ?? 0),
+        unitPrice: Number(stats.averageUnitPrice ?? 0)
       };
     }
 
-    function getSummaryValues(data) {
-      const records =
-        getRecordsFromData(data);
+    const records = getRecordsFromData(data);
 
-      // API /api/result が返す正式な集計
-      const stats =
-        data?.stats || {};
+    let sales = 0;
+    let deliveries = 0;
+    let hours = 0;
 
-      const fallback =
-        getSummaryFromRecords(records);
+    for (const record of records) {
+      sales += Number(
+        record.saleAmount ??
+        record.sale_amount ??
+        0
+      );
 
-      const sales =
-        Number(
-          stats.saleAmount ??
-          stats.sales ??
-          stats.sale_amount ??
-          fallback.sales ??
-          0
-        );
+      deliveries += Number(
+        record.deliveryCount ??
+        record.delivery_count ??
+        0
+      );
 
-      const deliveries =
-        Number(
-          stats.deliveryCount ??
-          stats.deliveries ??
-          stats.delivery_count ??
-          fallback.deliveries ??
-          0
-        );
-
-      const hours =
-        Number(
-          stats.workHours ??
-          stats.hours ??
-          stats.work_hours ??
-          fallback.hours ??
-          0
-        );
-
-      const distance =
-        Number(
-          stats.distanceKm ??
-          stats.distance ??
-          stats.distance_km ??
-          fallback.distance ??
-          0
-        );
-
-      const expense =
-        Number(
-          stats.expense ??
-          stats.expenseAmount ??
-          stats.expense_amount ??
-          fallback.expense ??
-          0
-        );
-
-      return {
-        sales: Number.isFinite(sales) ? sales : 0,
-        deliveries: Number.isFinite(deliveries) ? deliveries : 0,
-        hours: Number.isFinite(hours) ? hours : 0,
-        distance: Number.isFinite(distance) ? distance : 0,
-        expense: Number.isFinite(expense) ? expense : 0
-      };
+      hours += Number(
+        record.workHours ??
+        record.work_hours ??
+        0
+      );
     }
 
-    function renderSummary(data) {
-      const summary =
-        getSummaryValues(data);
+    return {
+      sales,
+      deliveries,
+      hours,
+      hourly: hours > 0 ? sales / hours : 0,
+      unitPrice: deliveries > 0 ? sales / deliveries : 0
+    };
+  }
 
-      const hourly =
-        summary.hours > 0
-          ? summary.sales / summary.hours
-          : 0;
-
-      const unitPrice =
-        summary.deliveries > 0
-          ? summary.sales / summary.deliveries
-          : 0;
-
-      document.getElementById("summarySales").textContent =
-        formatYen(summary.sales);
-
-      document.getElementById("summaryDeliveries").textContent =
-        `${formatNumber(summary.deliveries, 0)}件`;
-
-      document.getElementById("summaryHours").textContent =
-        `${formatNumber(summary.hours, 1)}時間`;
-
-      document.getElementById("summaryHourly").textContent =
-        formatYen(hourly);
-
-      document.getElementById("summaryUnitPrice").textContent =
-        formatYen(unitPrice);
-
-      renderEfficiency(summary);
-    }
-
-    function renderEfficiency(summary) {
-      const perDelivery =
-        summary.deliveries > 0
-          ? summary.sales / summary.deliveries
-          : 0;
-
-      const deliveriesPerHour =
-        summary.hours > 0
-          ? summary.deliveries / summary.hours
-          : 0;
-
-      const salesPerKm =
-        summary.distance > 0
-          ? summary.sales / summary.distance
-          : null;
-
-      document.getElementById(
-        "analysisPerDelivery"
-      ).textContent = formatYen(perDelivery);
-
-      document.getElementById(
-        "analysisDeliveriesPerHour"
-      ).textContent =
-        `${formatNumber(deliveriesPerHour, 1)}件`;
-
-      document.getElementById(
-        "analysisSalesPerKm"
-      ).textContent =
-        salesPerKm === null
-          ? "—"
-          : formatYen(salesPerKm);
-
-      document.getElementById(
-        "analysisExpense"
-      ).textContent =
-        formatYen(summary.expense);
-    }
-
-    function getRecordValue(record, keys, fallback = 0) {
-      for (const key of keys) {
-        if (
-          record &&
-          record[key] !== undefined &&
-          record[key] !== null
-        ) {
-          return record[key];
-        }
-      }
-
-      return fallback;
-    }
-
-    function formatRecordDate(value) {
-      if (!value) {
-        return "";
-      }
-
-      const date = new Date(value);
-
-      if (Number.isNaN(date.getTime())) {
-        return String(value);
-      }
-
-      return date.toLocaleString("ja-JP", {
-        timeZone: "Asia/Tokyo",
-        month: "numeric",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-    }
-
-    function renderRecords(records) {
-      const container =
-        document.getElementById("recordList");
-
-      if (!container) {
-        return;
-      }
-
-      if (!records.length) {
-        container.innerHTML =
-          '<div class="empty">まだ実績がありません</div>';
-        return;
-      }
-
-      container.innerHTML =
-        records.map((record) => {
-          const saleAmount =
-            Number(
-              getRecordValue(
-                record,
-                [
-                  "saleAmount",
-                  "sales",
-                  "sale_amount"
-                ],
-                0
-              )
-            );
-
-          const deliveryCount =
-            Number(
-              getRecordValue(
-                record,
-                [
-                  "deliveryCount",
-                  "deliveries",
-                  "delivery_count"
-                ],
-                0
-              )
-            );
-
-          const workHours =
-            Number(
-              getRecordValue(
-                record,
-                [
-                  "workHours",
-                  "hours",
-                  "work_hours"
-                ],
-                0
-              )
-            );
-
-          const distanceKm =
-            Number(
-              getRecordValue(
-                record,
-                [
-                  "distanceKm",
-                  "distance",
-                  "distance_km"
-                ],
-                0
-              )
-            );
-
-          const expense =
-            Number(
-              getRecordValue(
-                record,
-                [
-                  "expense",
-                  "expenseAmount",
-                  "expense_amount"
-                ],
-                0
-              )
-            );
-
-          const createdAt =
-            getRecordValue(
-              record,
-              [
-                "createdAt",
-                "created_at"
-              ],
-              ""
-            );
-
-          const workStartedAt =
-            getRecordValue(
-              record,
-              [
-                "workStartedAt",
-                "work_started_at"
-              ],
-              ""
-            );
-
-          const details = [];
-
-          details.push(
-            `配達 ${formatNumber(deliveryCount, 0)}件`
-          );
-
-          if (workHours > 0) {
-            details.push(
-              `稼働 ${formatNumber(workHours, 1)}時間`
-            );
-          }
-
-          if (distanceKm > 0) {
-            details.push(
-              `距離 ${formatNumber(distanceKm, 1)}km`
-            );
-          }
-
-          if (expense > 0) {
-            details.push(
-              `経費 ${formatYen(expense)}`
-            );
-          }
-
-          if (workStartedAt) {
-            details.push(
-              `開始 ${formatRecordDate(workStartedAt)}`
-            );
-          }
-
-          return `
-            <div class="record-item">
-              <div class="record-main">
-                <div class="record-sale">
-                  ${formatYen(saleAmount)}
-                </div>
-
-                <div class="record-date">
-                  ${formatRecordDate(createdAt)}
-                </div>
-              </div>
-
-              <div class="record-details">
-                ${details
-                  .map((detail) => `<div>${detail}</div>`)
-                  .join("")}
-              </div>
-            </div>
-          `;
-        }).join("");
-    }
-        function getPeriodQuery(period) {
-      if (period === "today") {
+  function getPeriodQuery(period) {
+    switch (period) {
+      case "today":
         return "today";
-      }
-
-      if (period === "week") {
+      case "week":
         return "week";
-      }
-
-      if (period === "month") {
+      case "month":
         return "month";
-      }
-
-      if (period === "all") {
+      case "all":
         return "all";
-      }
+      default:
+        return "today";
+    }
+  }
 
-      return "today";
+  function renderSummary() {
+    document.getElementById("summarySales").textContent =
+      `¥${formatNumber(state.summary.sales)}`;
+
+    document.getElementById("summaryDeliveries").textContent =
+      `${formatNumber(state.summary.deliveries)}件`;
+
+    document.getElementById("summaryHours").textContent =
+      formatDuration(state.summary.hours);
+
+    document.getElementById("summaryHourly").textContent =
+      `¥${formatNumber(state.summary.hourly)}`;
+
+    document.getElementById("summaryUnitPrice").textContent =
+      `¥${formatNumber(state.summary.unitPrice)}`;
+  }
+
+  function renderEfficiency(data) {
+    const records = state.records;
+
+    let totalSales = 0;
+    let totalDeliveries = 0;
+    let totalDistance = 0;
+    let totalExpense = 0;
+
+    for (const record of records) {
+      totalSales += Number(
+        record.saleAmount ??
+        record.sale_amount ??
+        0
+      );
+
+      totalDeliveries += Number(
+        record.deliveryCount ??
+        record.delivery_count ??
+        0
+      );
+
+      totalDistance += Number(
+        record.distanceKm ??
+        record.distance_km ??
+        0
+      );
+
+      totalExpense += Number(
+        record.expense ??
+        record.expenseAmount ??
+        0
+      );
     }
 
-    async function loadPersonal() {
-      const recordList =
-        document.getElementById("recordList");
+    const perDelivery =
+      totalDeliveries > 0
+        ? totalSales / totalDeliveries
+        : 0;
 
-      if (recordList) {
-        recordList.innerHTML =
-          '<div class="loading">読み込み中...</div>';
-      }
+    const deliveriesPerHour =
+      state.summary.hours > 0
+        ? totalDeliveries / state.summary.hours
+        : 0;
 
-      try {
-        const query =
-          getPeriodQuery(currentPeriod);
+    const salesPerKm =
+      totalDistance > 0
+        ? totalSales / totalDistance
+        : 0;
 
-        const response =
-          await apiFetch(
-            `/api/result?period=${encodeURIComponent(query)}`
-          );
+    const expense =
+      Number(data?.stats?.expense ?? totalExpense ?? 0);
 
-        const data =
-          await readApiResponse(response);
+    document.getElementById("analysisPerDelivery").textContent =
+      `¥${formatNumber(perDelivery)}`;
 
-        currentData = data;
+    document.getElementById("analysisDeliveriesPerHour").textContent =
+      `${formatNumber(deliveriesPerHour, 1)}件/時`;
 
-        renderSummary(data);
+    document.getElementById("analysisSalesPerKm").textContent =
+      `¥${formatNumber(salesPerKm)}`;
 
-        const records =
-          getRecordsFromData(data);
+    document.getElementById("analysisExpense").textContent =
+      `¥${formatNumber(expense)}`;
+  }
 
-        renderRecords(records);
+  function getRecordValue(record, camelKey, snakeKey, fallback = 0) {
+    return record?.[camelKey] ??
+      record?.[snakeKey] ??
+      fallback;
+  }
 
-        if (data.user) {
-          const firstName =
-            data.user.firstName || "";
+  function formatDateTime(value) {
+    if (!value) return "";
 
-          const lastName =
-            data.user.lastName || "";
+    const date = new Date(value);
 
-          const username =
-            data.user.username
-              ? `@${data.user.username}`
-              : "";
-
-          const displayName =
-            `${lastName}${firstName}`.trim() ||
-            username ||
-            "ユーザー";
-
-          document.getElementById(
-            "userName"
-          ).textContent =
-            `${displayName}さん`;
-        }
-
-        clearStatus();
-      } catch (error) {
-        console.error(error);
-
-        if (recordList) {
-          recordList.innerHTML =
-            `<div class="empty">${escapeHtml(
-              error.message ||
-              "読み込みに失敗しました"
-            )}</div>`;
-        }
-
-        showStatus(
-          error.message ||
-          "データの読み込みに失敗しました",
-          "error"
-        );
-      }
+    if (Number.isNaN(date.getTime())) {
+      return String(value);
     }
 
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    return date.toLocaleString("ja-JP", {
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  function renderRecords() {
+    const container = document.getElementById("recordList");
+
+    if (!container) return;
+
+    if (!state.records.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          この期間の記録はありません。
+        </div>
+      `;
+      return;
     }
 
-    function setupPeriodTabs() {
-      const tabs =
-        document.querySelectorAll(
-          ".period-tab"
-        );
+    container.innerHTML = state.records.map((record) => {
+      const saleAmount = Number(
+        getRecordValue(record, "saleAmount", "sale_amount", 0)
+      );
 
-      tabs.forEach((tab) => {
-        tab.addEventListener(
-          "click",
-          async () => {
-            const period =
-              tab.dataset.period;
+      const deliveryCount = Number(
+        getRecordValue(record, "deliveryCount", "delivery_count", 0)
+      );
 
-            if (!period) {
-              return;
+      const workHours = Number(
+        getRecordValue(record, "workHours", "work_hours", 0)
+      );
+
+      const distanceKm = Number(
+        getRecordValue(record, "distanceKm", "distance_km", 0)
+      );
+
+      const expense = Number(
+        record.expense ??
+        record.expenseAmount ??
+        0
+      );
+
+      const createdAt =
+        record.createdAt ??
+        record.created_at ??
+        record.workStartedAt ??
+        record.work_started_at ??
+        "";
+
+      return `
+        <div class="record-item">
+          <div class="record-main">
+            <div class="record-sales">
+              ¥${formatNumber(saleAmount)}
+            </div>
+
+            <div class="record-deliveries">
+              ${formatNumber(deliveryCount)}件
+            </div>
+          </div>
+
+          <div class="record-details">
+            <span>稼働 ${formatDuration(workHours)}</span>
+
+            ${
+              distanceKm > 0
+                ? `<span>距離 ${formatNumber(distanceKm, 1)}km</span>`
+                : ""
             }
 
-            currentPeriod = period;
+            ${
+              expense > 0
+                ? `<span>経費 ¥${formatNumber(expense)}</span>`
+                : ""
+            }
 
-            tabs.forEach((item) => {
-              item.classList.toggle(
-                "active",
-                item === tab
-              );
-            });
+            ${
+              createdAt
+                ? `<span>${escapeHtml(formatDateTime(createdAt))}</span>`
+                : ""
+            }
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
 
-            await loadPersonal();
-          }
-        );
+  function renderUser(data) {
+    const userNameElement = document.getElementById("userName");
+
+    if (!userNameElement) return;
+
+    const user = data?.user;
+
+    if (!user) {
+      userNameElement.textContent = "";
+      return;
+    }
+
+    const name =
+      [user.firstName, user.lastName]
+        .filter(Boolean)
+        .join(" ")
+        .trim() ||
+      (user.username ? `@${user.username}` : "");
+
+    userNameElement.textContent = name;
+  }
+
+  async function loadPersonal(showLoading = true) {
+    if (state.loading) return;
+
+    state.loading = true;
+
+    if (showLoading) {
+      showStatus("読み込み中…");
+    }
+
+    try {
+      const query = getPeriodQuery(state.period);
+
+      const response = await apiFetch(
+        `/api/result?period=${encodeURIComponent(query)}`,
+        {
+          method: "GET"
+        }
+      );
+
+      const data = await readApiResponse(response);
+
+      state.records = getRecordsFromData(data);
+      state.summary = getSummaryValues(data);
+
+      renderUser(data);
+      renderSummary();
+      renderEfficiency(data);
+      renderRecords();
+
+      showStatus("");
+    } catch (error) {
+      console.error(error);
+      showStatus(
+        error?.message || "データの取得に失敗しました。",
+        "error"
+      );
+    } finally {
+      state.loading = false;
+    }
+  }
+
+  function setupPeriodTabs() {
+    const tabs = document.querySelectorAll(".period-tab");
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const period = tab.dataset.period;
+
+        if (!period || period === state.period) {
+          return;
+        }
+
+        state.period = period;
+
+        tabs.forEach((item) => {
+          item.classList.toggle(
+            "active",
+            item.dataset.period === state.period
+          );
+        });
+
+        loadPersonal();
       });
-    }
+    });
+  }
 
-    function setupDetailsToggle() {
-      const toggle =
-        document.getElementById(
-          "detailsToggle"
-        );
+  function setupDetailsToggle() {
+    const toggle = document.getElementById("detailsToggle");
+    const details = document.getElementById("detailsArea");
 
-      const content =
-        document.getElementById(
-          "detailsContent"
-        );
+    if (!toggle || !details) return;
 
-      if (!toggle || !content) {
-        return;
-      }
+    toggle.addEventListener("click", () => {
+      const isOpen = details.classList.toggle("open");
 
-      toggle.addEventListener(
-        "click",
-        () => {
-          const open =
-            content.classList.toggle(
-              "open"
-            );
+      toggle.textContent = isOpen
+        ? "詳細入力を閉じる"
+        : "詳細入力を表示";
+    });
+  }
 
-          toggle.textContent =
-            open
-              ? "詳細設定（任意）−"
-              : "詳細設定（任意）＋";
-        }
-      );
-    }
+  function setupRefresh() {
+    const button = document.getElementById("refreshButton");
 
-    function setupRefresh() {
-      const button =
-        document.getElementById(
-          "refreshButton"
-        );
+    if (!button) return;
 
-      if (!button) {
-        return;
-      }
-
-      button.addEventListener(
-        "click",
-        async () => {
-          button.disabled = true;
-
-          try {
-            await loadPersonal();
-          } finally {
-            button.disabled = false;
-          }
-        }
-      );
-    }
-
-    function buildWorkStartedAt(
-      timeValue
-    ) {
-      if (!timeValue) {
-        return null;
-      }
-
-      const parts =
-        timeValue.split(":");
-
-      if (parts.length < 2) {
-        return null;
-      }
-
-      const hours =
-        Number(parts[0]);
-
-      const minutes =
-        Number(parts[1]);
-
-      if (
-        !Number.isInteger(hours) ||
-        !Number.isInteger(minutes) ||
-        hours < 0 ||
-        hours > 23 ||
-        minutes < 0 ||
-        minutes > 59
-      ) {
-        return null;
-      }
-
-      const now =
-        new Date();
-
-      const year =
-        now.getFullYear();
-
-      const month =
-        String(
-          now.getMonth() + 1
-        ).padStart(2, "0");
-
-      const day =
-        String(
-          now.getDate()
-        ).padStart(2, "0");
-
-      const hh =
-        String(hours).padStart(2, "0");
-
-      const mm =
-        String(minutes).padStart(2, "0");
-
-      return (
-        `${year}-${month}-${day}` +
-        `T${hh}:${mm}:00+09:00`
-      );
-    }
-
-    function getOptionalNumber(
-      elementId
-    ) {
-      const element =
-        document.getElementById(
-          elementId
-        );
-
-      if (!element) {
-        return undefined;
-      }
-
-      const value =
-        element.value.trim();
-
-      if (value === "") {
-        return undefined;
-      }
-
-      const number =
-        Number(value);
-
-      if (!Number.isFinite(number)) {
-        return undefined;
-      }
-
-      return number;
-    }
-
-    async function saveResult() {
-      clearStatus();
-
-      const saleAmountInput =
-        document.getElementById(
-          "saleAmountInput"
-        );
-
-      const deliveryCountInput =
-        document.getElementById(
-          "deliveryCountInput"
-        );
-
-      const saveButton =
-        document.getElementById(
-          "saveButton"
-        );
-
-      const saleAmount =
-        Number(
-          saleAmountInput.value
-        );
-
-      const deliveryCount =
-        Number(
-          deliveryCountInput.value
-        );
-
-      if (
-        !Number.isFinite(saleAmount) ||
-        saleAmount < 0
-      ) {
-        showStatus(
-          "売上を正しく入力してください",
-          "error"
-        );
-        return;
-      }
-
-      if (
-        !Number.isFinite(deliveryCount) ||
-        deliveryCount < 0
-      ) {
-        showStatus(
-          "配達件数を正しく入力してください",
-          "error"
-        );
-        return;
-      }
-
-      const workHours =
-        getOptionalNumber(
-          "workHoursInput"
-        );
-
-      const distanceKm =
-        getOptionalNumber(
-          "distanceInput"
-        );
-
-      const expenseAmount =
-        getOptionalNumber(
-          "expenseInput"
-        );
-
-      const workStartedAt =
-        buildWorkStartedAt(
-          document.getElementById(
-            "workStartTimeInput"
-          )?.value || ""
-        );
-
-      if (
-        workHours !== undefined &&
-        workHours < 0
-      ) {
-        showStatus(
-          "稼働時間を正しく入力してください",
-          "error"
-        );
-        return;
-      }
-
-      if (
-        distanceKm !== undefined &&
-        distanceKm < 0
-      ) {
-        showStatus(
-          "走行距離を正しく入力してください",
-          "error"
-        );
-        return;
-      }
-
-      if (
-        expenseAmount !== undefined &&
-        expenseAmount < 0
-      ) {
-        showStatus(
-          "経費を正しく入力してください",
-          "error"
-        );
-        return;
-      }
-
-      const body = {
-        saleAmount:
-          Math.round(saleAmount),
-
-        deliveryCount:
-          Math.round(deliveryCount)
-      };
-
-      if (
-        workHours !== undefined
-      ) {
-        body.workHours =
-          workHours;
-      }
-
-      if (
-        distanceKm !== undefined
-      ) {
-        body.distanceKm =
-          distanceKm;
-      }
-
-      // API は expense を受け取る
-      if (
-        expenseAmount !== undefined
-      ) {
-        body.expense =
-          Math.round(expenseAmount);
-      }
-
-      if (workStartedAt) {
-        body.workStartedAt =
-          workStartedAt;
-      }
-
-      saveButton.disabled = true;
-      saveButton.textContent =
-        "保存中...";
-
-      try {
-        const response =
-          await apiFetch(
-            "/api/result",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":
-                  "application/json"
-              },
-              body:
-                JSON.stringify(body)
-            }
-          );
-
-        await readApiResponse(
-          response
-        );
-
-        saleAmountInput.value = "";
-        deliveryCountInput.value = "";
-
-        document.getElementById(
-          "workStartTimeInput"
-        ).value = "";
-
-        document.getElementById(
-          "workHoursInput"
-        ).value = "";
-
-        document.getElementById(
-          "distanceInput"
-        ).value = "";
-
-        document.getElementById(
-          "expenseInput"
-        ).value = "";
-
-        showStatus(
-          "実績を保存しました",
-          "success"
-        );
-
-        await loadPersonal();
-      } catch (error) {
-        console.error(error);
-
-        showStatus(
-          error.message ||
-          "実績の保存に失敗しました",
-          "error"
-        );
-      } finally {
-        saveButton.disabled = false;
-        saveButton.textContent =
-          "実績を保存";
-      }
-    }
-
-    function setupSave() {
-      const button =
-        document.getElementById(
-          "saveButton"
-        );
-
-      if (!button) {
-        return;
-      }
-
-      button.addEventListener(
-        "click",
-        saveResult
-      );
-    }
-
-    function initializeTelegram() {
-      if (!tg) {
-        showStatus(
-          "Telegram Mini App から開いてください",
-          "error"
-        );
-
-        return false;
-      }
-
-      try {
-        tg.ready();
-        tg.expand();
-      } catch (error) {
-        console.error(error);
-      }
-
-      return true;
-    }
-
-    function initialize() {
-      setupPeriodTabs();
-      setupDetailsToggle();
-      setupRefresh();
-      setupSave();
-
-      const telegramReady =
-        initializeTelegram();
-
-      if (!telegramReady) {
-        return;
-      }
-
+    button.addEventListener("click", () => {
       loadPersonal();
+    });
+  }
+
+  function buildWorkStartedAt(timeValue) {
+    if (!timeValue) return undefined;
+
+    const parts = timeValue.split(":");
+
+    if (parts.length !== 2) {
+      return undefined;
     }
 
-    document.addEventListener(
-      "DOMContentLoaded",
-      initialize
-    );
-  </script>
+    const hours = Number(parts[0]);
+    const minutes = Number(parts[1]);
+
+    if (
+      !Number.isInteger(hours) ||
+      !Number.isInteger(minutes) ||
+      hours < 0 ||
+      hours > 23 ||
+      minutes < 0 ||
+      minutes > 59
+    ) {
+      return undefined;
+    }
+
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hour = String(hours).padStart(2, "0");
+    const minute = String(minutes).padStart(2, "0");
+
+    return `${year}-${month}-${day}T${hour}:${minute}:00+09:00`;
+  }
+
+  function getOptionalNumber(id) {
+    const element = document.getElementById(id);
+
+    if (!element) return undefined;
+
+    const value = element.value.trim();
+
+    if (value === "") {
+      return undefined;
+    }
+
+    const number = Number(value);
+
+    if (!Number.isFinite(number)) {
+      return undefined;
+    }
+
+    return number;
+  }
+
+  function getWorkHoursInput() {
+    const hourElement =
+      document.getElementById("workHoursHourInput");
+
+    const minuteElement =
+      document.getElementById("workHoursMinuteInput");
+
+    const hourText =
+      hourElement?.value.trim() ?? "";
+
+    const minuteText =
+      minuteElement?.value.trim() ?? "";
+
+    if (hourText === "" && minuteText === "") {
+      return {
+        value: undefined
+      };
+    }
+
+    const hours =
+      hourText === ""
+        ? 0
+        : Number(hourText);
+
+    const minutes =
+      minuteText === ""
+        ? 0
+        : Number(minuteText);
+
+    if (
+      !Number.isFinite(hours) ||
+      !Number.isFinite(minutes)
+    ) {
+      return {
+        error: "稼働時間を正しく入力してください。"
+      };
+    }
+
+    if (!Number.isInteger(hours) || hours < 0) {
+      return {
+        error: "稼働時間の「時間」を正しく入力してください。"
+      };
+    }
+
+    if (
+      !Number.isInteger(minutes) ||
+      minutes < 0 ||
+      minutes > 59
+    ) {
+      return {
+        error: "稼働時間の「分」は0〜59で入力してください。"
+      };
+    }
+
+    return {
+      value: hours + minutes / 60
+    };
+  }
+
+  async function saveResult(event) {
+    event.preventDefault();
+
+    if (state.loading) return;
+
+    const saleAmountInput =
+      document.getElementById("saleAmountInput");
+
+    const deliveryCountInput =
+      document.getElementById("deliveryCountInput");
+
+    const workStartTimeInput =
+      document.getElementById("workStartTimeInput");
+
+    const saleAmountText =
+      saleAmountInput?.value.trim() ?? "";
+
+    const deliveryCountText =
+      deliveryCountInput?.value.trim() ?? "";
+
+    if (saleAmountText === "") {
+      showStatus("売上を入力してください。", "error");
+      return;
+    }
+
+    if (deliveryCountText === "") {
+      showStatus("配達件数を入力してください。", "error");
+      return;
+    }
+
+    const saleAmount = Number(saleAmountText);
+    const deliveryCount = Number(deliveryCountText);
+
+    if (
+      !Number.isFinite(saleAmount) ||
+      saleAmount < 0
+    ) {
+      showStatus("売上を正しく入力してください。", "error");
+      return;
+    }
+
+    if (
+      !Number.isInteger(deliveryCount) ||
+      deliveryCount < 0
+    ) {
+      showStatus("配達件数を正しく入力してください。", "error");
+      return;
+    }
+
+    const workHoursResult = getWorkHoursInput();
+
+    if (workHoursResult.error) {
+      showStatus(workHoursResult.error, "error");
+      return;
+    }
+
+    const workHours = workHoursResult.value;
+
+    const distanceKm =
+      getOptionalNumber("distanceInput");
+
+    const expense =
+      getOptionalNumber("expenseInput");
+
+    const workStartedAt =
+      buildWorkStartedAt(
+        workStartTimeInput?.value || ""
+      );
+
+    const body = {
+      saleAmount,
+      deliveryCount
+    };
+
+    if (workHours !== undefined) {
+      body.workHours = workHours;
+    }
+
+    if (distanceKm !== undefined) {
+      body.distanceKm = distanceKm;
+    }
+
+    if (expense !== undefined) {
+      body.expense = expense;
+    }
+
+    if (workStartedAt !== undefined) {
+      body.workStartedAt = workStartedAt;
+    }
+
+    state.loading = true;
+
+    showStatus("保存中…");
+
+    try {
+      const response = await apiFetch("/api/result", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      await readApiResponse(response);
+
+      saleAmountInput.value = "";
+      deliveryCountInput.value = "";
+
+      if (workStartTimeInput) {
+        workStartTimeInput.value = "";
+      }
+
+      const workHoursHourInput =
+        document.getElementById("workHoursHourInput");
+
+      const workHoursMinuteInput =
+        document.getElementById("workHoursMinuteInput");
+
+      if (workHoursHourInput) {
+        workHoursHourInput.value = "";
+      }
+
+      if (workHoursMinuteInput) {
+        workHoursMinuteInput.value = "";
+      }
+
+      const distanceInput =
+        document.getElementById("distanceInput");
+
+      if (distanceInput) {
+        distanceInput.value = "";
+      }
+
+      const expenseInput =
+        document.getElementById("expenseInput");
+
+      if (expenseInput) {
+        expenseInput.value = "";
+      }
+
+      showStatus("保存しました。", "success");
+
+      await loadPersonal(false);
+    } catch (error) {
+      console.error(error);
+
+      showStatus(
+        error?.message || "保存に失敗しました。",
+        "error"
+      );
+    } finally {
+      state.loading = false;
+    }
+  }
+
+  function setupForm() {
+    const form = document.getElementById("resultForm");
+
+    if (!form) return;
+
+    form.addEventListener("submit", saveResult);
+  }
+
+  function setupTelegram() {
+    if (!tg) return;
+
+    try {
+      tg.ready();
+      tg.expand();
+    } catch (error) {
+      console.warn("Telegram WebApp initialization failed.", error);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setupTelegram();
+    setupPeriodTabs();
+    setupDetailsToggle();
+    setupRefresh();
+    setupForm();
+
+    const initialTab =
+      document.querySelector(
+        `.period-tab[data-period="${state.period}"]`
+      );
+
+    if (initialTab) {
+      initialTab.classList.add("active");
+    }
+
+    loadPersonal();
+  });
+</script>
 </body>
 </html>
