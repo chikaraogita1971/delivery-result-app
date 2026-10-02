@@ -1,36 +1,39 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
-  >
-
+  />
   <title>個人テレグラムリザルト</title>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      --radius: 14px;
+    }
+
     * {
       box-sizing: border-box;
     }
 
-    :root {
-      --bg: #f5f7fb;
-      --card: #ffffff;
-      --text: #172033;
-      --muted: #7b8495;
-      --border: #e5e9f0;
-      --primary: #229ed9;
-      --primary-dark: #1686bd;
-      --danger: #e05252;
-      --shadow: 0 4px 18px rgba(23, 32, 51, .07);
-      --radius: 16px;
-    }
-
+    html,
     body {
       margin: 0;
+      padding: 0;
+      min-height: 100%;
       background: var(--bg);
       color: var(--text);
       font-family:
@@ -39,11 +42,18 @@
         "Segoe UI",
         "Noto Sans JP",
         sans-serif;
-      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      padding:
+        env(safe-area-inset-top)
+        0
+        env(safe-area-inset-bottom);
     }
 
     button,
-    input {
+    input,
+    select {
       font: inherit;
     }
 
@@ -51,295 +61,341 @@
       cursor: pointer;
     }
 
-    button:disabled {
-      cursor: default;
-    }
-
     .app {
-      min-height: 100vh;
-      padding-bottom: 40px;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px;
     }
 
     .header {
-      position: sticky;
-      top: 0;
-      z-index: 20;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 14px 16px;
-      background: rgba(255,255,255,.95);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
     }
 
     .header-title {
-      font-size: 17px;
+      min-width: 0;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 20px;
       font-weight: 800;
+      line-height: 1.3;
     }
 
     .user-name {
-      margin-top: 3px;
+      margin-top: 4px;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .refresh-btn {
+    .refresh-button {
+      flex: 0 0 auto;
       width: 40px;
       height: 40px;
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 10px;
       background: #fff;
-      font-size: 18px;
+      color: var(--text);
+      font-size: 20px;
+    }
+
+    .refresh-button:active {
+      transform: scale(0.97);
     }
 
     .period-tabs {
-      display: flex;
-      gap: 7px;
-      overflow-x: auto;
-      padding: 14px 16px 2px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 16px;
+      padding: 4px;
+      background: #e9edf5;
+      border-radius: 12px;
     }
 
     .period-tab {
-      flex: 0 0 auto;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 8px 14px;
-      background: #fff;
+      border: 0;
+      border-radius: 9px;
+      padding: 10px 6px;
+      background: transparent;
       color: var(--muted);
       font-size: 13px;
       font-weight: 700;
     }
 
     .period-tab.active {
-      border-color: var(--primary);
-      background: var(--primary);
-      color: #fff;
-    }
-
-    .section {
-      padding: 16px;
+      background: #fff;
+      color: var(--primary);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
     }
 
     .card {
       margin-bottom: 14px;
       padding: 16px;
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      background: var(--card);
       box-shadow: var(--shadow);
     }
 
     .card-title {
       margin: 0 0 14px;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 800;
     }
 
-    .add-result-card {
-      margin-bottom: 16px;
-      padding: 18px;
-      border-radius: var(--radius);
-      background: #fff;
-      box-shadow: var(--shadow);
-    }
-
-    .form-row {
+    .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .field {
-      margin-bottom: 13px;
+    .form-group {
+      min-width: 0;
     }
 
-    .field label {
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
       display: block;
       margin-bottom: 6px;
-      font-size: 12px;
+      color: #374151;
+      font-size: 13px;
       font-weight: 700;
-      color: #596273;
     }
 
-    .result-input {
+    input,
+    select {
       width: 100%;
-      min-height: 46px;
+      min-height: 44px;
       padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 11px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      outline: none;
       background: #fff;
       color: var(--text);
-      outline: none;
     }
 
-    .result-input:focus {
+    input:focus,
+    select:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(34,158,217,.12);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
 
     .details-toggle {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
       width: 100%;
-      margin: 3px 0 10px;
-      padding: 11px 0;
+      margin-top: 12px;
+      padding: 10px 0;
       border: 0;
-      border-top: 1px solid var(--border);
       background: transparent;
-      color: var(--primary-dark);
-      font-weight: 700;
+      color: var(--primary);
       text-align: left;
+      font-weight: 700;
     }
 
-    .optional-details {
+    .details-content {
       display: none;
+      margin-top: 4px;
     }
 
-    .optional-details.open {
+    .details-content.open {
       display: block;
     }
 
-    .add-result-submit {
+    .save-button {
       width: 100%;
-      min-height: 48px;
-      margin-top: 4px;
+      min-height: 46px;
+      margin-top: 14px;
       border: 0;
-      border-radius: 12px;
+      border-radius: 10px;
       background: var(--primary);
       color: #fff;
       font-weight: 800;
     }
 
-    .add-result-submit:disabled {
-      opacity: .6;
+    .save-button:active {
+      background: var(--primary-dark);
+    }
+
+    .save-button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .status {
+      display: none;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .status.show {
+      display: block;
+    }
+
+    .status.error {
+      background: #fef2f2;
+      color: var(--danger);
+    }
+
+    .status.success {
+      background: #f0fdf4;
+      color: var(--success);
     }
 
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
-      margin-bottom: 14px;
     }
 
     .summary-item {
-      padding: 14px;
+      padding: 12px;
       border: 1px solid var(--border);
-      border-radius: 14px;
-      background: #fff;
+      border-radius: 10px;
+      background: #fafafa;
     }
 
     .summary-label {
       color: var(--muted);
-      font-size: 11px;
-      font-weight: 700;
+      font-size: 12px;
+      font-weight: 600;
     }
 
     .summary-value {
       margin-top: 4px;
       font-size: 20px;
-      font-weight: 850;
-    }
-
-    .summary-value.small {
-      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.25;
     }
 
     .analysis-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, 1fr);
       gap: 10px;
     }
 
-    .analysis-card {
-      padding: 14px;
+    .analysis-item {
+      padding: 12px;
       border: 1px solid var(--border);
-      border-radius: 14px;
-      background: #fff;
+      border-radius: 10px;
+      background: #fafafa;
     }
 
     .analysis-label {
       color: var(--muted);
-      font-size: 11px;
-      font-weight: 700;
+      font-size: 12px;
+      font-weight: 600;
     }
 
     .analysis-value {
-      margin-top: 5px;
-      font-size: 19px;
-      font-weight: 850;
+      margin-top: 4px;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .record-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .record-item {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .record-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .record-sale {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .record-date {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .record-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px 12px;
+      margin-top: 8px;
+      color: #4b5563;
+      font-size: 13px;
     }
 
     .empty {
-      padding: 24px 10px;
+      padding: 20px 10px;
       color: var(--muted);
       text-align: center;
-      font-size: 13px;
+      font-size: 14px;
     }
 
-    .toast {
-      position: fixed;
-      left: 16px;
-      right: 16px;
-      bottom: 18px;
-      z-index: 100;
-      display: none;
-      padding: 13px 15px;
-      border-radius: 12px;
-      background: rgba(23,32,51,.94);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      box-shadow: 0 8px 30px rgba(0,0,0,.18);
+    .loading {
+      padding: 20px 10px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 14px;
     }
 
-    .toast.show {
-      display: block;
-    }
-
-    .toast.error {
-      background: rgba(180,45,45,.95);
-    }
-
-    @media (min-width: 700px) {
-      .section {
-        max-width: 760px;
-        margin: 0 auto;
+    @media (max-width: 480px) {
+      .app {
+        padding: 12px;
       }
 
-      .header {
-        padding-left: calc((100% - 760px) / 2 + 16px);
-        padding-right: calc((100% - 760px) / 2 + 16px);
+      .form-grid {
+        grid-template-columns: 1fr;
       }
 
-      .period-tabs {
-        max-width: 760px;
-        margin: 0 auto;
+      .form-group.full {
+        grid-column: auto;
+      }
+
+      .summary-grid,
+      .analysis-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .period-tab {
+        font-size: 12px;
       }
     }
   </style>
 </head>
 
 <body>
-
   <div class="app">
 
     <header class="header">
-      <div>
-        <div class="header-title">
-          📦 個人テレグラムリザルト
-        </div>
-
-        <div id="userName" class="user-name">
-          読み込み中…
-        </div>
+      <div class="header-title">
+        <h1 class="title">📦 個人テレグラムリザルト</h1>
+        <div id="userName" class="user-name"></div>
       </div>
 
       <button
-        id="refreshBtn"
-        class="refresh-btn"
+        id="refreshButton"
+        class="refresh-button"
         type="button"
         aria-label="更新"
       >
@@ -347,8 +403,7 @@
       </button>
     </header>
 
-    <div class="period-tabs">
-
+    <nav class="period-tabs" aria-label="期間">
       <button
         class="period-tab active"
         type="button"
@@ -380,484 +435,265 @@
       >
         全期間
       </button>
+    </nav>
 
-    </div>
+    <section class="card">
+      <h2 class="card-title">実績を追加</h2>
 
-    <section class="section">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="saleAmountInput">売上（円）</label>
+          <input
+            id="saleAmountInput"
+            type="number"
+            inputmode="numeric"
+            min="0"
+            step="1"
+            placeholder="5000"
+          />
+        </div>
 
-      <!-- 実績入力 -->
-      <div class="add-result-card">
-
-        <h2 class="card-title">
-          実績を追加
-        </h2>
-
-        <form id="addResultForm">
-
-          <div class="form-row">
-
-            <div class="field">
-              <label for="saleAmountInput">
-                売上（円）
-              </label>
-
-              <input
-                id="saleAmountInput"
-                class="result-input"
-                type="number"
-                inputmode="numeric"
-                min="0"
-                step="1"
-                placeholder="5000"
-                required
-              >
-            </div>
-
-            <div class="field">
-              <label for="deliveryCountInput">
-                配達件数
-              </label>
-
-              <input
-                id="deliveryCountInput"
-                class="result-input"
-                type="number"
-                inputmode="numeric"
-                min="1"
-                step="1"
-                placeholder="5"
-                required
-              >
-            </div>
-
-          </div>
-
-          <button
-            id="detailsToggle"
-            class="details-toggle"
-            type="button"
-            aria-expanded="false"
-          >
-            <span>詳細設定（任意）</span>
-            <span id="detailsToggleIcon">＋</span>
-          </button>
-
-          <div
-            id="optionalDetails"
-            class="optional-details"
-          >
-
-            <div class="field">
-              <label for="workStartTimeInput">
-                稼働開始時刻
-              </label>
-
-              <input
-                id="workStartTimeInput"
-                class="result-input"
-                type="time"
-              >
-            </div>
-
-            <div class="field">
-              <label for="workHoursInput">
-                稼働時間（時間）
-              </label>
-
-              <input
-                id="workHoursInput"
-                class="result-input"
-                type="number"
-                inputmode="decimal"
-                min="0"
-                step="0.1"
-                placeholder="5.5"
-              >
-            </div>
-
-            <div class="field">
-              <label for="distanceInput">
-                走行距離（km）
-              </label>
-
-              <input
-                id="distanceInput"
-                class="result-input"
-                type="number"
-                inputmode="decimal"
-                min="0"
-                step="0.1"
-                placeholder="30"
-              >
-            </div>
-
-            <div class="field">
-              <label for="expenseInput">
-                経費（円）
-              </label>
-
-              <input
-                id="expenseInput"
-                class="result-input"
-                type="number"
-                inputmode="numeric"
-                min="0"
-                step="1"
-                placeholder="500"
-              >
-            </div>
-
-          </div>
-
-          <button
-            class="add-result-submit"
-            type="submit"
-          >
-            実績を保存
-          </button>
-
-        </form>
+        <div class="form-group">
+          <label for="deliveryCountInput">配達件数</label>
+          <input
+            id="deliveryCountInput"
+            type="number"
+            inputmode="numeric"
+            min="0"
+            step="1"
+            placeholder="5"
+          />
+        </div>
       </div>
 
-      <!-- 集計 -->
-      <div class="summary-grid">
-
-        <div class="summary-item">
-          <div class="summary-label">
-            売上
-          </div>
-
-          <div
-            id="summarySales"
-            class="summary-value"
-          >
-            ¥0
-          </div>
-        </div>
-
-        <div class="summary-item">
-          <div class="summary-label">
-            配達件数
-          </div>
-
-          <div
-            id="summaryDeliveries"
-            class="summary-value"
-          >
-            0件
-          </div>
-        </div>
-
-        <div class="summary-item">
-          <div class="summary-label">
-            稼働時間
-          </div>
-
-          <div
-            id="summaryHours"
-            class="summary-value small"
-          >
-            0時間
-          </div>
-        </div>
-
-        <div class="summary-item">
-          <div class="summary-label">
-            時給
-          </div>
-
-          <div
-            id="summaryHourly"
-            class="summary-value small"
-          >
-            ¥0
-          </div>
-        </div>
-
-        <div class="summary-item">
-          <div class="summary-label">
-            平均単価
-          </div>
-
-          <div
-            id="summaryUnitPrice"
-            class="summary-value small"
-          >
-            ¥0
-          </div>
-        </div>
-
-      </div>
-
-      <!-- 📊 効率分析 -->
-      <div class="card">
-
-        <h2 class="card-title">
-          📊 効率分析
-        </h2>
-
-        <div class="analysis-grid">
-
-          <div class="analysis-card">
-
-            <div class="analysis-label">
-              1件あたり売上
-            </div>
-
-            <div
-              id="analysisPerDelivery"
-              class="analysis-value"
-            >
-              ¥0
-            </div>
-
-          </div>
-
-          <div class="analysis-card">
-
-            <div class="analysis-label">
-              1時間あたり件数
-            </div>
-
-            <div
-              id="analysisDeliveriesPerHour"
-              class="analysis-value"
-            >
-              0件
-            </div>
-
-          </div>
-
-          <div class="analysis-card">
-
-            <div class="analysis-label">
-              1kmあたり売上
-            </div>
-
-            <div
-              id="analysisSalesPerKm"
-              class="analysis-value"
-            >
-              —
-            </div>
-
-          </div>
-
-          <div class="analysis-card">
-
-            <div class="analysis-label">
-              経費
-            </div>
-
-            <div
-              id="analysisExpense"
-              class="analysis-value"
-            >
-              ¥0
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      <div
-        id="recordList"
-        class="card"
+      <button
+        id="detailsToggle"
+        class="details-toggle"
+        type="button"
       >
-        <div class="empty">
-          読み込み中…
+        詳細設定（任意）＋
+      </button>
+
+      <div id="detailsContent" class="details-content">
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label for="workStartTimeInput">稼働開始時刻</label>
+            <input
+              id="workStartTimeInput"
+              type="time"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="workHoursInput">稼働時間（時間）</label>
+            <input
+              id="workHoursInput"
+              type="number"
+              inputmode="decimal"
+              min="0"
+              step="0.1"
+              placeholder="5.5"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="distanceInput">走行距離（km）</label>
+            <input
+              id="distanceInput"
+              type="number"
+              inputmode="decimal"
+              min="0"
+              step="0.1"
+              placeholder="30"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="expenseInput">経費（円）</label>
+            <input
+              id="expenseInput"
+              type="number"
+              inputmode="numeric"
+              min="0"
+              step="1"
+              placeholder="500"
+            />
+          </div>
+
         </div>
       </div>
 
+      <button
+        id="saveButton"
+        class="save-button"
+        type="button"
+      >
+        実績を保存
+      </button>
+
+      <div id="status" class="status"></div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">集計</h2>
+
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-label">売上</div>
+          <div id="summarySales" class="summary-value">¥0</div>
+        </div>
+
+        <div class="summary-item">
+          <div class="summary-label">配達件数</div>
+          <div id="summaryDeliveries" class="summary-value">0件</div>
+        </div>
+
+        <div class="summary-item">
+          <div class="summary-label">稼働時間</div>
+          <div id="summaryHours" class="summary-value">0時間</div>
+        </div>
+
+        <div class="summary-item">
+          <div class="summary-label">時給</div>
+          <div id="summaryHourly" class="summary-value">¥0</div>
+        </div>
+
+        <div class="summary-item">
+          <div class="summary-label">平均単価</div>
+          <div id="summaryUnitPrice" class="summary-value">¥0</div>
+        </div>
+      </div>
+    </section>
+        <section class="card">
+      <h2 class="card-title">📊 効率分析</h2>
+
+      <div class="analysis-grid">
+        <div class="analysis-item">
+          <div class="analysis-label">1件あたり売上</div>
+          <div id="analysisPerDelivery" class="analysis-value">¥0</div>
+        </div>
+
+        <div class="analysis-item">
+          <div class="analysis-label">1時間あたり件数</div>
+          <div id="analysisDeliveriesPerHour" class="analysis-value">0件</div>
+        </div>
+
+        <div class="analysis-item">
+          <div class="analysis-label">1kmあたり売上</div>
+          <div id="analysisSalesPerKm" class="analysis-value">—</div>
+        </div>
+
+        <div class="analysis-item">
+          <div class="analysis-label">経費</div>
+          <div id="analysisExpense" class="analysis-value">¥0</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">実績一覧</h2>
+
+      <div id="recordList" class="record-list">
+        <div class="loading">読み込み中...</div>
+      </div>
     </section>
 
   </div>
 
-  <div
-    id="toast"
-    class="toast"
-    role="status"
-    aria-live="polite"
-  ></div>
-
   <script>
-    const tg =
-      window.Telegram?.WebApp || null;
+    const tg = window.Telegram?.WebApp || null;
 
-    let currentPeriod = 'today';
+    let currentPeriod = "today";
     let currentData = null;
 
     function formatYen(value) {
-      const number = Number(value || 0);
-
-      return `¥${Math.round(number).toLocaleString('ja-JP')}`;
-    }
-
-    function formatHours(value) {
-      const number = Number(value || 0);
-
-      if (
-        !Number.isFinite(number) ||
-        number <= 0
-      ) {
-        return '0時間';
-      }
-
-      return `${number.toFixed(1)}時間`;
-    }
-
-    function formatNumber(
-      value,
-      digits = 1
-    ) {
-      const number = Number(value || 0);
+      const number = Number(value);
 
       if (!Number.isFinite(number)) {
-        return '0';
+        return "¥0";
       }
 
-      return number.toLocaleString(
-        'ja-JP',
-        {
-          maximumFractionDigits: digits
-        }
-      );
+      return `¥${Math.round(number).toLocaleString("ja-JP")}`;
     }
 
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    function formatNumber(value, digits = 1) {
+      const number = Number(value);
+
+      if (!Number.isFinite(number)) {
+        return "0";
+      }
+
+      return number.toLocaleString("ja-JP", {
+        maximumFractionDigits: digits
+      });
     }
 
-    function showToast(
-      message,
-      type = 'normal'
-    ) {
-      const toast =
-        document.getElementById('toast');
+    function showStatus(message, type = "error") {
+      const status = document.getElementById("status");
 
-      if (!toast) {
+      if (!status) {
         return;
       }
 
-      toast.textContent = message;
-
-      toast.className =
-        `toast show ${
-          type === 'error'
-            ? 'error'
-            : ''
-        }`;
-
-      clearTimeout(showToast.timer);
-
-      showToast.timer =
-        setTimeout(() => {
-          toast.className = 'toast';
-        }, 3000);
+      status.textContent = message;
+      status.className = `status show ${type}`;
     }
 
-    function getTelegramUser() {
-      return tg?.initDataUnsafe?.user || null;
-    }
+    function clearStatus() {
+      const status = document.getElementById("status");
 
-    function updateUserName() {
-      const element =
-        document.getElementById('userName');
-
-      if (!element) {
+      if (!status) {
         return;
       }
 
-      const user =
-        getTelegramUser();
-
-      if (!user) {
-        element.textContent =
-          'Telegram Mini Appとして起動してください';
-
-        return;
-      }
-
-      const name =
-        user.first_name ||
-        user.username ||
-        'ユーザー';
-
-      element.textContent =
-        `${name}さん`;
+      status.textContent = "";
+      status.className = "status";
     }
 
-    function apiFetch(
-      url,
-      options = {}
-    ) {
-      const headers =
-        new Headers(
-          options.headers || {}
-        );
-
-      headers.set(
-        'Accept',
-        'application/json'
-      );
-
-      if (tg?.initData) {
-        headers.set(
-          'X-Telegram-Init-Data',
-          tg.initData
-        );
-      }
-
-      return fetch(
-        url,
-        {
-          ...options,
-          headers
-        }
-      );
-    }
-
-    async function readApiResponse(
-      response
-    ) {
-      const text =
-        await response.text();
+    async function readApiResponse(response) {
+      const text = await response.text();
 
       let data = null;
 
       try {
-        data =
-          text
-            ? JSON.parse(text)
-            : null;
-      } catch {
-        data = null;
-      }
-
-      if (!response.ok) {
+        data = text ? JSON.parse(text) : null;
+      } catch (error) {
         throw new Error(
-          data?.error ||
-          data?.message ||
-          `通信エラー (${response.status})`
+          `APIの応答を読み取れませんでした（HTTP ${response.status}）`
         );
       }
 
-      if (data?.ok === false) {
+      if (!response.ok || data?.ok === false) {
         throw new Error(
-          data.error ||
-          data.message ||
-          '処理に失敗しました'
+          data?.error ||
+          data?.message ||
+          `APIエラー（HTTP ${response.status}）`
         );
       }
 
       return data;
+    }
+
+    async function apiFetch(url, options = {}) {
+      const headers = new Headers(options.headers || {});
+
+      if (tg?.initData) {
+        headers.set("X-Telegram-Init-Data", tg.initData);
+      }
+
+      if (
+        options.body &&
+        typeof options.body === "string" &&
+        !headers.has("Content-Type")
+      ) {
+        headers.set("Content-Type", "application/json");
+      }
+
+      return fetch(url, {
+        ...options,
+        headers
+      });
     }
 
     function getRecordsFromData(data) {
@@ -867,6 +703,11 @@
 
       if (Array.isArray(data)) {
         return data;
+      }
+
+      // API /api/result の正式な実績一覧
+      if (Array.isArray(data.recentResults)) {
+        return data.recentResults;
       }
 
       if (Array.isArray(data.records)) {
@@ -884,10 +725,195 @@
       return [];
     }
 
-    function getRecordValue(
-      record,
-      ...keys
-    ) {
+    function getSummaryFromRecords(records) {
+      let sales = 0;
+      let deliveries = 0;
+      let hours = 0;
+      let distance = 0;
+      let expense = 0;
+
+      for (const record of records) {
+        sales += Number(
+          record.saleAmount ??
+          record.sales ??
+          record.sale_amount ??
+          0
+        );
+
+        deliveries += Number(
+          record.deliveryCount ??
+          record.deliveries ??
+          record.delivery_count ??
+          0
+        );
+
+        hours += Number(
+          record.workHours ??
+          record.hours ??
+          record.work_hours ??
+          0
+        );
+
+        distance += Number(
+          record.distanceKm ??
+          record.distance ??
+          record.distance_km ??
+          0
+        );
+
+        expense += Number(
+          record.expense ??
+          record.expenseAmount ??
+          record.expense_amount ??
+          0
+        );
+      }
+
+      return {
+        sales: Number.isFinite(sales) ? sales : 0,
+        deliveries: Number.isFinite(deliveries) ? deliveries : 0,
+        hours: Number.isFinite(hours) ? hours : 0,
+        distance: Number.isFinite(distance) ? distance : 0,
+        expense: Number.isFinite(expense) ? expense : 0
+      };
+    }
+
+    function getSummaryValues(data) {
+      const records =
+        getRecordsFromData(data);
+
+      // API /api/result が返す正式な集計
+      const stats =
+        data?.stats || {};
+
+      const fallback =
+        getSummaryFromRecords(records);
+
+      const sales =
+        Number(
+          stats.saleAmount ??
+          stats.sales ??
+          stats.sale_amount ??
+          fallback.sales ??
+          0
+        );
+
+      const deliveries =
+        Number(
+          stats.deliveryCount ??
+          stats.deliveries ??
+          stats.delivery_count ??
+          fallback.deliveries ??
+          0
+        );
+
+      const hours =
+        Number(
+          stats.workHours ??
+          stats.hours ??
+          stats.work_hours ??
+          fallback.hours ??
+          0
+        );
+
+      const distance =
+        Number(
+          stats.distanceKm ??
+          stats.distance ??
+          stats.distance_km ??
+          fallback.distance ??
+          0
+        );
+
+      const expense =
+        Number(
+          stats.expense ??
+          stats.expenseAmount ??
+          stats.expense_amount ??
+          fallback.expense ??
+          0
+        );
+
+      return {
+        sales: Number.isFinite(sales) ? sales : 0,
+        deliveries: Number.isFinite(deliveries) ? deliveries : 0,
+        hours: Number.isFinite(hours) ? hours : 0,
+        distance: Number.isFinite(distance) ? distance : 0,
+        expense: Number.isFinite(expense) ? expense : 0
+      };
+    }
+
+    function renderSummary(data) {
+      const summary =
+        getSummaryValues(data);
+
+      const hourly =
+        summary.hours > 0
+          ? summary.sales / summary.hours
+          : 0;
+
+      const unitPrice =
+        summary.deliveries > 0
+          ? summary.sales / summary.deliveries
+          : 0;
+
+      document.getElementById("summarySales").textContent =
+        formatYen(summary.sales);
+
+      document.getElementById("summaryDeliveries").textContent =
+        `${formatNumber(summary.deliveries, 0)}件`;
+
+      document.getElementById("summaryHours").textContent =
+        `${formatNumber(summary.hours, 1)}時間`;
+
+      document.getElementById("summaryHourly").textContent =
+        formatYen(hourly);
+
+      document.getElementById("summaryUnitPrice").textContent =
+        formatYen(unitPrice);
+
+      renderEfficiency(summary);
+    }
+
+    function renderEfficiency(summary) {
+      const perDelivery =
+        summary.deliveries > 0
+          ? summary.sales / summary.deliveries
+          : 0;
+
+      const deliveriesPerHour =
+        summary.hours > 0
+          ? summary.deliveries / summary.hours
+          : 0;
+
+      const salesPerKm =
+        summary.distance > 0
+          ? summary.sales / summary.distance
+          : null;
+
+      document.getElementById(
+        "analysisPerDelivery"
+      ).textContent = formatYen(perDelivery);
+
+      document.getElementById(
+        "analysisDeliveriesPerHour"
+      ).textContent =
+        `${formatNumber(deliveriesPerHour, 1)}件`;
+
+      document.getElementById(
+        "analysisSalesPerKm"
+      ).textContent =
+        salesPerKm === null
+          ? "—"
+          : formatYen(salesPerKm);
+
+      document.getElementById(
+        "analysisExpense"
+      ).textContent =
+        formatYen(summary.expense);
+    }
+
+    function getRecordValue(record, keys, fallback = 0) {
       for (const key of keys) {
         if (
           record &&
@@ -898,477 +924,213 @@
         }
       }
 
-      return null;
+      return fallback;
     }
 
-    function getSaleAmount(record) {
-      return Number(
-        getRecordValue(
-          record,
-          'saleAmount',
-          'sale_amount',
-          'sales',
-          'sale'
-        ) || 0
-      );
-    }
-
-    function getDeliveryCount(record) {
-      return Number(
-        getRecordValue(
-          record,
-          'deliveryCount',
-          'delivery_count',
-          'deliveries'
-        ) || 0
-      );
-    }
-
-    function getWorkHours(record) {
-      const value =
-        getRecordValue(
-          record,
-          'workHours',
-          'work_hours',
-          'hours'
-        );
-
-      if (
-        value === null ||
-        value === undefined ||
-        value === ''
-      ) {
-        return 0;
-      }
-
-      return Number(value) || 0;
-    }
-
-    function getDistance(record) {
-      return Number(
-        getRecordValue(
-          record,
-          'distanceKm',
-          'distance_km',
-          'distance'
-        ) || 0
-      );
-    }
-
-    function getExpense(record) {
-      return Number(
-        getRecordValue(
-          record,
-          'expenseAmount',
-          'expense_amount',
-          'expense'
-        ) || 0
-      );
-    }
-
-    function getCreatedAt(record) {
-      return getRecordValue(
-        record,
-        'created_at',
-        'createdAt'
-      );
-    }
-
-    function getWorkStartedAt(record) {
-      return getRecordValue(
-        record,
-        'work_started_at',
-        'workStartedAt'
-      );
-    }
-
-    function getDateValue(record) {
-      return (
-        getWorkStartedAt(record) ||
-        getCreatedAt(record)
-      );
-    }
-
-    function getSummaryFromRecords(
-      records
-    ) {
-      let sales = 0;
-      let deliveries = 0;
-      let hours = 0;
-      let distance = 0;
-      let expense = 0;
-
-      for (const record of records) {
-        sales += getSaleAmount(record);
-        deliveries += getDeliveryCount(record);
-        hours += getWorkHours(record);
-        distance += getDistance(record);
-        expense += getExpense(record);
-      }
-
-      return {
-        sales,
-        deliveries,
-        hours,
-        distance,
-        expense
-      };
-    }
-
-    function getSummaryValues(data) {
-      const records =
-        getRecordsFromData(data);
-
-      const summary =
-        data?.summary || {};
-
-      const fallback =
-        getSummaryFromRecords(records);
-
-      const sales =
-        Number(
-          summary.saleAmount ??
-          summary.sales ??
-          summary.sale_amount ??
-          fallback.sales ??
-          0
-        );
-
-      const deliveries =
-        Number(
-          summary.deliveryCount ??
-          summary.deliveries ??
-          summary.delivery_count ??
-          fallback.deliveries ??
-          0
-        );
-
-      const hours =
-        Number(
-          summary.workHours ??
-          summary.hours ??
-          summary.work_hours ??
-          fallback.hours ??
-          0
-        );
-
-      const distance =
-        Number(
-          summary.distanceKm ??
-          summary.distance ??
-          summary.distance_km ??
-          fallback.distance ??
-          0
-        );
-
-      const expense =
-        Number(
-          summary.expenseAmount ??
-          summary.expense ??
-          summary.expense_amount ??
-          fallback.expense ??
-          0
-        );
-
-      return {
-        sales:
-          Number.isFinite(sales)
-            ? sales
-            : 0,
-
-        deliveries:
-          Number.isFinite(deliveries)
-            ? deliveries
-            : 0,
-
-        hours:
-          Number.isFinite(hours)
-            ? hours
-            : 0,
-
-        distance:
-          Number.isFinite(distance)
-            ? distance
-            : 0,
-
-        expense:
-          Number.isFinite(expense)
-            ? expense
-            : 0
-      };
-    }
-
-    function renderSummary(data) {
-      const summary =
-        getSummaryValues(data);
-
-      const hourly =
-        summary.hours > 0
-          ? summary.sales /
-            summary.hours
-          : 0;
-
-      const unitPrice =
-        summary.deliveries > 0
-          ? summary.sales /
-            summary.deliveries
-          : 0;
-
-      document.getElementById(
-        'summarySales'
-      ).textContent =
-        formatYen(summary.sales);
-
-      document.getElementById(
-        'summaryDeliveries'
-      ).textContent =
-        `${summary.deliveries.toLocaleString('ja-JP')}件`;
-
-      document.getElementById(
-        'summaryHours'
-      ).textContent =
-        formatHours(summary.hours);
-
-      document.getElementById(
-        'summaryHourly'
-      ).textContent =
-        formatYen(hourly);
-
-      document.getElementById(
-        'summaryUnitPrice'
-      ).textContent =
-        formatYen(unitPrice);
-
-      renderEfficiency(summary);
-    }
-
-    function renderEfficiency(
-      summary
-    ) {
-      const perDelivery =
-        summary.deliveries > 0
-          ? summary.sales /
-            summary.deliveries
-          : 0;
-
-      const deliveriesPerHour =
-        summary.hours > 0
-          ? summary.deliveries /
-            summary.hours
-          : 0;
-
-      const salesPerKm =
-        summary.distance > 0
-          ? summary.sales /
-            summary.distance
-          : 0;
-
-      document.getElementById(
-        'analysisPerDelivery'
-      ).textContent =
-        formatYen(perDelivery);
-
-      document.getElementById(
-        'analysisDeliveriesPerHour'
-      ).textContent =
-        `${formatNumber(
-          deliveriesPerHour,
-          1
-        )}件`;
-
-      document.getElementById(
-        'analysisSalesPerKm'
-      ).textContent =
-        summary.distance > 0
-          ? formatYen(salesPerKm)
-          : '—';
-
-      document.getElementById(
-        'analysisExpense'
-      ).textContent =
-        formatYen(summary.expense);
-    }
-
-    function getRecordSortTime(
-      record
-    ) {
-      const value =
-        getDateValue(record);
-
+    function formatRecordDate(value) {
       if (!value) {
-        return 0;
+        return "";
       }
 
-      const time =
-        new Date(value).getTime();
+      const date = new Date(value);
 
-      return Number.isFinite(time)
-        ? time
-        : 0;
+      if (Number.isNaN(date.getTime())) {
+        return String(value);
+      }
+
+      return date.toLocaleString("ja-JP", {
+        timeZone: "Asia/Tokyo",
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
     }
 
-    function formatDateTime(value) {
-      if (!value) {
-        return '日時不明';
-      }
-
-      const date =
-        new Date(value);
-
-      if (
-        Number.isNaN(
-          date.getTime()
-        )
-      ) {
-        return '日時不明';
-      }
-
-      return date.toLocaleString(
-        'ja-JP',
-        {
-          month: 'numeric',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        }
-      );
-    }
-
-    function renderRecords(
-      records
-    ) {
+    function renderRecords(records) {
       const container =
-        document.getElementById(
-          'recordList'
-        );
+        document.getElementById("recordList");
 
       if (!container) {
         return;
       }
 
-      const sorted =
-        [...records].sort(
-          (a, b) =>
-            getRecordSortTime(b) -
-            getRecordSortTime(a)
-        );
-
-      if (sorted.length === 0) {
-        container.innerHTML = `
-          <div class="empty">
-            まだ実績がありません
-          </div>
-        `;
-
+      if (!records.length) {
+        container.innerHTML =
+          '<div class="empty">まだ実績がありません</div>';
         return;
       }
 
       container.innerHTML =
-        sorted.map(record => {
+        records.map((record) => {
+          const saleAmount =
+            Number(
+              getRecordValue(
+                record,
+                [
+                  "saleAmount",
+                  "sales",
+                  "sale_amount"
+                ],
+                0
+              )
+            );
 
-          const sales =
-            getSaleAmount(record);
+          const deliveryCount =
+            Number(
+              getRecordValue(
+                record,
+                [
+                  "deliveryCount",
+                  "deliveries",
+                  "delivery_count"
+                ],
+                0
+              )
+            );
 
-          const deliveries =
-            getDeliveryCount(record);
+          const workHours =
+            Number(
+              getRecordValue(
+                record,
+                [
+                  "workHours",
+                  "hours",
+                  "work_hours"
+                ],
+                0
+              )
+            );
 
-          const hours =
-            getWorkHours(record);
+          const distanceKm =
+            Number(
+              getRecordValue(
+                record,
+                [
+                  "distanceKm",
+                  "distance",
+                  "distance_km"
+                ],
+                0
+              )
+            );
 
-          const date =
-            getDateValue(record);
+          const expense =
+            Number(
+              getRecordValue(
+                record,
+                [
+                  "expense",
+                  "expenseAmount",
+                  "expense_amount"
+                ],
+                0
+              )
+            );
+
+          const createdAt =
+            getRecordValue(
+              record,
+              [
+                "createdAt",
+                "created_at"
+              ],
+              ""
+            );
+
+          const workStartedAt =
+            getRecordValue(
+              record,
+              [
+                "workStartedAt",
+                "work_started_at"
+              ],
+              ""
+            );
+
+          const details = [];
+
+          details.push(
+            `配達 ${formatNumber(deliveryCount, 0)}件`
+          );
+
+          if (workHours > 0) {
+            details.push(
+              `稼働 ${formatNumber(workHours, 1)}時間`
+            );
+          }
+
+          if (distanceKm > 0) {
+            details.push(
+              `距離 ${formatNumber(distanceKm, 1)}km`
+            );
+          }
+
+          if (expense > 0) {
+            details.push(
+              `経費 ${formatYen(expense)}`
+            );
+          }
+
+          if (workStartedAt) {
+            details.push(
+              `開始 ${formatRecordDate(workStartedAt)}`
+            );
+          }
 
           return `
-            <div style="
-              display:flex;
-              justify-content:space-between;
-              gap:12px;
-              padding:12px;
-              margin-bottom:9px;
-              border:1px solid var(--border);
-              border-radius:12px;
-              background:#fff;
-            ">
-              <div>
-                <div style="
-                  color:var(--muted);
-                  font-size:11px;
-                ">
-                  ${escapeHtml(
-                    formatDateTime(date)
-                  )}
+            <div class="record-item">
+              <div class="record-main">
+                <div class="record-sale">
+                  ${formatYen(saleAmount)}
                 </div>
 
-                <div style="
-                  margin-top:3px;
-                  font-size:14px;
-                  font-weight:800;
-                ">
-                  ${deliveries.toLocaleString('ja-JP')}件
-                </div>
-
-                <div style="
-                  margin-top:3px;
-                  color:var(--muted);
-                  font-size:12px;
-                ">
-                  ${formatHours(hours)}
-                  ・平均単価
-                  ${formatYen(
-                    deliveries > 0
-                      ? sales / deliveries
-                      : 0
-                  )}
+                <div class="record-date">
+                  ${formatRecordDate(createdAt)}
                 </div>
               </div>
 
-              <div style="
-                white-space:nowrap;
-                font-size:16px;
-                font-weight:850;
-              ">
-                ${formatYen(sales)}
+              <div class="record-details">
+                ${details
+                  .map((detail) => `<div>${detail}</div>`)
+                  .join("")}
               </div>
             </div>
           `;
-
-        }).join('');
+        }).join("");
     }
-
-    function getPeriodQuery(period) {
-      switch (period) {
-        case 'today':
-          return 'today';
-
-        case 'week':
-          return 'week';
-
-        case 'month':
-          return 'month';
-
-        case 'all':
-        default:
-          return 'all';
+        function getPeriodQuery(period) {
+      if (period === "today") {
+        return "today";
       }
+
+      if (period === "week") {
+        return "week";
+      }
+
+      if (period === "month") {
+        return "month";
+      }
+
+      if (period === "all") {
+        return "all";
+      }
+
+      return "today";
     }
 
     async function loadPersonal() {
-      if (!tg?.initData) {
-        updateUserName();
+      const recordList =
+        document.getElementById("recordList");
 
-        showToast(
-          'Telegram Mini Appとして起動してください',
-          'error'
-        );
-
-        return;
+      if (recordList) {
+        recordList.innerHTML =
+          '<div class="loading">読み込み中...</div>';
       }
 
       try {
         const query =
-          getPeriodQuery(
-            currentPeriod
-          );
+          getPeriodQuery(currentPeriod);
 
         const response =
           await apiFetch(
@@ -1376,55 +1138,91 @@
           );
 
         const data =
-          await readApiResponse(
-            response
-          );
+          await readApiResponse(response);
 
         currentData = data;
 
-        updateUserName();
+        renderSummary(data);
 
         const records =
           getRecordsFromData(data);
 
-        renderSummary(data);
         renderRecords(records);
 
-      } catch (error) {
-        console.error(
-          'loadPersonal error:',
-          error
-        );
+        if (data.user) {
+          const firstName =
+            data.user.firstName || "";
 
-        showToast(
+          const lastName =
+            data.user.lastName || "";
+
+          const username =
+            data.user.username
+              ? `@${data.user.username}`
+              : "";
+
+          const displayName =
+            `${lastName}${firstName}`.trim() ||
+            username ||
+            "ユーザー";
+
+          document.getElementById(
+            "userName"
+          ).textContent =
+            `${displayName}さん`;
+        }
+
+        clearStatus();
+      } catch (error) {
+        console.error(error);
+
+        if (recordList) {
+          recordList.innerHTML =
+            `<div class="empty">${escapeHtml(
+              error.message ||
+              "読み込みに失敗しました"
+            )}</div>`;
+        }
+
+        showStatus(
           error.message ||
-          'データの取得に失敗しました',
-          'error'
+          "データの読み込みに失敗しました",
+          "error"
         );
       }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
     function setupPeriodTabs() {
       const tabs =
         document.querySelectorAll(
-          '[data-period]'
+          ".period-tab"
         );
 
-      tabs.forEach(tab => {
-
+      tabs.forEach((tab) => {
         tab.addEventListener(
-          'click',
+          "click",
           async () => {
-
             const period =
               tab.dataset.period;
 
-            currentPeriod =
-              period;
+            if (!period) {
+              return;
+            }
 
-            tabs.forEach(item => {
+            currentPeriod = period;
+
+            tabs.forEach((item) => {
               item.classList.toggle(
-                'active',
+                "active",
                 item === tab
               );
             });
@@ -1432,52 +1230,36 @@
             await loadPersonal();
           }
         );
-
       });
     }
 
     function setupDetailsToggle() {
-      const button =
+      const toggle =
         document.getElementById(
-          'detailsToggle'
+          "detailsToggle"
         );
 
-      const details =
+      const content =
         document.getElementById(
-          'optionalDetails'
+          "detailsContent"
         );
 
-      const icon =
-        document.getElementById(
-          'detailsToggleIcon'
-        );
-
-      if (
-        !button ||
-        !details
-      ) {
+      if (!toggle || !content) {
         return;
       }
 
-      button.addEventListener(
-        'click',
+      toggle.addEventListener(
+        "click",
         () => {
-
           const open =
-            details.classList.toggle(
-              'open'
+            content.classList.toggle(
+              "open"
             );
 
-          button.setAttribute(
-            'aria-expanded',
-            String(open)
-          );
-
-          if (icon) {
-            icon.textContent =
-              open ? '−' : '＋';
-          }
-
+          toggle.textContent =
+            open
+              ? "詳細設定（任意）−"
+              : "詳細設定（任意）＋";
         }
       );
     }
@@ -1485,7 +1267,7 @@
     function setupRefresh() {
       const button =
         document.getElementById(
-          'refreshBtn'
+          "refreshButton"
         );
 
       if (!button) {
@@ -1493,23 +1275,15 @@
       }
 
       button.addEventListener(
-        'click',
+        "click",
         async () => {
-
           button.disabled = true;
 
           try {
             await loadPersonal();
-
-            showToast(
-              '更新しました'
-            );
-
           } finally {
-            button.disabled =
-              false;
+            button.disabled = false;
           }
-
         }
       );
     }
@@ -1518,31 +1292,31 @@
       timeValue
     ) {
       if (!timeValue) {
-        return undefined;
+        return null;
       }
 
       const parts =
-        String(timeValue).split(':');
+        timeValue.split(":");
 
       if (parts.length < 2) {
-        return undefined;
+        return null;
       }
 
-      const hour =
+      const hours =
         Number(parts[0]);
 
-      const minute =
+      const minutes =
         Number(parts[1]);
 
       if (
-        !Number.isInteger(hour) ||
-        !Number.isInteger(minute) ||
-        hour < 0 ||
-        hour > 23 ||
-        minute < 0 ||
-        minute > 59
+        !Number.isInteger(hours) ||
+        !Number.isInteger(minutes) ||
+        hours < 0 ||
+        hours > 23 ||
+        minutes < 0 ||
+        minutes > 59
       ) {
-        return undefined;
+        return null;
       }
 
       const now =
@@ -1554,20 +1328,18 @@
       const month =
         String(
           now.getMonth() + 1
-        ).padStart(2, '0');
+        ).padStart(2, "0");
 
       const day =
         String(
           now.getDate()
-        ).padStart(2, '0');
+        ).padStart(2, "0");
 
       const hh =
-        String(hour)
-          .padStart(2, '0');
+        String(hours).padStart(2, "0");
 
       const mm =
-        String(minute)
-          .padStart(2, '0');
+        String(minutes).padStart(2, "0");
 
       return (
         `${year}-${month}-${day}` +
@@ -1590,7 +1362,7 @@
       const value =
         element.value.trim();
 
-      if (value === '') {
+      if (value === "") {
         return undefined;
       }
 
@@ -1604,329 +1376,265 @@
       return number;
     }
 
-    function resetAddResultForm() {
-      const form =
+    async function saveResult() {
+      clearStatus();
+
+      const saleAmountInput =
         document.getElementById(
-          'addResultForm'
+          "saleAmountInput"
         );
 
-      form?.reset();
-
-      const details =
+      const deliveryCountInput =
         document.getElementById(
-          'optionalDetails'
+          "deliveryCountInput"
         );
 
-      const toggle =
+      const saveButton =
         document.getElementById(
-          'detailsToggle'
+          "saveButton"
         );
 
-      const icon =
-        document.getElementById(
-          'detailsToggleIcon'
+      const saleAmount =
+        Number(
+          saleAmountInput.value
         );
 
-      details?.classList.remove(
-        'open'
-      );
-
-      toggle?.setAttribute(
-        'aria-expanded',
-        'false'
-      );
-
-      if (icon) {
-        icon.textContent = '＋';
-      }
-    }
-
-    function setupAddResultForm() {
-      const form =
-        document.getElementById(
-          'addResultForm'
+      const deliveryCount =
+        Number(
+          deliveryCountInput.value
         );
 
-      if (!form) {
+      if (
+        !Number.isFinite(saleAmount) ||
+        saleAmount < 0
+      ) {
+        showStatus(
+          "売上を正しく入力してください",
+          "error"
+        );
         return;
       }
 
-      form.addEventListener(
-        'submit',
-        async event => {
+      if (
+        !Number.isFinite(deliveryCount) ||
+        deliveryCount < 0
+      ) {
+        showStatus(
+          "配達件数を正しく入力してください",
+          "error"
+        );
+        return;
+      }
 
-          event.preventDefault();
+      const workHours =
+        getOptionalNumber(
+          "workHoursInput"
+        );
 
-          if (!tg?.initData) {
-            showToast(
-              'Telegram Mini Appとして起動してください',
-              'error'
-            );
+      const distanceKm =
+        getOptionalNumber(
+          "distanceInput"
+        );
 
-            return;
-          }
+      const expenseAmount =
+        getOptionalNumber(
+          "expenseInput"
+        );
 
-          const submitButton =
-            form.querySelector(
-              '.add-result-submit'
-            );
+      const workStartedAt =
+        buildWorkStartedAt(
+          document.getElementById(
+            "workStartTimeInput"
+          )?.value || ""
+        );
 
-          const saleAmount =
-            getOptionalNumber(
-              'saleAmountInput'
-            );
+      if (
+        workHours !== undefined &&
+        workHours < 0
+      ) {
+        showStatus(
+          "稼働時間を正しく入力してください",
+          "error"
+        );
+        return;
+      }
 
-          const deliveryCount =
-            getOptionalNumber(
-              'deliveryCountInput'
-            );
+      if (
+        distanceKm !== undefined &&
+        distanceKm < 0
+      ) {
+        showStatus(
+          "走行距離を正しく入力してください",
+          "error"
+        );
+        return;
+      }
 
-          const workHours =
-            getOptionalNumber(
-              'workHoursInput'
-            );
+      if (
+        expenseAmount !== undefined &&
+        expenseAmount < 0
+      ) {
+        showStatus(
+          "経費を正しく入力してください",
+          "error"
+        );
+        return;
+      }
 
-          const distanceKm =
-            getOptionalNumber(
-              'distanceInput'
-            );
+      const body = {
+        saleAmount:
+          Math.round(saleAmount),
 
-          const expenseAmount =
-            getOptionalNumber(
-              'expenseInput'
-            );
+        deliveryCount:
+          Math.round(deliveryCount)
+      };
 
-          const workStartTime =
-            document
-              .getElementById(
-                'workStartTimeInput'
-              )
-              ?.value
-              ?.trim() || '';
+      if (
+        workHours !== undefined
+      ) {
+        body.workHours =
+          workHours;
+      }
 
-          if (
-            saleAmount === undefined ||
-            saleAmount < 0
-          ) {
-            showToast(
-              '売上を入力してください',
-              'error'
-            );
+      if (
+        distanceKm !== undefined
+      ) {
+        body.distanceKm =
+          distanceKm;
+      }
 
-            return;
-          }
+      // API は expense を受け取る
+      if (
+        expenseAmount !== undefined
+      ) {
+        body.expense =
+          Math.round(expenseAmount);
+      }
 
-          if (
-            deliveryCount === undefined ||
-            deliveryCount < 1
-          ) {
-            showToast(
-              '配達件数を入力してください',
-              'error'
-            );
+      if (workStartedAt) {
+        body.workStartedAt =
+          workStartedAt;
+      }
 
-            return;
-          }
+      saveButton.disabled = true;
+      saveButton.textContent =
+        "保存中...";
 
-          if (
-            workHours !== undefined &&
-            workHours < 0
-          ) {
-            showToast(
-              '稼働時間を確認してください',
-              'error'
-            );
+      try {
+        const response =
+          await apiFetch(
+            "/api/result",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+              body:
+                JSON.stringify(body)
+            }
+          );
 
-            return;
-          }
+        await readApiResponse(
+          response
+        );
 
-          if (
-            distanceKm !== undefined &&
-            distanceKm < 0
-          ) {
-            showToast(
-              '走行距離を確認してください',
-              'error'
-            );
+        saleAmountInput.value = "";
+        deliveryCountInput.value = "";
 
-            return;
-          }
+        document.getElementById(
+          "workStartTimeInput"
+        ).value = "";
 
-          if (
-            expenseAmount !== undefined &&
-            expenseAmount < 0
-          ) {
-            showToast(
-              '経費を確認してください',
-              'error'
-            );
+        document.getElementById(
+          "workHoursInput"
+        ).value = "";
 
-            return;
-          }
+        document.getElementById(
+          "distanceInput"
+        ).value = "";
 
-          const body = {
-            saleAmount:
-              Math.round(saleAmount),
+        document.getElementById(
+          "expenseInput"
+        ).value = "";
 
-            deliveryCount:
-              Math.round(deliveryCount)
-          };
+        showStatus(
+          "実績を保存しました",
+          "success"
+        );
 
-          if (
-            workHours !== undefined
-          ) {
-            body.workHours =
-              workHours;
-          }
+        await loadPersonal();
+      } catch (error) {
+        console.error(error);
 
-          if (
-            distanceKm !== undefined
-          ) {
-            body.distanceKm =
-              distanceKm;
-          }
+        showStatus(
+          error.message ||
+          "実績の保存に失敗しました",
+          "error"
+        );
+      } finally {
+        saveButton.disabled = false;
+        saveButton.textContent =
+          "実績を保存";
+      }
+    }
 
-          if (
-            expenseAmount !== undefined
-          ) {
-            body.expenseAmount =
-              Math.round(
-                expenseAmount
-              );
-          }
+    function setupSave() {
+      const button =
+        document.getElementById(
+          "saveButton"
+        );
 
-          const workStartedAt =
-            buildWorkStartedAt(
-              workStartTime
-            );
+      if (!button) {
+        return;
+      }
 
-          if (workStartedAt) {
-            body.workStartedAt =
-              workStartedAt;
-          }
-
-          submitButton.disabled =
-            true;
-
-          const originalText =
-            submitButton.textContent;
-
-          submitButton.textContent =
-            '保存中…';
-
-          try {
-
-            const response =
-              await apiFetch(
-                '/api/result',
-                {
-                  method: 'POST',
-
-                  headers: {
-                    'Content-Type':
-                      'application/json'
-                  },
-
-                  body:
-                    JSON.stringify(body)
-                }
-              );
-
-            await readApiResponse(
-              response
-            );
-
-            resetAddResultForm();
-
-            showToast(
-              '実績を保存しました'
-            );
-
-            await loadPersonal();
-
-          } catch (error) {
-
-            console.error(
-              'add result error:',
-              error
-            );
-
-            showToast(
-              error.message ||
-              '実績の保存に失敗しました',
-              'error'
-            );
-
-          } finally {
-
-            submitButton.disabled =
-              false;
-
-            submitButton.textContent =
-              originalText;
-          }
-        }
+      button.addEventListener(
+        "click",
+        saveResult
       );
     }
 
-    async function initializeApp() {
-
-      /*
-       * Telegram認証の前に
-       * UIイベントを登録する。
-       */
-      setupPeriodTabs();
-      setupDetailsToggle();
-      setupRefresh();
-      setupAddResultForm();
-
-      updateUserName();
-
-      if (!tg?.initData) {
-
-        document.getElementById(
-          'userName'
-        ).textContent =
-          'Telegram Mini Appとして起動してください';
-
-        showToast(
-          'Telegram Mini Appとして起動してください',
-          'error'
+    function initializeTelegram() {
+      if (!tg) {
+        showStatus(
+          "Telegram Mini App から開いてください",
+          "error"
         );
 
-        return;
+        return false;
       }
 
       try {
         tg.ready();
         tg.expand();
       } catch (error) {
-        console.warn(
-          'Telegram WebApp initialization warning:',
-          error
-        );
+        console.error(error);
       }
 
-      await loadPersonal();
+      return true;
     }
 
-    if (
-      document.readyState ===
-      'loading'
-    ) {
+    function initialize() {
+      setupPeriodTabs();
+      setupDetailsToggle();
+      setupRefresh();
+      setupSave();
 
-      document.addEventListener(
-        'DOMContentLoaded',
-        initializeApp,
-        { once: true }
-      );
+      const telegramReady =
+        initializeTelegram();
 
-    } else {
+      if (!telegramReady) {
+        return;
+      }
 
-      initializeApp();
-
+      loadPersonal();
     }
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      initialize
+    );
   </script>
-
 </body>
 </html>
