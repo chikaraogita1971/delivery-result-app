@@ -177,7 +177,15 @@ function formatNumber(value) {
 }
 
 function formatHours(value) {
-  return Number(value || 0)
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return "未入力";
+  }
+
+  return Number(value)
     .toFixed(1);
 }
 
@@ -198,7 +206,7 @@ function parseWorkHours(value) {
     return null;
   }
 
-  return hours;
+  return Math.round(hours * 100) / 100;
 }
 
 // =========================================================
@@ -258,6 +266,14 @@ async function writeAuditLog({
 
 // =========================================================
 // /add 引数解析
+//
+// 新形式:
+// /add 5000 5
+//
+// 旧形式:
+// /add 5000 5 2
+//
+// 旧形式は後方互換として受け付ける。
 // =========================================================
 
 function parseAddArguments(text) {
@@ -266,7 +282,10 @@ function parseAddArguments(text) {
       .trim()
       .split(/\s+/);
 
-  if (parts.length !== 4) {
+  if (
+    parts.length !== 3 &&
+    parts.length !== 4
+  ) {
     return null;
   }
 
@@ -275,9 +294,6 @@ function parseAddArguments(text) {
 
   const deliveryCount =
     Number(parts[2]);
-
-  const workHours =
-    parseWorkHours(parts[3]);
 
   if (
     !Number.isFinite(saleAmount) ||
@@ -297,14 +313,24 @@ function parseAddArguments(text) {
     return null;
   }
 
-  if (workHours === null) {
-    return null;
+  let workHours = null;
+
+  // 旧形式のみ稼働時間を受け付ける
+  if (parts.length === 4) {
+    workHours =
+      parseWorkHours(parts[3]);
+
+    if (workHours === null) {
+      return null;
+    }
   }
 
   return {
     saleAmount:
       Math.round(saleAmount),
+
     deliveryCount,
+
     workHours,
   };
 }
@@ -339,11 +365,14 @@ async function handleStart(message) {
     "",
     "配達実績を記録できます。",
     "",
-    "【記録】",
-    "/add 売上 配達件数 稼働時間",
+    "【かんたん登録】",
+    "/add 売上 配達件数",
     "",
     "例：",
-    "/add 5000 5 2",
+    "/add 5000 5",
+    "",
+    "稼働時間・開始時間・距離・経費などの詳細は",
+    "個人ダッシュボードから登録できます。",
     "",
     "【過去の実績】",
     "/month 今月の実績",
@@ -469,6 +498,10 @@ function parseYearArgument(text) {
   return value;
 }
 
+// =========================================================
+// 個人期間集計
+// =========================================================
+
 async function getPersonalPeriodStats(
   userId,
   start,
@@ -477,22 +510,32 @@ async function getPersonalPeriodStats(
   const rows = await sql`
     SELECT
       COUNT(*) AS records,
+
       COALESCE(
         SUM(sale_amount),
         0
       ) AS sales,
+
       COALESCE(
         SUM(delivery_count),
         0
       ) AS delivery_count,
+
       COALESCE(
         SUM(work_hours),
         0
       ) AS work_hours
+
     FROM delivery_results
-    WHERE telegram_user_id = ${userId}
-      AND created_at >= ${start}
-      AND created_at < ${end}
+
+    WHERE telegram_user_id =
+      ${userId}
+
+      AND created_at >=
+        ${start}
+
+      AND created_at <
+        ${end}
   `;
 
   const row =
@@ -727,10 +770,13 @@ async function handleHelp(message) {
     "📖 使い方",
     "",
     "【実績を登録】",
-    "/add 5000 5 2",
+    "/add 5000 5",
     "",
     "意味：",
-    "5000円の売上・5件配達・2時間稼働",
+    "5000円の売上・5件配達",
+    "",
+    "稼働時間・開始時間・距離・経費などの詳細は",
+    "個人ダッシュボードから登録できます。",
     "",
     "【月の実績】",
     "/month",
@@ -755,6 +801,7 @@ async function handleHelp(message) {
     text
   );
 }
+
 // =========================================================
 // /add
 // =========================================================
@@ -787,10 +834,14 @@ async function handleAdd(message) {
         "❌ 入力形式が正しくありません。",
         "",
         "正しい形式：",
-        "/add 売上 配達件数 稼働時間",
+        "/add 売上 配達件数",
         "",
         "例：",
+        "/add 5000 5",
+        "",
+        "※以前の形式",
         "/add 5000 5 2",
+        "も引き続き利用できます。",
       ].join("\n")
     );
   }
@@ -846,6 +897,7 @@ async function handleAdd(message) {
       : 0;
 
   const hourlySales =
+    workHours !== null &&
     workHours > 0
       ? saleAmount /
         workHours
@@ -860,16 +912,20 @@ async function handleAdd(message) {
     `配達：${formatNumber(
       deliveryCount
     )}件`,
-    `稼働：${formatHours(
-      workHours
-    )}時間`,
+    workHours !== null
+      ? `稼働：${formatHours(
+          workHours
+        )}時間`
+      : "稼働：未入力",
     "",
     `平均単価：¥${formatNumber(
       Math.round(unitPrice)
     )}`,
-    `時給換算：¥${formatNumber(
-      Math.round(hourlySales)
-    )}/h`,
+    workHours !== null
+      ? `時給換算：¥${formatNumber(
+          Math.round(hourlySales)
+        )}/h`
+      : "時給換算：未入力",
   ].join("\n");
 
   return sendMessage(
@@ -937,9 +993,11 @@ async function handleCancel(message) {
           row.delivery_count
         ),
       workHours:
-        Number(
-          row.work_hours
-        ),
+        row.work_hours === null
+          ? null
+          : Number(
+              row.work_hours
+            ),
     },
   });
 
@@ -1008,21 +1066,26 @@ async function getAdminStatistics() {
     await sql`
       SELECT
         COUNT(*) AS records,
+
         COUNT(
           DISTINCT telegram_user_id
         ) AS users,
+
         COALESCE(
           SUM(sale_amount),
           0
         ) AS sales,
+
         COALESCE(
           SUM(delivery_count),
           0
         ) AS delivery_count,
+
         COALESCE(
           SUM(work_hours),
           0
         ) AS work_hours
+
       FROM delivery_results
     `;
 
@@ -1030,22 +1093,28 @@ async function getAdminStatistics() {
     await sql`
       SELECT
         COUNT(*) AS records,
+
         COUNT(
           DISTINCT telegram_user_id
         ) AS users,
+
         COALESCE(
           SUM(sale_amount),
           0
         ) AS sales,
+
         COALESCE(
           SUM(delivery_count),
           0
         ) AS delivery_count,
+
         COALESCE(
           SUM(work_hours),
           0
         ) AS work_hours
+
       FROM delivery_results
+
       WHERE created_at >= (
         date_trunc(
           'month',
@@ -1063,17 +1132,22 @@ async function getAdminStatistics() {
         telegram_user_id,
         chat_id,
         created_at
+
       FROM audit_logs
+
       ORDER BY
         created_at DESC
+
       LIMIT 20
     `;
 
   return {
     overall:
       overallRows[0],
+
     month:
       monthRows[0],
+
     latestLogs:
       latestRows,
   };
